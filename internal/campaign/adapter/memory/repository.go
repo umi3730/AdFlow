@@ -60,6 +60,9 @@ func (r *Repository) List(_ context.Context, filter domain.ListFilter) ([]*domai
 		if filter.Status != nil && campaign.Status() != *filter.Status {
 			continue
 		}
+		if filter.SlotID != nil && campaign.SlotID() != *filter.SlotID {
+			continue
+		}
 		result = append(result, campaign.Clone())
 	}
 	sort.Slice(result, func(i, j int) bool { return result[i].ID() < result[j].ID() })
@@ -112,5 +115,25 @@ func (r *Repository) ListCreativesByCampaign(_ context.Context, campaignID strin
 		}
 	}
 	sort.Slice(result, func(i, j int) bool { return result[i].ID() < result[j].ID() })
+	return result, nil
+}
+
+func (r *Repository) ListActiveCreativeIDsByCampaigns(_ context.Context, campaignIDs []string) (map[string][]string, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	requested := make(map[string]struct{}, len(campaignIDs))
+	result := make(map[string][]string, len(campaignIDs))
+	for _, campaignID := range campaignIDs {
+		requested[campaignID] = struct{}{}
+		result[campaignID] = []string{}
+	}
+	for _, creative := range r.creatives {
+		if _, ok := requested[creative.CampaignID()]; ok && creative.Status() == domain.CreativeActive {
+			result[creative.CampaignID()] = append(result[creative.CampaignID()], creative.ID())
+		}
+	}
+	for campaignID := range result {
+		sort.Strings(result[campaignID])
+	}
 	return result, nil
 }

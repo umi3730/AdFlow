@@ -40,6 +40,7 @@ func TestKafkaAckBeforeOutboxMarkProducesOneMetric(t *testing.T) {
 	creativeID := newID(t)
 	userID := "user-" + newID(t)
 	prefix := "adflow:it:kafka:" + newID(t)
+	reservationTTL := 10 * time.Minute
 	t.Cleanup(func() {
 		deletePrefix(context.Background(), redisClient, prefix)
 		_, _ = db.Exec(`DELETE FROM campaign_metrics WHERE campaign_id = ?`, campaignID)
@@ -51,11 +52,11 @@ func TestKafkaAckBeforeOutboxMarkProducesOneMetric(t *testing.T) {
 
 	now := time.Now().UTC()
 	reservations := decisionredis.NewReservations(redisClient, prefix)
-	frequencyToken, allowed, err := reservations.ReserveFrequency(t.Context(), userID, campaignID, requestID, 3, now, 30*time.Second)
+	frequencyToken, allowed, err := reservations.ReserveFrequency(t.Context(), userID, campaignID, requestID, 3, now, reservationTTL)
 	if err != nil || !allowed {
 		t.Fatalf("frequency reservation allowed=%v err=%v", allowed, err)
 	}
-	budgetToken, allowed, err := reservations.ReserveBudget(t.Context(), campaignID, 1000, 100, requestID, now, 30*time.Second)
+	budgetToken, allowed, err := reservations.ReserveBudget(t.Context(), campaignID, 1000, 100, requestID, now, reservationTTL)
 	if err != nil || !allowed || frequencyToken != budgetToken {
 		t.Fatalf("budget reservation token=%s allowed=%v err=%v", budgetToken, allowed, err)
 	}
@@ -63,7 +64,7 @@ func TestKafkaAckBeforeOutboxMarkProducesOneMetric(t *testing.T) {
 	if err := decisionStore.SaveDecision(t.Context(), decisiondomain.Result{
 		RequestID: requestID, UserID: userID, SlotID: "integration-slot", Matched: true,
 		CampaignID: campaignID, CreativeID: creativeID, ReservationToken: budgetToken,
-		ExpiresAt: now.Add(30 * time.Second), Reason: decisiondomain.ReasonMatched,
+		ExpiresAt: now.Add(reservationTTL), Reason: decisiondomain.ReasonMatched,
 	}); err != nil {
 		t.Fatal(err)
 	}

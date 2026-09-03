@@ -105,3 +105,45 @@ func TestFindCampaignMapsNoRows(t *testing.T) {
 		t.Fatalf("error = %v", err)
 	}
 }
+
+func TestListCampaignsFiltersByStatusAndSlot(t *testing.T) {
+	repository, mock := testRepository(t)
+	status := domain.StatusActive
+	slot, _ := domain.NewSlotID("game-home-banner")
+	start := time.Date(2026, 9, 2, 0, 0, 0, 0, time.UTC)
+	end := start.Add(24 * time.Hour)
+	rows := sqlmock.NewRows([]string{
+		"id", "name", "slot_id", "start_at", "end_at", "status", "revision",
+		"version", "targeting_rule", "daily_budget", "impression_cost", "frequency_limit", "published_at",
+	}).AddRow(
+		"campaign000000000000000000000001", "Strategy Campaign", string(slot), start, end, string(status), 2,
+		1, []byte(`{"all":[{"tag":"anime"}]}`), 10_000, 100, 3, start.Add(time.Hour),
+	)
+	mock.ExpectQuery(regexp.QuoteMeta("WHERE c.status = ? AND c.slot_id = ? ORDER BY c.created_at DESC, c.id ASC LIMIT ? OFFSET ?")).
+		WithArgs(string(status), string(slot), 100, 0).WillReturnRows(rows)
+
+	campaigns, err := repository.List(context.Background(), domain.ListFilter{Status: &status, SlotID: &slot, Limit: 100})
+	if err != nil || len(campaigns) != 1 || campaigns[0].SlotID() != slot {
+		t.Fatalf("campaigns=%v err=%v", campaigns, err)
+	}
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestListActiveCreativeIDsByCampaignsUsesOneQuery(t *testing.T) {
+	repository, mock := testRepository(t)
+	mock.ExpectQuery(regexp.QuoteMeta("SELECT campaign_id, id FROM creatives WHERE campaign_id IN (?,?) AND status = ? ORDER BY campaign_id ASC, created_at DESC, id ASC")).
+		WithArgs("campaign-1", "campaign-2", string(domain.CreativeActive)).
+		WillReturnRows(sqlmock.NewRows([]string{"campaign_id", "id"}).
+			AddRow("campaign-1", "creative-1").
+			AddRow("campaign-2", "creative-2"))
+
+	result, err := repository.ListActiveCreativeIDsByCampaigns(context.Background(), []string{"campaign-1", "campaign-2"})
+	if err != nil || len(result["campaign-1"]) != 1 || result["campaign-1"][0] != "creative-1" || len(result["campaign-2"]) != 1 {
+		t.Fatalf("result=%v err=%v", result, err)
+	}
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Fatal(err)
+	}
+}

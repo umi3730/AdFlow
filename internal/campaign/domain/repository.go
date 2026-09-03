@@ -11,6 +11,7 @@ type Repository interface {
 
 type ListFilter struct {
 	Status *Status
+	SlotID *SlotID
 	Limit  int
 	Offset int
 }
@@ -20,4 +21,5 @@ type CreativeRepository interface {
 	SaveCreative(context.Context, *Creative, uint64) error
 	FindCreativeByID(context.Context, string) (*Creative, error)
 	ListCreativesByCampaign(context.Context, string) ([]*Creative, error)
+	ListActiveCreativeIDsByCampaigns(context.Context, []string) (map[string][]string, error)
 }

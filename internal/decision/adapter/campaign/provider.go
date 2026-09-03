@@ -19,31 +19,32 @@ func NewProvider(campaigns campaigndomain.Repository, creatives campaigndomain.C
 
 func (p *Provider) ActiveCandidates(ctx context.Context, slotID string, now time.Time) ([]decisiondomain.Candidate, error) {
 	status := campaigndomain.StatusActive
-	campaigns, err := p.campaigns.List(ctx, campaigndomain.ListFilter{Status: &status, Limit: 100})
+	slot, err := campaigndomain.NewSlotID(slotID)
 	if err != nil {
 		return nil, err
 	}
-	result := make([]decisiondomain.Candidate, 0, len(campaigns))
+	campaigns, err := p.campaigns.List(ctx, campaigndomain.ListFilter{Status: &status, SlotID: &slot, Limit: 100})
+	if err != nil {
+		return nil, err
+	}
+	eligible := make([]*campaigndomain.Campaign, 0, len(campaigns))
+	campaignIDs := make([]string, 0, len(campaigns))
 	for _, campaign := range campaigns {
-		if string(campaign.SlotID()) != slotID || now.Before(campaign.Period().Start()) || !now.Before(campaign.Period().End()) {
+		if now.Before(campaign.Period().Start()) || !now.Before(campaign.Period().End()) || campaign.ActiveVersion() == nil {
 			continue
 		}
+		eligible = append(eligible, campaign)
+		campaignIDs = append(campaignIDs, campaign.ID())
+	}
+	creativeIDs, err := p.creatives.ListActiveCreativeIDsByCampaigns(ctx, campaignIDs)
+	if err != nil {
+		return nil, err
+	}
+	result := make([]decisiondomain.Candidate, 0, len(eligible))
+	for _, campaign := range eligible {
 		version := campaign.ActiveVersion()
-		if version == nil {
-			continue
-		}
-		creatives, err := p.creatives.ListCreativesByCampaign(ctx, campaign.ID())
-		if err != nil {
-			return nil, err
-		}
-		creativeIDs := make([]string, 0, len(creatives))
-		for _, creative := range creatives {
-			if creative.Status() == campaigndomain.CreativeActive {
-				creativeIDs = append(creativeIDs, creative.ID())
-			}
-		}
 		result = append(result, decisiondomain.Candidate{
-			CampaignID: campaign.ID(), CreativeIDs: creativeIDs, Targeting: mapRule(version.Targeting()),
+			CampaignID: campaign.ID(), CreativeIDs: creativeIDs[campaign.ID()], Targeting: mapRule(version.Targeting()),
 			DailyBudgetFen: version.DailyBudget().Amount(), ImpressionCostFen: version.ImpressionCost().Amount(),
 			FrequencyLimit: version.FrequencyLimit(), StartAt: campaign.Period().Start(), EndAt: campaign.Period().End(),
 		})

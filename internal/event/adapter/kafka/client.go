@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log/slog"
+	"sync"
 	"time"
 
 	"github.com/twmb/franz-go/pkg/kgo"
@@ -90,6 +91,7 @@ func NewConsumer(brokers []string, topic, group string, logger *slog.Logger, obs
 		kgo.ConsumeTopics(topic),
 		kgo.DisableAutoCommit(),
 		kgo.ConsumeResetOffset(kgo.NewOffset().AtStart()),
+		kgo.BlockRebalanceOnPoll(),
 	)
 	if err != nil {
 		return nil, err
@@ -99,8 +101,9 @@ func NewConsumer(brokers []string, topic, group string, logger *slog.Logger, obs
 
 func (c *Consumer) Run(ctx context.Context, handle func(context.Context, domain.Event) error) error {
 	for ctx.Err() == nil {
-		fetches := c.client.PollFetches(ctx)
+		fetches := c.client.PollRecords(ctx, 300)
 		if err := fetches.Err(); err != nil {
+			c.client.AllowRebalance()
 			if ctx.Err() != nil {
 				return nil
 			}
@@ -108,32 +111,91 @@ func (c *Consumer) Run(ctx context.Context, handle func(context.Context, domain.
 			continue
 		}
 		highWatermarks := make(map[string]int64)
+		partitions := make([]kgo.FetchTopicPartition, 0)
 		fetches.EachPartition(func(partition kgo.FetchTopicPartition) {
 			highWatermarks[fmt.Sprintf("%s:%d", partition.Topic, partition.Partition)] = partition.HighWatermark
+			partitions = append(partitions, partition)
 		})
-		iter := fetches.RecordIter()
-		for !iter.Done() {
-			record := iter.Next()
-			if c.observer != nil {
-				high := highWatermarks[fmt.Sprintf("%s:%d", record.Topic, record.Partition)]
-				lag := max(high-record.Offset-1, 0)
-				c.observer.SetKafkaConsumerLag(record.Topic, record.Partition, lag)
+		results := make(chan partitionResult, len(partitions))
+		var wait sync.WaitGroup
+		for _, partition := range partitions {
+			wait.Add(1)
+			go func(partition kgo.FetchTopicPartition) {
+				defer wait.Done()
+				results <- c.processPartition(ctx, partition, highWatermarks, handle)
+			}(partition)
+		}
+		wait.Wait()
+		close(results)
+		commits := make([]*kgo.Record, 0, len(partitions))
+		retries := make([]*kgo.Record, 0, len(partitions))
+		for result := range results {
+			if result.commit != nil {
+				commits = append(commits, result.commit)
 			}
-			message, err := Decode(record.Value)
-			if err != nil {
-				c.logger.Error("decode kafka event", "error", err, "partition", record.Partition, "offset", record.Offset)
-				continue
-			}
-			if err := handle(ctx, message.Event); err != nil {
-				c.logger.Error("process kafka event", "error", err, "event_id", message.Event.EventID)
-				continue
-			}
-			if err := c.client.CommitRecords(ctx, record); err != nil {
-				c.logger.Error("commit kafka event", "error", err, "partition", record.Partition, "offset", record.Offset)
+			if result.retry != nil {
+				retries = append(retries, result.retry)
 			}
 		}
+		if len(commits) > 0 {
+			if err := c.client.CommitRecords(ctx, commits...); err != nil {
+				c.logger.Error("commit Kafka event batch", "error", err, "partitions", len(commits))
+				retries = append(retries, commits...)
+			}
+		}
+		if len(retries) > 0 && ctx.Err() == nil {
+			c.seekForRetry(retries)
+		}
+		c.client.AllowRebalance()
 	}
 	return nil
+}
+
+type partitionResult struct {
+	commit *kgo.Record
+	retry  *kgo.Record
+}
+
+func (c *Consumer) processPartition(ctx context.Context, partition kgo.FetchTopicPartition, highWatermarks map[string]int64, handle func(context.Context, domain.Event) error) partitionResult {
+	var result partitionResult
+	for _, record := range partition.Records {
+		if c.observer != nil {
+			high := highWatermarks[fmt.Sprintf("%s:%d", record.Topic, record.Partition)]
+			lag := max(high-record.Offset-1, 0)
+			c.observer.SetKafkaConsumerLag(record.Topic, record.Partition, lag)
+		}
+		message, err := Decode(record.Value)
+		if err != nil {
+			// Invalid envelopes cannot become valid through retry. Advance the
+			// partition and keep the error visible instead of blocking it forever.
+			c.logger.Error("decode Kafka event", "error", err, "partition", record.Partition, "offset", record.Offset)
+			result.commit = record
+			continue
+		}
+		if err := handle(ctx, message.Event); err != nil {
+			c.logger.Error("process Kafka event", "error", err, "event_id", message.Event.EventID, "partition", record.Partition, "offset", record.Offset)
+			result.retry = record
+			break
+		}
+		result.commit = record
+	}
+	return result
+}
+
+func (c *Consumer) seekForRetry(records []*kgo.Record) {
+	offsets := make(map[string]map[int32]kgo.EpochOffset)
+	for _, record := range records {
+		partitions := offsets[record.Topic]
+		if partitions == nil {
+			partitions = make(map[int32]kgo.EpochOffset)
+			offsets[record.Topic] = partitions
+		}
+		current, exists := partitions[record.Partition]
+		if !exists || record.Offset < current.Offset {
+			partitions[record.Partition] = kgo.EpochOffset{Epoch: record.LeaderEpoch, Offset: record.Offset}
+		}
+	}
+	c.client.SetOffsets(offsets)
 }
 
 func (c *Consumer) Close() { c.client.Close() }

@@ -196,6 +196,22 @@ Run a decision load test after installing k6:
 k6 run tests/load/decision.js
 ```
 
+For a repeatable full-path baseline with configurable campaign/profile cardinality, a warm-up phase, steady arrival rate, and impression ingestion, run:
+
+```powershell
+$env:CAMPAIGN_COUNT = "20"
+$env:PROFILE_COUNT = "1000"
+$env:TARGET_RATE = "200"
+$env:WARMUP_DURATION = "30s"
+$env:STEADY_DURATION = "2m"
+$env:COOLDOWN_DURATION = "15s"
+New-Item -ItemType Directory -Force work | Out-Null
+k6 run --summary-export=work/k6-delivery.json tests/load/delivery-sustained.js
+```
+
+The script creates one matching campaign segment per campaign, distributes a reusable profile pool across those segments, then measures decision latency and the complete decision-to-impression path. Use `SEND_IMPRESSIONS=false` to isolate decision performance. Setup traffic has named tags so it can be separated from steady-state endpoint metrics.
+Set a stable `RUN_ID`, then use `SEED_DATA=false` on later runs to reuse the same campaigns and profiles for comparable A/B measurements.
+
 To demonstrate overload behavior, lower the admission limits and run the arrival-rate spike profile:
 
 ```powershell

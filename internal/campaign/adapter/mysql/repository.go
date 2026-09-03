@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/zhanghaiyang/adflow/internal/campaign/domain"
 )
@@ -89,10 +90,18 @@ func (r *Repository) FindByID(ctx context.Context, id string) (*domain.Campaign,
 
 func (r *Repository) List(ctx context.Context, filter domain.ListFilter) ([]*domain.Campaign, error) {
 	query := campaignSelect
-	args := make([]any, 0, 3)
+	conditions := make([]string, 0, 2)
+	args := make([]any, 0, 4)
 	if filter.Status != nil {
-		query += " WHERE c.status = ?"
+		conditions = append(conditions, "c.status = ?")
 		args = append(args, string(*filter.Status))
+	}
+	if filter.SlotID != nil {
+		conditions = append(conditions, "c.slot_id = ?")
+		args = append(args, string(*filter.SlotID))
+	}
+	if len(conditions) > 0 {
+		query += " WHERE " + strings.Join(conditions, " AND ")
 	}
 	query += " ORDER BY c.created_at DESC, c.id ASC LIMIT ? OFFSET ?"
 	args = append(args, filter.Limit, filter.Offset)
@@ -221,6 +230,38 @@ func (r *Repository) ListCreativesByCampaign(ctx context.Context, campaignID str
 			return nil, scanErr
 		}
 		result = append(result, creative)
+	}
+	return result, rows.Err()
+}
+
+func (r *Repository) ListActiveCreativeIDsByCampaigns(ctx context.Context, campaignIDs []string) (map[string][]string, error) {
+	result := make(map[string][]string, len(campaignIDs))
+	if len(campaignIDs) == 0 {
+		return result, nil
+	}
+	placeholders := make([]string, len(campaignIDs))
+	args := make([]any, 0, len(campaignIDs)+1)
+	for index, campaignID := range campaignIDs {
+		placeholders[index] = "?"
+		args = append(args, campaignID)
+		result[campaignID] = []string{}
+	}
+	args = append(args, string(domain.CreativeActive))
+	rows, err := r.db.QueryContext(ctx, `
+		SELECT campaign_id, id
+		FROM creatives
+		WHERE campaign_id IN (`+strings.Join(placeholders, ",")+`) AND status = ?
+		ORDER BY campaign_id ASC, created_at DESC, id ASC`, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var campaignID, creativeID string
+		if err := rows.Scan(&campaignID, &creativeID); err != nil {
+			return nil, err
+		}
+		result[campaignID] = append(result[campaignID], creativeID)
 	}
 	return result, rows.Err()
 }

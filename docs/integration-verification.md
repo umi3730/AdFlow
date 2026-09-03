@@ -8,7 +8,7 @@ The baseline was verified on 2026-09-03 with Go on Windows, MySQL 8.0.46 in WSL,
 
 ## Preparation
 
-1. Create an empty MySQL database and a least-privilege test user.
+1. Create an empty MySQL database and a least-privilege test user. Do not run a long-lived AdFlow API or another Outbox relay against this database while the suite is running; the fault-injection tests intentionally control relay ownership and timing.
 2. Set `ADFLOW_MYSQL_DSN` and run `go run ./cmd/migrate -dir migrations` twice. The first run applies the files; the second must report an empty applied list.
 3. Create the Kafka topics configured by `ADFLOW_IT_KAFKA_TOPIC`, `ADFLOW_IT_KAFKA_DEAD_LETTER_TOPIC`, and `ADFLOW_IT_KAFKA_RESTART_TOPIC`.
 4. Export the variables shown in `.env.integration.example`, replacing the example credentials.
