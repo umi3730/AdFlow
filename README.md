@@ -1,0 +1,150 @@
+# AdFlow
+
+AdFlow is a Go-based real-time advertising decision platform built as a portfolio-grade backend project. The MVP covers campaign configuration, deterministic targeting, frequency caps, budget reservations, ad events, and an approval-gated Agent rule assistant.
+
+## Current milestone
+
+M0 foundation:
+
+- Go modular monolith layout with Gin at the HTTP boundary
+- JSON structured logging
+- liveness and dependency-aware readiness endpoints
+- request ID, structured access logging, recovery, and validated JSON binding
+- MySQL and Redis clients with bounded health checks
+- graceful shutdown
+- initial campaign schema
+- Docker Compose development stack
+
+M1 campaign context (implemented):
+
+- DDD-lite Campaign aggregate and value objects
+- draft, publish, pause, and resume state transitions
+- immutable active campaign version
+- optimistic revision checks in the Repository port
+- in-memory Repository adapter for local development and tests
+- Gin REST endpoints with end-to-end lifecycle tests
+
+M2 decision context (implemented):
+
+- profile tags and fields
+- deterministic all/any/none targeting evaluation
+- active campaign and creative candidate adapter
+- request idempotency
+- atomic in-memory frequency and budget reservations with TTL release
+- deterministic creative selection
+- matched and explicit No-Ad responses
+
+M3 measurement context (implemented with local and Kafka modes):
+
+- Redis Lua frequency and budget reservation adapter
+- reservation confirmation and release
+- idempotent impression, click, and conversion events
+- impression-before-click/conversion ordering rule
+- campaign delivery metrics
+- Kafka producer and consumer group adapters using franz-go
+- versioned `adflow.ad-events.v1` event envelope
+- `requestId` partition key for per-decision ordering
+- MySQL transactional outbox with duplicate receipt protection
+- lease-based multi-relay batch claiming compatible with MySQL 5.7
+- exponential publish retry and consumer-side persistent `eventId` idempotency
+- dead-letter publication after eight failed relay attempts
+- persistent decision idempotency records for delayed event verification
+- Prometheus outbox-depth, relay-result, and Kafka consumer-lag metrics
+
+M5 Agent assistant (basic implementation):
+
+- provider-neutral rule generation interface
+- deterministic local mock provider for offline development
+- campaign-domain validation of every generated draft
+- explicit provider, model, prompt-version, explanation, and warning metadata
+- separate human confirmation before campaign publication
+
+M4 administration UI (basic implementation):
+
+- React and TypeScript working console
+- campaign, creative, profile, decision, event, and metric workflows
+- Agent rule draft preview and explicit human-confirmed publication
+- responsive navigation, API connection state, and failure feedback
+
+## Run locally
+
+Prerequisites: Go 1.27+. MySQL 5.7+ and Redis 6+ are optional while using the in-memory adapters.
+
+```powershell
+go mod download
+go run ./cmd/api
+```
+
+Campaign persistence defaults to the in-memory adapter so the API can be explored without Docker or MySQL. Set `ADFLOW_CAMPAIGN_REPOSITORY=mysql` after applying the migration to use the MySQL adapter.
+
+Frequency and budget reservations also default to memory. Set `ADFLOW_RESERVATION_ADAPTER=redis` to use the atomic Redis Lua adapter.
+
+Event processing defaults to synchronous local mode. To enable Kafka, create the configured topic and set:
+
+```env
+ADFLOW_EVENT_TRANSPORT=kafka
+ADFLOW_DECISION_STORE=mysql
+ADFLOW_PROFILE_STORE=mysql
+ADFLOW_KAFKA_BROKERS=127.0.0.1:9092
+ADFLOW_KAFKA_TOPIC=adflow.ad-events.v1
+ADFLOW_KAFKA_DEAD_LETTER_TOPIC=adflow.ad-events.dlq.v1
+ADFLOW_KAFKA_CONSUMER_GROUP=adflow-metrics-v1
+```
+
+Kafka uses `requestId` as the record key, at-least-once delivery, manual offset commits after successful processing, and `eventId` idempotency at the consumer boundary. Kafka mode requires migrations `000002_events` and `000003_decisions`.
+
+The local API listens on `http://localhost:18080` by default; the administration UI runs on `http://localhost:3000`.
+
+Run the administration UI in a second terminal:
+
+```powershell
+cd web
+npm run dev
+```
+
+The current UI includes dashboard metrics, campaign lifecycle actions, creative management, simulated profiles, decision debugging, and impression/click/conversion controls.
+
+The OpenAPI 3.1 contract is maintained at `docs/openapi.yaml`.
+
+Run a decision load test after installing k6:
+
+```powershell
+k6 run tests/load/decision.js
+```
+
+The script reports decision-specific P95/P99 latency and error rate. Keep the machine configuration and test parameters with any resume performance numbers.
+
+Endpoints:
+
+- `GET /livez` — process liveness
+- `GET /readyz` — MySQL and Redis readiness
+- `GET /metrics` — Prometheus HTTP, decision, event, process, and Go runtime metrics
+- `POST /v1/campaigns` — create a draft campaign
+- `PUT /v1/campaigns/{id}` — edit a draft campaign
+- `GET /v1/campaigns` — list campaigns with status/limit/offset filters
+- `GET /v1/campaigns/{id}` — fetch a campaign
+- `POST /v1/campaigns/{id}/publish` — publish an immutable version
+- `POST /v1/campaigns/{id}/pause` — pause an active campaign
+- `POST /v1/campaigns/{id}/resume` — resume a paused campaign
+- `POST /v1/campaigns/{id}/creatives` — create an active creative
+- `GET /v1/campaigns/{id}/creatives` — list campaign creatives
+- `POST /v1/campaigns/{id}/creatives/{creativeId}/disable` — disable a creative
+- `PUT /v1/profiles/{userId}` — create or replace a simulated user profile
+- `POST /v1/decisions` — request an advertisement decision
+- `POST /v1/events` — record an impression, click, or conversion
+- `GET /v1/campaigns/{id}/metrics` — read campaign delivery metrics
+- `POST /v1/agent/rule-drafts` — generate and validate a targeting rule draft without publishing it
+
+With Docker installed:
+
+```powershell
+docker compose up --build
+```
+
+## Architecture direction
+
+The first release is a modular monolith. Gin is restricted to the HTTP transport layer; domain services use standard `context.Context` and depend on interfaces. MySQL, Redis, HTTP, and future model providers live behind adapters. Services will be split only after load tests identify a concrete scaling or isolation need.
+
+## Next milestone
+
+The next infrastructure step is a real Kafka/MySQL integration environment and end-to-end restart test. The local synchronous path remains the default until those services are available.

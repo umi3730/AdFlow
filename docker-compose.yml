@@ -1,0 +1,52 @@
+services:
+  mysql:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: adflow
+      MYSQL_USER: adflow
+      MYSQL_PASSWORD: adflow
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./migrations/000001_init.up.sql:/docker-entrypoint-initdb.d/000001_init.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uadflow", "-padflow"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  redis:
+    image: redis:8-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  api:
+    build: .
+    environment:
+      ADFLOW_ENV: docker
+      ADFLOW_HTTP_ADDR: :8080
+      ADFLOW_MYSQL_DSN: adflow:adflow@tcp(mysql:3306)/adflow?parseTime=true&charset=utf8mb4&loc=Local
+      ADFLOW_REDIS_ADDR: redis:6379
+      ADFLOW_CAMPAIGN_REPOSITORY: mysql
+      ADFLOW_RESERVATION_ADAPTER: redis
+    ports:
+      - "8080:8080"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+volumes:
+  mysql_data:
+  redis_data:

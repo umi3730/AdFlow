@@ -1,0 +1,239 @@
+openapi: 3.1.0
+info:
+  title: AdFlow API
+  version: 0.1.0
+  description: Local API for campaign management, advertising decisions, event collection, and Agent-assisted rule drafts.
+servers:
+  - url: http://localhost:18080
+paths:
+  /livez:
+    get:
+      summary: Process liveness
+      responses:
+        '200': { description: Process is alive }
+  /readyz:
+    get:
+      summary: Dependency readiness
+      responses:
+        '200': { description: All configured dependencies are ready }
+        '503': { description: One or more dependencies are unavailable }
+  /metrics:
+    get:
+      summary: Prometheus metrics
+      responses:
+        '200': { description: Prometheus text exposition }
+  /v1/campaigns:
+    get:
+      summary: List campaigns
+      parameters:
+        - { name: status, in: query, schema: { type: string, enum: [DRAFT, ACTIVE, PAUSED, ENDED] } }
+        - { name: limit, in: query, schema: { type: integer, minimum: 0, maximum: 100, default: 20 } }
+        - { name: offset, in: query, schema: { type: integer, minimum: 0, default: 0 } }
+      responses:
+        '200': { description: Campaign page }
+    post:
+      summary: Create campaign draft
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CampaignWrite' }
+      responses:
+        '201': { description: Campaign draft created }
+        '400': { $ref: '#/components/responses/BadRequest' }
+  /v1/campaigns/{campaignId}:
+    parameters:
+      - $ref: '#/components/parameters/CampaignId'
+    get:
+      summary: Get campaign
+      responses:
+        '200': { description: Campaign aggregate }
+        '404': { description: Campaign not found }
+    put:
+      summary: Edit campaign draft
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CampaignWrite' }
+      responses:
+        '200': { description: Draft updated }
+        '422': { description: Campaign is not editable or violates a domain rule }
+  /v1/campaigns/{campaignId}/publish:
+    parameters:
+      - $ref: '#/components/parameters/CampaignId'
+    post:
+      summary: Publish an immutable campaign version
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PublishCampaign' }
+      responses:
+        '200': { description: Version published }
+        '422': { description: Domain validation failed }
+  /v1/campaigns/{campaignId}/pause:
+    parameters:
+      - $ref: '#/components/parameters/CampaignId'
+    post:
+      summary: Pause active campaign
+      responses:
+        '200': { description: Campaign paused }
+  /v1/campaigns/{campaignId}/resume:
+    parameters:
+      - $ref: '#/components/parameters/CampaignId'
+    post:
+      summary: Resume paused campaign
+      responses:
+        '200': { description: Campaign resumed }
+  /v1/campaigns/{campaignId}/creatives:
+    parameters:
+      - $ref: '#/components/parameters/CampaignId'
+    get:
+      summary: List campaign creatives
+      responses:
+        '200': { description: Creative list }
+    post:
+      summary: Create creative
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateCreative' }
+      responses:
+        '201': { description: Creative created }
+  /v1/campaigns/{campaignId}/creatives/{creativeId}/disable:
+    parameters:
+      - $ref: '#/components/parameters/CampaignId'
+      - { name: creativeId, in: path, required: true, schema: { type: string } }
+    post:
+      summary: Disable creative
+      responses:
+        '200': { description: Creative disabled }
+  /v1/profiles/{userId}:
+    parameters:
+      - { name: userId, in: path, required: true, schema: { type: string, maxLength: 128 } }
+    put:
+      summary: Create or replace simulated profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                tags: { type: array, maxItems: 100, items: { type: string } }
+                fields: { type: object, additionalProperties: { type: string } }
+      responses:
+        '204': { description: Profile stored }
+  /v1/decisions:
+    post:
+      summary: Request an advertising decision
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [requestId, userId, slotId]
+              properties:
+                requestId: { type: string, maxLength: 128 }
+                userId: { type: string, maxLength: 128 }
+                slotId: { type: string, maxLength: 64 }
+      responses:
+        '200':
+          description: Matched decision or fail-closed No-Ad result
+  /v1/events:
+    post:
+      summary: Record or enqueue advertising event
+      description: Returns 201 in synchronous mode and 202 in Kafka mode.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AdEvent' }
+      responses:
+        '200': { description: Duplicate event accepted idempotently }
+        '201': { description: Event processed synchronously }
+        '202': { description: Event persisted to transactional Outbox }
+  /v1/campaigns/{campaignId}/metrics:
+    parameters:
+      - $ref: '#/components/parameters/CampaignId'
+    get:
+      summary: Read campaign delivery metrics
+      responses:
+        '200': { description: Impression, click, conversion, and value totals }
+  /v1/agent/rule-drafts:
+    post:
+      summary: Generate a validated targeting rule draft
+      description: This endpoint cannot publish or modify campaign configuration.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [prompt]
+              properties:
+                prompt: { type: string, minLength: 5, maxLength: 2000 }
+      responses:
+        '200': { description: Validated rule draft with provider metadata and warnings }
+        '422': { description: Prompt or generated draft is invalid }
+components:
+  parameters:
+    CampaignId:
+      name: campaignId
+      in: path
+      required: true
+      schema: { type: string }
+  responses:
+    BadRequest:
+      description: Invalid JSON or field validation failure
+  schemas:
+    CampaignWrite:
+      type: object
+      required: [name, slotId, startAt, endAt]
+      properties:
+        name: { type: string, minLength: 2, maxLength: 128 }
+        slotId: { type: string, minLength: 2, maxLength: 64 }
+        startAt: { type: string, format: date-time }
+        endAt: { type: string, format: date-time }
+    Condition:
+      type: object
+      properties:
+        tag: { type: string }
+        field: { type: string }
+        op: { type: string, enum: [eq, in, gte, lte] }
+        value: { type: string }
+    PublishCampaign:
+      type: object
+      required: [targeting, dailyBudgetFen, impressionCostFen, frequencyLimit]
+      properties:
+        targeting:
+          type: object
+          properties:
+            all: { type: array, items: { $ref: '#/components/schemas/Condition' } }
+            any: { type: array, items: { $ref: '#/components/schemas/Condition' } }
+            none: { type: array, items: { $ref: '#/components/schemas/Condition' } }
+        dailyBudgetFen: { type: integer, minimum: 1 }
+        impressionCostFen: { type: integer, minimum: 1 }
+        frequencyLimit: { type: integer, minimum: 1, maximum: 100 }
+    CreateCreative:
+      type: object
+      required: [title, imageUrl, landingUrl]
+      properties:
+        title: { type: string, minLength: 2, maxLength: 128 }
+        description: { type: string, maxLength: 512 }
+        imageUrl: { type: string, format: uri }
+        landingUrl: { type: string, format: uri }
+    AdEvent:
+      type: object
+      required: [eventId, requestId, campaignId, creativeId, type]
+      properties:
+        eventId: { type: string, maxLength: 128 }
+        requestId: { type: string, maxLength: 128 }
+        campaignId: { type: string }
+        creativeId: { type: string }
+        type: { type: string, enum: [impression, click, conversion] }
+        valueFen: { type: integer, minimum: 0 }
+        occurredAt: { type: string, format: date-time }

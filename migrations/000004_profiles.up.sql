@@ -1,0 +1,7 @@
+CREATE TABLE user_profiles (
+    user_id VARCHAR(128) NOT NULL,
+    tags JSON NOT NULL,
+    fields JSON NOT NULL,
+    updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+    PRIMARY KEY (user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
