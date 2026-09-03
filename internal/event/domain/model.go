@@ -47,8 +47,17 @@ type Store interface {
 	Metrics(context.Context, string) (Metrics, error)
 }
 
+type BatchStore interface {
+	RecordBatch(context.Context, []Event) ([]bool, error)
+	HasImpressions(context.Context, []string) (map[string]bool, error)
+}
+
 type DecisionFinder interface {
 	FindDecision(context.Context, string) (decisiondomain.Result, bool, error)
+}
+
+type BatchDecisionFinder interface {
+	FindDecisions(context.Context, []string) (map[string]decisiondomain.Result, error)
 }
 
 type ReservationConfirmer interface {
@@ -58,6 +67,10 @@ type ReservationConfirmer interface {
 
 type Publisher interface {
 	PublishEvent(context.Context, Event) error
+}
+
+type BatchPublisher interface {
+	PublishEvents(context.Context, []Event) error
 }
 
 type DeadLetterPublisher interface {
@@ -80,6 +93,10 @@ type Outbox interface {
 	MarkFailed(context.Context, string, string, time.Time) error
 	MarkDeadLetter(context.Context, string, string, time.Time) error
 	Stats(context.Context) (OutboxStats, error)
+}
+
+type PublishedBatchMarker interface {
+	MarkPublishedBatch(context.Context, []string, time.Time) error
 }
 
 type OutboxStats struct {

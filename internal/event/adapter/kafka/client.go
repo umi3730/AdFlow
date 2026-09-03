@@ -45,6 +45,24 @@ func (p *Publisher) PublishEvent(ctx context.Context, event domain.Event) error 
 	return p.publish(ctx, p.topic, event.RequestID, value)
 }
 
+func (p *Publisher) PublishEvents(ctx context.Context, events []domain.Event) error {
+	if len(events) == 0 {
+		return nil
+	}
+	records := make([]*kgo.Record, 0, len(events))
+	for _, event := range events {
+		value, err := json.Marshal(Message{SchemaVersion: SchemaVersion, Event: event})
+		if err != nil {
+			return err
+		}
+		records = append(records, &kgo.Record{Topic: p.topic, Key: []byte(event.RequestID), Value: value})
+	}
+	if result := p.client.ProduceSync(ctx, records...).FirstErr(); result != nil {
+		return fmt.Errorf("publish Kafka event batch to %s: %w", p.topic, result)
+	}
+	return nil
+}
+
 type DeadLetterMessage struct {
 	SchemaVersion int          `json:"schemaVersion"`
 	Event         domain.Event `json:"event"`
@@ -100,6 +118,18 @@ func NewConsumer(brokers []string, topic, group string, logger *slog.Logger, obs
 }
 
 func (c *Consumer) Run(ctx context.Context, handle func(context.Context, domain.Event) error) error {
+	return c.run(ctx, func(ctx context.Context, partition kgo.FetchTopicPartition, highWatermarks map[string]int64) partitionResult {
+		return c.processPartition(ctx, partition, highWatermarks, handle)
+	})
+}
+
+func (c *Consumer) RunBatch(ctx context.Context, handle func(context.Context, []domain.Event) error) error {
+	return c.run(ctx, func(ctx context.Context, partition kgo.FetchTopicPartition, highWatermarks map[string]int64) partitionResult {
+		return c.processPartitionBatch(ctx, partition, highWatermarks, handle)
+	})
+}
+
+func (c *Consumer) run(ctx context.Context, process func(context.Context, kgo.FetchTopicPartition, map[string]int64) partitionResult) error {
 	for ctx.Err() == nil {
 		fetches := c.client.PollRecords(ctx, 300)
 		if err := fetches.Err(); err != nil {
@@ -122,7 +152,7 @@ func (c *Consumer) Run(ctx context.Context, handle func(context.Context, domain.
 			wait.Add(1)
 			go func(partition kgo.FetchTopicPartition) {
 				defer wait.Done()
-				results <- c.processPartition(ctx, partition, highWatermarks, handle)
+				results <- process(ctx, partition, highWatermarks)
 			}(partition)
 		}
 		wait.Wait()
@@ -179,6 +209,43 @@ func (c *Consumer) processPartition(ctx context.Context, partition kgo.FetchTopi
 		}
 		result.commit = record
 	}
+	return result
+}
+
+func (c *Consumer) processPartitionBatch(ctx context.Context, partition kgo.FetchTopicPartition, highWatermarks map[string]int64, handle func(context.Context, []domain.Event) error) partitionResult {
+	var result partitionResult
+	events := make([]domain.Event, 0, len(partition.Records))
+	var firstValid *kgo.Record
+	var lastRecord *kgo.Record
+	for _, record := range partition.Records {
+		lastRecord = record
+		if c.observer != nil {
+			high := highWatermarks[fmt.Sprintf("%s:%d", record.Topic, record.Partition)]
+			lag := max(high-record.Offset-1, 0)
+			c.observer.SetKafkaConsumerLag(record.Topic, record.Partition, lag)
+		}
+		message, err := Decode(record.Value)
+		if err != nil {
+			c.logger.Error("decode Kafka event", "error", err, "partition", record.Partition, "offset", record.Offset)
+			if firstValid == nil {
+				result.commit = record
+			}
+			continue
+		}
+		if firstValid == nil {
+			firstValid = record
+		}
+		events = append(events, message.Event)
+	}
+	if len(events) == 0 {
+		return result
+	}
+	if err := handle(ctx, events); err != nil {
+		c.logger.Error("process Kafka event batch", "error", err, "partition", partition.Partition, "first_offset", firstValid.Offset, "events", len(events))
+		result.retry = firstValid
+		return result
+	}
+	result.commit = lastRecord
 	return result
 }
 

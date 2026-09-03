@@ -68,6 +68,21 @@ func (r *Runtime) FindDecision(_ context.Context, requestID string) (domain.Resu
 	return stored.result, true, nil
 }
 
+func (r *Runtime) FindDecisions(_ context.Context, requestIDs []string) (map[string]domain.Result, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	now := time.Now().UTC()
+	r.cleanupExpired(now)
+	result := make(map[string]domain.Result, len(requestIDs))
+	for _, requestID := range requestIDs {
+		stored, exists := r.decisions[requestID]
+		if exists && (stored.expiresAt.IsZero() || now.Before(stored.expiresAt)) {
+			result[requestID] = stored.result
+		}
+	}
+	return result, nil
+}
+
 func (r *Runtime) SaveDecision(_ context.Context, result domain.Result) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()

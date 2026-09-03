@@ -4,6 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"fmt"
+	"strings"
 	"time"
 
 	"github.com/zhanghaiyang/adflow/internal/event/domain"
@@ -121,6 +123,34 @@ func (o *Outbox) MarkPublished(ctx context.Context, eventID string, publishedAt 
 		publishedAt, eventID, o.workerID,
 	)
 	return err
+}
+
+func (o *Outbox) MarkPublishedBatch(ctx context.Context, eventIDs []string, publishedAt time.Time) error {
+	if len(eventIDs) == 0 {
+		return nil
+	}
+	placeholders := strings.TrimSuffix(strings.Repeat("?,", len(eventIDs)), ",")
+	args := make([]any, 0, len(eventIDs)+2)
+	args = append(args, publishedAt)
+	for _, eventID := range eventIDs {
+		args = append(args, eventID)
+	}
+	args = append(args, o.workerID)
+	result, err := o.db.ExecContext(ctx, `
+		UPDATE event_outbox
+		SET status = 'PUBLISHED', published_at = ?, locked_by = NULL, locked_until = NULL, last_error = NULL
+		WHERE event_id IN (`+placeholders+`) AND status = 'PROCESSING' AND locked_by = ?`, args...)
+	if err != nil {
+		return err
+	}
+	updated, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if updated != int64(len(eventIDs)) {
+		return fmt.Errorf("mark published batch updated %d of %d Outbox rows", updated, len(eventIDs))
+	}
+	return nil
 }
 
 func (o *Outbox) MarkFailed(ctx context.Context, eventID, message string, nextAttempt time.Time) error {

@@ -85,3 +85,15 @@ func TestOutboxClaimBatchUsesLease(t *testing.T) {
 		t.Fatalf("entries=%+v err=%v", entries, err)
 	}
 }
+
+func TestOutboxMarksPublishedBatchInOneStatement(t *testing.T) {
+	db, mock := mockDB(t)
+	outbox := NewOutbox(db, "worker-1")
+	publishedAt := time.Date(2026, 9, 3, 1, 0, 0, 0, time.UTC)
+	mock.ExpectExec("UPDATE event_outbox").
+		WithArgs(publishedAt, "event-1", "event-2", "worker-1").
+		WillReturnResult(sqlmock.NewResult(0, 2))
+	if err := outbox.MarkPublishedBatch(context.Background(), []string{"event-1", "event-2"}, publishedAt); err != nil {
+		t.Fatal(err)
+	}
+}

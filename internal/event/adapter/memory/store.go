@@ -41,6 +41,43 @@ func (s *Store) Record(_ context.Context, event domain.Event) (bool, error) {
 	return true, nil
 }
 
+func (s *Store) RecordBatch(_ context.Context, events []domain.Event) ([]bool, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	created := make([]bool, len(events))
+	for index, event := range events {
+		if _, exists := s.events[event.EventID]; exists {
+			continue
+		}
+		created[index] = true
+		s.events[event.EventID] = event
+		metric := s.metrics[event.CampaignID]
+		metric.CampaignID = event.CampaignID
+		switch event.Type {
+		case domain.Impression:
+			metric.Impressions++
+			s.impressions[event.RequestID] = struct{}{}
+		case domain.Click:
+			metric.Clicks++
+		case domain.Conversion:
+			metric.Conversions++
+			metric.ValueFen += event.ValueFen
+		}
+		s.metrics[event.CampaignID] = metric
+	}
+	return created, nil
+}
+
+func (s *Store) HasImpressions(_ context.Context, requestIDs []string) (map[string]bool, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	result := make(map[string]bool, len(requestIDs))
+	for _, requestID := range requestIDs {
+		_, result[requestID] = s.impressions[requestID]
+	}
+	return result, nil
+}
+
 func (s *Store) HasImpression(_ context.Context, requestID string) (bool, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()

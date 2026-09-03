@@ -99,4 +99,39 @@ The load run also exposed a second bottleneck: the consumer processed every Kafk
 
 During backlog replay, the new consumer processed 273 events in the first measured 20-second interval (about 13.7 events/s) and subsequently reduced all three partition lags to zero. MySQL contained 3,050 processed events and 3,050 aggregate impressions after the drain.
 
-The next optimization target is the per-event MySQL transaction in the consumer. Candidate snapshots/caching and batched metric persistence should be evaluated before raising the supported arrival-rate baseline.
+These findings motivated the batched persistence experiment in Baseline 004. Candidate snapshots remain a separate online-path optimization.
+
+## Baseline 004 — batched Kafka persistence pipeline
+
+The consumer bottleneck from Baseline 003 was addressed with an atomic batch path:
+
+- Decisions are fetched for the partition batch with one `IN` query.
+- Existing impression dependencies are fetched once for click/conversion validation.
+- Up to 300 decoded events enter one MySQL transaction.
+- A generated `processing_batch_id` identifies exactly which `INSERT IGNORE` rows were newly created, so duplicate `eventId` values do not inflate metrics.
+- Newly inserted events are aggregated by campaign and applied with one multi-row metric upsert.
+- Kafka partitions run concurrently, remain ordered internally, and commit only their highest contiguous successful offsets.
+- The Outbox relay publishes up to 100 events with one Kafka `ProduceSync` call and marks the successful batch with one MySQL update.
+
+Migration `000006_event_processing_batches.up.sql` adds the nullable batch identifier and its lookup index.
+
+### Final 50 iteration/s run
+
+| Metric | Result |
+| --- | ---: |
+| Completed full-path iterations | 1,262 |
+| Decision and impression errors | 0.00% |
+| Dropped iterations | 0 |
+| Decision latency average | 188.84 ms |
+| Decision latency P95 | 235.69 ms |
+| Decision latency P99 | 242.50 ms |
+| Impression-ingestion latency P95 | 221.28 ms |
+| Full-path latency P95 | 431 ms |
+| Outbox rows not published after the run | 0 |
+| Kafka consumer lag after the run | 0 on all three partitions |
+
+### 100 iteration/s boundary run
+
+The same final implementation completed 1,630 decision/impression paths, but 894 of 2,524 decision attempts reached the 500 ms deadline, for a 35.41% decision error rate. All 1,630 accepted impressions were published and consumed without residual Outbox backlog or Kafka lag.
+
+This separates the remaining limitation from the asynchronous pipeline: the batched Outbox and consumer can drain every accepted event, while the synchronous decision path saturates near this local environment's database/network boundary. The supported local full-path baseline is therefore 50 iterations/s, not 100 iterations/s. The next experiment should introduce a short-lived immutable candidate snapshot and then repeat the same A/B workload.

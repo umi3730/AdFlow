@@ -3,6 +3,7 @@ package mysql
 import (
 	"context"
 	"database/sql"
+	"strings"
 	"time"
 
 	"github.com/zhanghaiyang/adflow/internal/decision/domain"
@@ -44,22 +45,62 @@ func (s *Store) SaveDecision(ctx context.Context, result domain.Result) error {
 }
 
 func (s *Store) FindDecision(ctx context.Context, requestID string) (domain.Result, bool, error) {
+	result, err := scanDecision(s.db.QueryRowContext(ctx, `
+		SELECT request_id, user_id, slot_id, matched, campaign_id, creative_id,
+		       reservation_token, expires_at, reason
+		FROM decisions WHERE request_id = ?`, requestID))
+	if err == sql.ErrNoRows {
+		return domain.Result{}, false, nil
+	}
+	return result, err == nil, err
+}
+
+func (s *Store) FindDecisions(ctx context.Context, requestIDs []string) (map[string]domain.Result, error) {
+	result := make(map[string]domain.Result, len(requestIDs))
+	if len(requestIDs) == 0 {
+		return result, nil
+	}
+	unique := make([]string, 0, len(requestIDs))
+	seen := make(map[string]struct{}, len(requestIDs))
+	for _, requestID := range requestIDs {
+		if _, exists := seen[requestID]; !exists {
+			seen[requestID] = struct{}{}
+			unique = append(unique, requestID)
+		}
+	}
+	placeholders := strings.TrimSuffix(strings.Repeat("?,", len(unique)), ",")
+	args := make([]any, len(unique))
+	for index, requestID := range unique {
+		args[index] = requestID
+	}
+	rows, err := s.db.QueryContext(ctx, `
+		SELECT request_id, user_id, slot_id, matched, campaign_id, creative_id,
+		       reservation_token, expires_at, reason
+		FROM decisions WHERE request_id IN (`+placeholders+`)`, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		decision, err := scanDecision(rows)
+		if err != nil {
+			return nil, err
+		}
+		result[decision.RequestID] = decision
+	}
+	return result, rows.Err()
+}
+
+func scanDecision(scanner interface{ Scan(...any) error }) (domain.Result, error) {
 	var (
 		result                        domain.Result
 		campaignID, creativeID, token sql.NullString
 		expiresAt                     sql.NullTime
 		reason                        string
 	)
-	err := s.db.QueryRowContext(ctx, `
-		SELECT request_id, user_id, slot_id, matched, campaign_id, creative_id,
-		       reservation_token, expires_at, reason
-		FROM decisions WHERE request_id = ?`, requestID).
-		Scan(&result.RequestID, &result.UserID, &result.SlotID, &result.Matched, &campaignID, &creativeID, &token, &expiresAt, &reason)
-	if err == sql.ErrNoRows {
-		return domain.Result{}, false, nil
-	}
+	err := scanner.Scan(&result.RequestID, &result.UserID, &result.SlotID, &result.Matched, &campaignID, &creativeID, &token, &expiresAt, &reason)
 	if err != nil {
-		return domain.Result{}, false, err
+		return domain.Result{}, err
 	}
 	result.CampaignID = campaignID.String
 	result.CreativeID = creativeID.String
@@ -68,7 +109,7 @@ func (s *Store) FindDecision(ctx context.Context, requestID string) (domain.Resu
 		result.ExpiresAt = expiresAt.Time.UTC()
 	}
 	result.Reason = domain.Reason(reason)
-	return result, true, nil
+	return result, nil
 }
 
 func sameDecision(left, right domain.Result) bool {

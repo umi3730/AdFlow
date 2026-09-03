@@ -124,6 +124,33 @@ func TestMySQLOutboxLeaseAllowsOneRelayOwner(t *testing.T) {
 	}
 }
 
+func TestMySQLEventBatchIsAtomicAndIdempotent(t *testing.T) {
+	db := integrationMySQL(t)
+	store := eventmysql.NewStore(db)
+	campaignID := newID(t)
+	requestID := "req-" + newID(t)
+	first := eventdomain.Event{
+		EventID: "evt-" + newID(t), RequestID: requestID, CampaignID: campaignID,
+		CreativeID: newID(t), Type: eventdomain.Impression, OccurredAt: time.Now().UTC(),
+	}
+	second := eventdomain.Event{
+		EventID: "evt-" + newID(t), RequestID: requestID, CampaignID: campaignID,
+		CreativeID: first.CreativeID, Type: eventdomain.Click, OccurredAt: first.OccurredAt.Add(time.Millisecond),
+	}
+	t.Cleanup(func() {
+		_, _ = db.Exec(`DELETE FROM campaign_metrics WHERE campaign_id = ?`, campaignID)
+		_, _ = db.Exec(`DELETE FROM processed_events WHERE event_id IN (?, ?)`, first.EventID, second.EventID)
+	})
+	created, err := store.RecordBatch(t.Context(), []eventdomain.Event{first, second, first})
+	if err != nil || len(created) != 3 || !created[0] || !created[1] || created[2] {
+		t.Fatalf("created=%v err=%v", created, err)
+	}
+	metrics, err := store.Metrics(t.Context(), campaignID)
+	if err != nil || metrics.Impressions != 1 || metrics.Clicks != 1 {
+		t.Fatalf("metrics=%+v err=%v", metrics, err)
+	}
+}
+
 func TestRedisSlidingWindowAndBudgetReservationAreAtomic(t *testing.T) {
 	address := integrationEnv(t, "ADFLOW_IT_REDIS_ADDR")
 	client := redis.NewClient(&redis.Options{Addr: address, Protocol: 2, DisableIdentity: true})

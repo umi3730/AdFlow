@@ -20,7 +20,8 @@ The modular monolith already covers the complete MVP path from campaign configur
 - The sustained k6 scenario now supports configurable campaign/profile cardinality, warm-up, fixed arrival rate, decision-only isolation, and the full decision-to-impression path.
 - The first real-adapter run is recorded: it exposed and removed candidate-loading N+1 reads, established a stable 20 iteration/s full-path baseline, and showed that 100 iteration/s still exceeds the local cross-host database path.
 - Kafka consumption now runs partitions concurrently, preserves in-partition order, batches contiguous offset commits, and rewinds a failed partition for retry.
-- Optimize consumer-side metric persistence and evaluate short-lived candidate snapshots before raising the supported arrival-rate baseline.
+- Consumer persistence and Outbox publication now use idempotent batches; the final 50 iteration/s run completed with zero errors, zero Outbox backlog, and zero Kafka lag.
+- Evaluate short-lived immutable candidate snapshots before raising the supported arrival-rate baseline; 100 iteration/s still saturates the synchronous decision path.
 - Add longer broker-outage, partition-reassignment, lease-expiry, and dead-letter replay chaos scenarios.
 - Record repeatable P50, P95, P99, throughput, error rate, database pool usage, Redis latency, outbox depth, and Kafka lag.
 

@@ -41,6 +41,30 @@ type fakePublisher struct{ err error }
 
 func (p fakePublisher) PublishEvent(context.Context, domain.Event) error { return p.err }
 
+type fakeBatchOutbox struct {
+	*fakeOutbox
+	publishedIDs []string
+}
+
+func (o *fakeBatchOutbox) MarkPublishedBatch(_ context.Context, ids []string, _ time.Time) error {
+	o.publishedIDs = append(o.publishedIDs, ids...)
+	return nil
+}
+
+type fakeBatchPublisher struct {
+	events []domain.Event
+}
+
+func (p *fakeBatchPublisher) PublishEvent(_ context.Context, event domain.Event) error {
+	p.events = append(p.events, event)
+	return nil
+}
+
+func (p *fakeBatchPublisher) PublishEvents(_ context.Context, events []domain.Event) error {
+	p.events = append(p.events, events...)
+	return nil
+}
+
 type fakeDeadLetters struct{ eventID string }
 
 func (p *fakeDeadLetters) PublishDeadLetter(_ context.Context, event domain.Event, _ string, _ int, _ time.Time) error {
@@ -55,6 +79,19 @@ func TestOutboxRelayMarksPublishedAfterAck(t *testing.T) {
 	count, err := relay.RunOnce(context.Background())
 	if err != nil || count != 1 || outbox.publishedID != "event-1" {
 		t.Fatalf("count=%d published=%s err=%v", count, outbox.publishedID, err)
+	}
+}
+
+func TestOutboxRelayPublishesAndMarksBatch(t *testing.T) {
+	outbox := &fakeBatchOutbox{fakeOutbox: &fakeOutbox{entries: []domain.OutboxEntry{
+		{Event: domain.Event{EventID: "event-1"}},
+		{Event: domain.Event{EventID: "event-2"}},
+	}}}
+	publisher := &fakeBatchPublisher{}
+	relay := NewOutboxRelay(outbox, publisher, nil, nil)
+	count, err := relay.RunOnce(context.Background())
+	if err != nil || count != 2 || len(publisher.events) != 2 || len(outbox.publishedIDs) != 2 {
+		t.Fatalf("count=%d published=%v marked=%v err=%v", count, publisher.events, outbox.publishedIDs, err)
 	}
 }
 

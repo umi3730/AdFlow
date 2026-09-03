@@ -51,6 +51,8 @@ M3 measurement context (implemented with local and Kafka modes):
 - MySQL transactional outbox with duplicate receipt protection
 - lease-based multi-relay batch claiming compatible with MySQL 5.7
 - exponential publish retry and consumer-side persistent `eventId` idempotency
+- batched Kafka publication, Outbox completion, decision lookup, event persistence, metric aggregation, and contiguous offset commits
+- concurrent cross-partition consumption with in-partition ordering and failed-offset rewind
 - dead-letter publication after eight failed relay attempts
 - persistent decision idempotency records for delayed event verification
 - Prometheus outbox-depth, relay-result, and Kafka consumer-lag metrics

@@ -177,7 +177,9 @@ func main() {
 	asyncEvents := cfg.EventTransport == "kafka"
 	if asyncEvents {
 		eventStore := eventmysql.NewStore(db)
-		eventProcessor := eventapp.NewService(eventStore, decisionStore, reservations)
+		// Kafka ingestion settles reservations after the durable Outbox write.
+		// The consumer therefore persists trusted, already-settled events in batches.
+		eventProcessor := eventapp.NewService(eventStore, decisionStore, nil)
 		outbox := eventmysql.NewOutbox(db, fmt.Sprintf("relay-%d-%d", os.Getpid(), time.Now().UnixNano()))
 		brokers := strings.Split(cfg.KafkaBrokers, ",")
 		publisher, kafkaErr := eventkafka.NewPublisher(brokers, cfg.KafkaTopic, cfg.KafkaDeadLetterTopic)
@@ -200,10 +202,7 @@ func main() {
 			}
 		}()
 		go func() {
-			if consumeErr := consumer.Run(ctx, func(processCtx context.Context, event eventdomain.Event) error {
-				_, processErr := eventProcessor.Record(processCtx, event)
-				return processErr
-			}); consumeErr != nil {
+			if consumeErr := consumer.RunBatch(ctx, eventProcessor.RecordBatch); consumeErr != nil {
 				logger.Error("kafka consumer stopped", "error", consumeErr)
 			}
 		}()

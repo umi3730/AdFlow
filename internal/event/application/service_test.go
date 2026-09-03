@@ -65,3 +65,18 @@ func TestClickRequiresImpression(t *testing.T) {
 		t.Fatalf("error = %v", err)
 	}
 }
+
+func TestRecordBatchPreservesImpressionBeforeClick(t *testing.T) {
+	service, store := testService(t)
+	err := service.RecordBatch(context.Background(), []domain.Event{
+		{EventID: "batch-impression", RequestID: "request-1", CampaignID: "campaign-1", CreativeID: "creative-1", Type: domain.Impression},
+		{EventID: "batch-click", RequestID: "request-1", CampaignID: "campaign-1", CreativeID: "creative-1", Type: domain.Click},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	metrics, err := store.Metrics(context.Background(), "campaign-1")
+	if err != nil || metrics.Impressions != 1 || metrics.Clicks != 1 {
+		t.Fatalf("metrics=%+v err=%v", metrics, err)
+	}
+}

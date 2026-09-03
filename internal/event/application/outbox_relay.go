@@ -53,6 +53,11 @@ func (r *OutboxRelay) RunOnce(ctx context.Context) (int, error) {
 	if err != nil {
 		return 0, err
 	}
+	if batchPublisher, publishOK := r.publisher.(domain.BatchPublisher); publishOK {
+		if batchMarker, markOK := r.outbox.(domain.PublishedBatchMarker); markOK && len(entries) > 0 {
+			return r.publishBatch(ctx, entries, batchPublisher, batchMarker, now)
+		}
+	}
 	published := 0
 	for _, entry := range entries {
 		if err := r.publisher.PublishEvent(ctx, entry.Event); err != nil {
@@ -92,6 +97,50 @@ func (r *OutboxRelay) RunOnce(ctx context.Context) (int, error) {
 		}
 	}
 	return published, nil
+}
+
+func (r *OutboxRelay) publishBatch(ctx context.Context, entries []domain.OutboxEntry, publisher domain.BatchPublisher, marker domain.PublishedBatchMarker, now time.Time) (int, error) {
+	events := make([]domain.Event, len(entries))
+	eventIDs := make([]string, len(entries))
+	for index, entry := range entries {
+		events[index] = entry.Event
+		eventIDs[index] = entry.Event.EventID
+	}
+	if err := publisher.PublishEvents(ctx, events); err != nil {
+		for _, entry := range entries {
+			attempts := entry.Attempts + 1
+			if attempts >= r.maxAttempts && r.deadLetters != nil {
+				if deadErr := r.deadLetters.PublishDeadLetter(ctx, entry.Event, err.Error(), attempts, now); deadErr == nil {
+					if markErr := r.outbox.MarkDeadLetter(ctx, entry.Event.EventID, err.Error(), now); markErr != nil {
+						return 0, markErr
+					}
+					if r.observer != nil {
+						r.observer.ObserveOutboxResult("dead_lettered")
+					}
+					continue
+				}
+			}
+			if markErr := r.outbox.MarkFailed(ctx, entry.Event.EventID, err.Error(), now.Add(retryDelay(attempts))); markErr != nil {
+				return 0, markErr
+			}
+			if r.observer != nil {
+				r.observer.ObserveOutboxResult("retry")
+			}
+		}
+		return 0, nil
+	}
+	if err := marker.MarkPublishedBatch(ctx, eventIDs, now); err != nil {
+		return 0, err
+	}
+	if r.observer != nil {
+		for range entries {
+			r.observer.ObserveOutboxResult("published")
+		}
+		if stats, err := r.outbox.Stats(ctx); err == nil {
+			r.observer.SetOutboxDepth(stats)
+		}
+	}
+	return len(entries), nil
 }
 
 func retryDelay(attempt int) time.Duration {
