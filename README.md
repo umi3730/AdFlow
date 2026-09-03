@@ -13,7 +13,7 @@ M0 foundation:
 - MySQL and Redis clients with bounded health checks
 - graceful shutdown
 - initial campaign schema
-- Docker Compose development stack
+- dependency-free in-memory development mode
 
 M1 campaign context (implemented):
 
@@ -95,7 +95,7 @@ go mod download
 go run ./cmd/api
 ```
 
-Campaign persistence defaults to the in-memory adapter so the API can be explored without Docker or MySQL. Set `ADFLOW_CAMPAIGN_REPOSITORY=mysql` after applying the migration to use the MySQL adapter.
+Campaign persistence defaults to the in-memory adapter so the API can be explored without MySQL. Set `ADFLOW_CAMPAIGN_REPOSITORY=mysql` after applying the migration to use the MySQL adapter.
 
 Frequency and budget reservations also default to memory. Set `ADFLOW_RESERVATION_ADAPTER=redis` to use the atomic Redis Lua adapter.
 
@@ -224,12 +224,6 @@ Endpoints:
 - `POST /v1/events` — record an impression, click, or conversion
 - `GET /v1/campaigns/{id}/metrics` — read campaign delivery metrics
 - `POST /v1/agent/rule-drafts` — generate and validate a targeting rule draft without publishing it
-
-With Docker installed:
-
-```powershell
-docker compose up --build
-```
 
 ## Architecture direction
 
