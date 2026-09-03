@@ -55,10 +55,17 @@ M3 measurement context (implemented with local and Kafka modes):
 - persistent decision idempotency records for delayed event verification
 - Prometheus outbox-depth, relay-result, and Kafka consumer-lag metrics
 
-M5 Agent assistant (basic implementation):
+M5 Agent assistant (implemented with mock and remote-provider modes):
 
 - provider-neutral rule generation interface
 - deterministic local mock provider for offline development
+- OpenAI Responses API mode with strict JSON Schema Structured Outputs
+- OpenAI-compatible Chat Completions mode for providers that expose JSON Object output
+- bounded whole-operation timeout, retryable-status backoff, and redirect protection
+- circuit breaker with a single half-open probe and optional local Mock fallback
+- model request ID, token usage, latency, fallback, model, and prompt-version metadata
+- Prometheus generation, duration, token, and circuit-state metrics
+- opt-in live evaluation set including budget escalation and prompt-injection cases
 - campaign-domain validation of every generated draft
 - explicit provider, model, prompt-version, explanation, and warning metadata
 - separate human confirmation before campaign publication
@@ -141,6 +148,27 @@ ADFLOW_DECISION_TIMEOUT=100ms
 `memory` uses a process-local token bucket and its burst setting. Set `ADFLOW_DECISION_RATE_LIMITER=redis` to enforce a shared exact sliding window across API replicas. The Redis adapter uses one Lua script to remove expired ZSET members, count the active window, append the current request, and refresh the key TTL. Redis server time avoids application-host clock skew; a limiter dependency error fails closed with HTTP 503.
 
 Both adapters reject excess arrival rate with HTTP 429. The per-process concurrency gate remains in place because it protects each replica's CPU, database pool, and downstream dependencies independently of the shared rate limit. It waits only for the configured queue timeout before returning HTTP 503. Accepted execution receives its own processing deadline and returns HTTP 504 if it expires. Prometheus exposes admission outcomes, queue duration, current decision concurrency, and execution timeouts.
+
+The Agent assistant defaults to the deterministic Mock provider. To use an OpenAI Responses-compatible endpoint:
+
+```env
+ADFLOW_AGENT_PROVIDER=openai-compatible
+ADFLOW_AGENT_BASE_URL=https://api.openai.com/v1
+ADFLOW_AGENT_API_KEY=replace-with-a-runtime-secret
+ADFLOW_AGENT_MODEL=replace-with-a-supported-model
+ADFLOW_AGENT_API_STYLE=responses
+```
+
+For another provider exposing OpenAI-compatible Chat Completions, set its documented base URL and model, then use `ADFLOW_AGENT_API_STYLE=chat_completions`. Responses mode sends a strict JSON Schema. Compatibility mode requests a JSON object and includes the contract in the system instruction; both modes pass through the same strict JSON decoder, Agent safety limits, campaign-domain validation, human confirmation, RBAC, and audit trail.
+
+Provider calls have an 8-second whole-operation timeout, at most two retries by default, and a circuit that opens after three failed calls. With fallback enabled, an unavailable provider returns a clearly marked local Mock draft instead of publishing or silently inventing a remote result. API keys are read only from the environment and are never included in logs or API responses.
+
+Live evaluations are opt-in because they call the configured paid provider:
+
+```powershell
+$env:ADFLOW_AGENT_RUN_LIVE_EVALS = "true"
+go test -run TestLiveProviderEvaluation -v ./internal/agentassistant/adapter/openai
+```
 
 Run the administration UI in a second terminal:
 

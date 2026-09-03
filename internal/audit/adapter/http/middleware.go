@@ -34,10 +34,14 @@ func Middleware(service *application.Service) gin.HandlerFunc {
 		if resourceID == "" {
 			resourceID = c.Param("userId")
 		}
+		metadata := map[string]string{"method": c.Request.Method, "route": c.FullPath(), "status": http.StatusText(c.Writer.Status())}
+		for key, value := range httptransport.AuditMetadataFrom(c) {
+			metadata[key] = value
+		}
 		err := service.Record(context.WithoutCancel(c.Request.Context()), application.RecordCommand{
 			Principal: principal, Action: action, ResourceType: resourceType, ResourceID: resourceID,
 			RequestID: httptransport.RequestIDFrom(c), Outcome: outcome,
-			Metadata: map[string]string{"method": c.Request.Method, "route": c.FullPath(), "status": http.StatusText(c.Writer.Status())},
+			Metadata: metadata,
 		})
 		if err != nil {
 			slog.Error("append audit log", "request_id", httptransport.RequestIDFrom(c), "error", err)

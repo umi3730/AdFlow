@@ -15,7 +15,9 @@ import (
 
 	agenthttp "github.com/zhanghaiyang/adflow/internal/agentassistant/adapter/http"
 	agentmock "github.com/zhanghaiyang/adflow/internal/agentassistant/adapter/mock"
+	agentopenai "github.com/zhanghaiyang/adflow/internal/agentassistant/adapter/openai"
 	agentapp "github.com/zhanghaiyang/adflow/internal/agentassistant/application"
+	agentdomain "github.com/zhanghaiyang/adflow/internal/agentassistant/domain"
 	audithttp "github.com/zhanghaiyang/adflow/internal/audit/adapter/http"
 	auditmemory "github.com/zhanghaiyang/adflow/internal/audit/adapter/memory"
 	auditmysql "github.com/zhanghaiyang/adflow/internal/audit/adapter/mysql"
@@ -212,7 +214,33 @@ func main() {
 	}
 	logger.Info("event transport selected", "adapter", cfg.EventTransport)
 	eventHandler := eventhttp.NewHandler(eventService, metrics, asyncEvents)
-	agentService := agentapp.NewService(agentmock.NewProvider())
+	var agentProvider agentdomain.Provider = agentmock.NewProvider()
+	if cfg.AgentProvider == "openai-compatible" {
+		primaryProvider, providerErr := agentopenai.NewProvider(agentopenai.ProviderConfig{
+			BaseURL: cfg.AgentBaseURL, APIKey: cfg.AgentAPIKey, Model: cfg.AgentModel, APIStyle: cfg.AgentAPIStyle,
+			Timeout: cfg.AgentTimeout, MaxRetries: cfg.AgentMaxRetries,
+			MaxDailyBudgetFen: cfg.AgentMaxDailyBudgetFen, MaxImpressionCostFen: cfg.AgentMaxImpressionCostFen,
+			MaxConditions: cfg.AgentMaxConditions,
+		})
+		if providerErr != nil {
+			logger.Error("initialize Agent model provider", "error", providerErr)
+			os.Exit(1)
+		}
+		agentProvider, providerErr = agentapp.NewResilientProvider(primaryProvider, agentmock.NewProvider(), agentapp.ResilienceConfig{
+			PrimaryProvider: "openai-compatible", PrimaryModel: cfg.AgentModel,
+			FailureThreshold: cfg.AgentCircuitFailures, OpenDuration: cfg.AgentCircuitOpen,
+			FallbackEnabled: cfg.AgentFallbackEnabled,
+		}, metrics)
+		if providerErr != nil {
+			logger.Error("initialize Agent provider resilience", "error", providerErr)
+			os.Exit(1)
+		}
+	}
+	logger.Info("Agent provider selected", "provider", cfg.AgentProvider, "model", cfg.AgentModel, "api_style", cfg.AgentAPIStyle)
+	agentService := agentapp.NewServiceWithPolicy(agentProvider, agentapp.Policy{
+		MaxDailyBudgetFen: cfg.AgentMaxDailyBudgetFen, MaxImpressionCostFen: cfg.AgentMaxImpressionCostFen,
+		MaxConditions: cfg.AgentMaxConditions,
+	})
 	agentHandler := agenthttp.NewHandler(agentService)
 	server := httptransport.NewServer(cfg.HTTPAddr, cfg.Environment, logger, healthService, metrics,
 		identityHandler, auditHandler, campaignHandler, decisionHandler, eventHandler, agentHandler)

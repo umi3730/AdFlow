@@ -37,8 +37,8 @@ The modular monolith already covers the complete MVP path from campaign configur
 
 ## P4 — Agent and operations
 
-- Add a real model-provider adapter with timeout, retry, structured output validation, and usage telemetry.
-- Build a small evaluation set for targeting-rule generation.
+- The Agent baseline now includes Responses and Chat Completions adapters, strict structured decoding, safety limits, bounded retries, circuit breaking, Mock fallback, usage telemetry, and an opt-in evaluation set.
+- Run and record the live evaluation set against the selected production model before enabling it outside development.
 - Add operator views and APIs for outbox backlog, Kafka lag, dead-letter inspection, and controlled replay.
 - Add dashboards and alerts for decision latency, error rate, reservation failures, outbox age, and consumer lag.
 

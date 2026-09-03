@@ -3,6 +3,7 @@ package httpadapter
 import (
 	"errors"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/zhanghaiyang/adflow/internal/agentassistant/application"
@@ -38,5 +39,9 @@ func (h *Handler) generate(c *gin.Context) {
 		httptransport.RespondError(c, http.StatusBadGateway, "rule_provider_failed", "rule provider failed", nil)
 		return
 	}
+	httptransport.SetAuditMetadata(c, map[string]string{
+		"provider": draft.Provider, "model": draft.Model, "prompt_version": draft.PromptVersion,
+		"fallback": strconv.FormatBool(draft.Fallback), "total_tokens": strconv.FormatInt(draft.TotalTokens, 10),
+	})
 	c.JSON(http.StatusOK, draft)
 }

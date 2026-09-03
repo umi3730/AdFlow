@@ -7,8 +7,10 @@ import (
 )
 
 var (
-	ErrInvalidPrompt = errors.New("prompt must contain 5 to 2000 characters")
-	ErrInvalidDraft  = errors.New("generated rule draft is invalid")
+	ErrInvalidPrompt       = errors.New("prompt must contain 5 to 2000 characters")
+	ErrInvalidDraft        = errors.New("generated rule draft is invalid")
+	ErrProviderUnavailable = errors.New("rule provider is unavailable")
+	ErrProviderCircuitOpen = errors.New("rule provider circuit is open")
 )
 
 type Condition struct {
@@ -35,6 +37,12 @@ type Draft struct {
 	Model             string        `json:"model"`
 	PromptVersion     string        `json:"promptVersion"`
 	GeneratedAt       time.Time     `json:"generatedAt"`
+	ProviderRequestID string        `json:"providerRequestId,omitempty"`
+	InputTokens       int64         `json:"inputTokens,omitempty"`
+	OutputTokens      int64         `json:"outputTokens,omitempty"`
+	TotalTokens       int64         `json:"totalTokens,omitempty"`
+	LatencyMillis     int64         `json:"latencyMillis,omitempty"`
+	Fallback          bool          `json:"fallback"`
 }
 
 type Provider interface {

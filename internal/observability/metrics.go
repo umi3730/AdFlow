@@ -23,6 +23,10 @@ type Metrics struct {
 	decisionQueueDuration prometheus.Histogram
 	decisionInFlight      prometheus.Gauge
 	decisionTimeouts      prometheus.Counter
+	agentGenerations      *prometheus.CounterVec
+	agentDuration         *prometheus.HistogramVec
+	agentTokens           *prometheus.CounterVec
+	agentCircuitOpen      prometheus.Gauge
 	events                *prometheus.CounterVec
 	outboxDepth           *prometheus.GaugeVec
 	outboxResults         *prometheus.CounterVec
@@ -62,6 +66,19 @@ func New() *Metrics {
 		decisionTimeouts: prometheus.NewCounter(prometheus.CounterOpts{
 			Namespace: "adflow", Subsystem: "decision", Name: "execution_timeouts_total", Help: "Decision executions canceled by the configured processing deadline.",
 		}),
+		agentGenerations: prometheus.NewCounterVec(prometheus.CounterOpts{
+			Namespace: "adflow", Subsystem: "agent", Name: "generations_total", Help: "Agent rule-generation calls by provider, model, and outcome.",
+		}, []string{"provider", "model", "outcome"}),
+		agentDuration: prometheus.NewHistogramVec(prometheus.HistogramOpts{
+			Namespace: "adflow", Subsystem: "agent", Name: "generation_duration_seconds", Help: "Agent rule-generation duration by provider and model.",
+			Buckets: []float64{0.05, 0.1, 0.25, 0.5, 1, 2, 4, 8, 15},
+		}, []string{"provider", "model"}),
+		agentTokens: prometheus.NewCounterVec(prometheus.CounterOpts{
+			Namespace: "adflow", Subsystem: "agent", Name: "tokens_total", Help: "Reported model tokens by provider, model, and direction.",
+		}, []string{"provider", "model", "direction"}),
+		agentCircuitOpen: prometheus.NewGauge(prometheus.GaugeOpts{
+			Namespace: "adflow", Subsystem: "agent", Name: "circuit_open", Help: "Whether the primary Agent provider circuit is open.",
+		}),
 		events: prometheus.NewCounterVec(prometheus.CounterOpts{
 			Namespace: "adflow", Subsystem: "event", Name: "records_total", Help: "Ad events by type and idempotency result.",
 		}, []string{"type", "recorded"}),
@@ -79,6 +96,7 @@ func New() *Metrics {
 		collectors.NewGoCollector(), collectors.NewProcessCollector(collectors.ProcessCollectorOpts{}),
 		m.httpRequests, m.httpDuration, m.httpInFlight, m.decisionResults, m.decisionDuration,
 		m.decisionAdmission, m.decisionQueueDuration, m.decisionInFlight, m.decisionTimeouts, m.events,
+		m.agentGenerations, m.agentDuration, m.agentTokens, m.agentCircuitOpen,
 		m.outboxDepth, m.outboxResults, m.kafkaConsumerLag,
 	)
 	return m
@@ -121,6 +139,25 @@ func (m *Metrics) AddDecisionInFlight(delta float64) {
 
 func (m *Metrics) ObserveDecisionTimeout() {
 	m.decisionTimeouts.Inc()
+}
+
+func (m *Metrics) ObserveAgentGeneration(provider, model, outcome string, duration time.Duration, inputTokens, outputTokens int64) {
+	m.agentGenerations.WithLabelValues(provider, model, outcome).Inc()
+	m.agentDuration.WithLabelValues(provider, model).Observe(duration.Seconds())
+	if inputTokens > 0 {
+		m.agentTokens.WithLabelValues(provider, model, "input").Add(float64(inputTokens))
+	}
+	if outputTokens > 0 {
+		m.agentTokens.WithLabelValues(provider, model, "output").Add(float64(outputTokens))
+	}
+}
+
+func (m *Metrics) SetAgentCircuitOpen(open bool) {
+	if open {
+		m.agentCircuitOpen.Set(1)
+		return
+	}
+	m.agentCircuitOpen.Set(0)
 }
 
 func (m *Metrics) ObserveEvent(eventType string, recorded bool) {

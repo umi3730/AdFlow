@@ -12,8 +12,9 @@ import (
 )
 
 const (
-	RequestIDHeader = "X-Request-ID"
-	requestIDKey    = "request_id"
+	RequestIDHeader  = "X-Request-ID"
+	requestIDKey     = "request_id"
+	auditMetadataKey = "audit_metadata"
 )
 
 func CORS(environment string) gin.HandlerFunc {
@@ -93,6 +94,27 @@ func RequestIDFrom(c *gin.Context) string {
 	}
 	requestID, _ := value.(string)
 	return requestID
+}
+
+func SetAuditMetadata(c *gin.Context, metadata map[string]string) {
+	copy := make(map[string]string, len(metadata))
+	for key, value := range metadata {
+		copy[key] = value
+	}
+	c.Set(auditMetadataKey, copy)
+}
+
+func AuditMetadataFrom(c *gin.Context) map[string]string {
+	value, exists := c.Get(auditMetadataKey)
+	if !exists {
+		return nil
+	}
+	metadata, _ := value.(map[string]string)
+	copy := make(map[string]string, len(metadata))
+	for key, item := range metadata {
+		copy[key] = item
+	}
+	return copy
 }
 
 func newRequestID() string {

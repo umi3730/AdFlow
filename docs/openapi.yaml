@@ -226,7 +226,11 @@ paths:
               properties:
                 prompt: { type: string, minLength: 5, maxLength: 2000 }
       responses:
-        '200': { description: Validated rule draft with provider metadata and warnings }
+        '200':
+          description: Validated rule draft with provider, usage, latency, fallback, and prompt-version metadata
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RuleDraft' }
         '422': { description: Prompt or generated draft is invalid }
 components:
   securitySchemes:
@@ -263,6 +267,45 @@ components:
         tokenType: { type: string, const: Bearer }
         expiresAt: { type: string, format: date-time }
         principal: { $ref: '#/components/schemas/Principal' }
+    AgentCondition:
+      oneOf:
+        - type: object
+          additionalProperties: false
+          required: [tag]
+          properties:
+            tag: { type: string, minLength: 1, maxLength: 64 }
+        - type: object
+          additionalProperties: false
+          required: [field, op, value]
+          properties:
+            field: { type: string, minLength: 1, maxLength: 64 }
+            op: { type: string, enum: [eq, in, gte, lte] }
+            value: { type: string, minLength: 1, maxLength: 128 }
+    RuleDraft:
+      type: object
+      required: [targeting, dailyBudgetFen, impressionCostFen, frequencyLimit, explanation, warnings, provider, model, promptVersion, generatedAt, fallback]
+      properties:
+        targeting:
+          type: object
+          properties:
+            all: { type: array, items: { $ref: '#/components/schemas/AgentCondition' } }
+            any: { type: array, items: { $ref: '#/components/schemas/AgentCondition' } }
+            none: { type: array, items: { $ref: '#/components/schemas/AgentCondition' } }
+        dailyBudgetFen: { type: integer, minimum: 1 }
+        impressionCostFen: { type: integer, minimum: 1 }
+        frequencyLimit: { type: integer, minimum: 1, maximum: 100 }
+        explanation: { type: string }
+        warnings: { type: array, items: { type: string } }
+        provider: { type: string }
+        model: { type: string }
+        promptVersion: { type: string }
+        generatedAt: { type: string, format: date-time }
+        providerRequestId: { type: string }
+        inputTokens: { type: integer, minimum: 0 }
+        outputTokens: { type: integer, minimum: 0 }
+        totalTokens: { type: integer, minimum: 0 }
+        latencyMillis: { type: integer, minimum: 0 }
+        fallback: { type: boolean }
     CampaignWrite:
       type: object
       required: [name, slotId, startAt, endAt]

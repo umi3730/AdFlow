@@ -23,7 +23,10 @@ func TestMiddlewareRecordsSuccessfulAndFailedMutations(t *testing.T) {
 		identityhttp.SetPrincipal(c, identity.Principal{UserID: "operator-1", Username: "operator", Role: identity.RoleOperator})
 		c.Next()
 	}, Middleware(service))
-	router.POST("/v1/campaigns/:id/pause", func(c *gin.Context) { c.Status(http.StatusOK) })
+	router.POST("/v1/campaigns/:id/pause", func(c *gin.Context) {
+		httptransport.SetAuditMetadata(c, map[string]string{"provider": "openai-compatible"})
+		c.Status(http.StatusOK)
+	})
 	router.POST("/v1/campaigns/:id/resume", func(c *gin.Context) { c.Status(http.StatusUnprocessableEntity) })
 
 	for _, path := range []string{"/v1/campaigns/campaign-1/pause", "/v1/campaigns/campaign-2/resume"} {
@@ -42,5 +45,8 @@ func TestMiddlewareRecordsSuccessfulAndFailedMutations(t *testing.T) {
 	}
 	if entries[1].Action != "PAUSE_CAMPAIGN" || entries[1].Outcome != domain.OutcomeSucceeded {
 		t.Fatalf("unexpected successful entry: %+v", entries[1])
+	}
+	if entries[1].Metadata["provider"] != "openai-compatible" {
+		t.Fatalf("missing enriched audit metadata: %+v", entries[1].Metadata)
 	}
 }

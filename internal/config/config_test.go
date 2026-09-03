@@ -102,6 +102,45 @@ func TestLoadRejectsInvalidDecisionRateLimiter(t *testing.T) {
 	}
 }
 
+func TestLoadOpenAICompatibleAgentSettings(t *testing.T) {
+	t.Setenv("ADFLOW_AGENT_PROVIDER", "openai-compatible")
+	t.Setenv("ADFLOW_AGENT_API_KEY", "test-key")
+	t.Setenv("ADFLOW_AGENT_MODEL", "test-model")
+	t.Setenv("ADFLOW_AGENT_API_STYLE", "chat_completions")
+	t.Setenv("ADFLOW_AGENT_TIMEOUT", "5s")
+	t.Setenv("ADFLOW_AGENT_MAX_RETRIES", "1")
+	t.Setenv("ADFLOW_AGENT_FALLBACK_ENABLED", "false")
+	cfg, err := Load()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.AgentProvider != "openai-compatible" || cfg.AgentModel != "test-model" || cfg.AgentAPIStyle != "chat_completions" || cfg.AgentTimeout != 5*time.Second || cfg.AgentMaxRetries != 1 || cfg.AgentFallbackEnabled {
+		t.Fatalf("unexpected Agent config: %+v", cfg)
+	}
+}
+
+func TestLoadOpenAICompatibleAgentRequiresCredentials(t *testing.T) {
+	t.Setenv("ADFLOW_AGENT_PROVIDER", "openai-compatible")
+	t.Setenv("ADFLOW_AGENT_API_KEY", "")
+	t.Setenv("ADFLOW_AGENT_MODEL", "")
+	if _, err := Load(); err == nil {
+		t.Fatal("Load() expected an error")
+	}
+}
+
+func TestLoadRejectsUnsafeAgentLimits(t *testing.T) {
+	t.Setenv("ADFLOW_AGENT_MAX_RETRIES", "6")
+	if _, err := Load(); err == nil {
+		t.Fatal("Load() expected an error")
+	}
+	t.Setenv("ADFLOW_AGENT_MAX_RETRIES", "2")
+	t.Setenv("ADFLOW_AGENT_MAX_DAILY_BUDGET_FEN", "100")
+	t.Setenv("ADFLOW_AGENT_MAX_IMPRESSION_COST_FEN", "200")
+	if _, err := Load(); err == nil {
+		t.Fatal("Load() expected an error")
+	}
+}
+
 func TestLoadRejectsInvalidDecisionAdmissionSettings(t *testing.T) {
 	t.Setenv("ADFLOW_DECISION_MAX_IN_FLIGHT", "0")
 	if _, err := Load(); err == nil {
