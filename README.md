@@ -56,6 +56,7 @@ M3 measurement context (implemented with local and Kafka modes):
 - dead-letter publication after eight failed relay attempts
 - persistent decision idempotency records for delayed event verification
 - Prometheus outbox-depth, relay-result, and Kafka consumer-lag metrics
+- operator APIs and console views for Outbox records, Kafka partition lag, dead-letter inspection, and admin-only replay
 
 M5 Agent assistant (implemented with mock and remote-provider modes):
 
@@ -277,6 +278,9 @@ Endpoints:
 - `POST /v1/decisions` — request an advertisement decision
 - `POST /v1/events` — record an impression, click, or conversion
 - `GET /v1/campaigns/{id}/metrics` — read campaign delivery metrics
+- `GET /v1/operations/outbox` — inspect Outbox records and aggregate status counts
+- `GET /v1/operations/kafka-lag` — read latest observed lag by Kafka partition
+- `POST /v1/operations/dead-letters/{eventId}/replay` — requeue a dead letter (admin only)
 - `POST /v1/agent/rule-drafts` — generate and validate a targeting rule draft without publishing it
 
 ## Architecture direction

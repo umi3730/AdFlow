@@ -2,7 +2,9 @@ package observability
 
 import (
 	"net/http"
+	"sort"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -35,6 +37,8 @@ type Metrics struct {
 	outboxDepth           *prometheus.GaugeVec
 	outboxResults         *prometheus.CounterVec
 	kafkaConsumerLag      *prometheus.GaugeVec
+	lagMu                 sync.RWMutex
+	lagSnapshot           map[string]eventdomain.KafkaPartitionLag
 }
 
 func New() *Metrics {
@@ -109,6 +113,7 @@ func New() *Metrics {
 		kafkaConsumerLag: prometheus.NewGaugeVec(prometheus.GaugeOpts{
 			Namespace: "adflow", Subsystem: "kafka", Name: "consumer_lag", Help: "Observed Kafka consumer lag by topic and partition.",
 		}, []string{"topic", "partition"}),
+		lagSnapshot: make(map[string]eventdomain.KafkaPartitionLag),
 	}
 	m.registry.MustRegister(
 		collectors.NewGoCollector(), collectors.NewProcessCollector(collectors.ProcessCollectorOpts{}),
@@ -209,4 +214,23 @@ func (m *Metrics) ObserveOutboxResult(result string) {
 
 func (m *Metrics) SetKafkaConsumerLag(topic string, partition int32, lag int64) {
 	m.kafkaConsumerLag.WithLabelValues(topic, strconv.FormatInt(int64(partition), 10)).Set(float64(lag))
+	m.lagMu.Lock()
+	m.lagSnapshot[topic+":"+strconv.FormatInt(int64(partition), 10)] = eventdomain.KafkaPartitionLag{Topic: topic, Partition: partition, Lag: lag}
+	m.lagMu.Unlock()
+}
+
+func (m *Metrics) KafkaLagSnapshot() []eventdomain.KafkaPartitionLag {
+	m.lagMu.RLock()
+	result := make([]eventdomain.KafkaPartitionLag, 0, len(m.lagSnapshot))
+	for _, item := range m.lagSnapshot {
+		result = append(result, item)
+	}
+	m.lagMu.RUnlock()
+	sort.Slice(result, func(i, j int) bool {
+		if result[i].Topic == result[j].Topic {
+			return result[i].Partition < result[j].Partition
+		}
+		return result[i].Topic < result[j].Topic
+	})
+	return result
 }

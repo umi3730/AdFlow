@@ -1,5 +1,5 @@
 const API_BASE =
-  process.env.NEXT_PUBLIC_ADFLOW_API_URL ?? 'http://localhost:18080';
+  process.env.NEXT_PUBLIC_ADFLOW_API_URL ?? 'http://127.0.0.1:18080';
 
 export type Status = 'DRAFT' | 'ACTIVE' | 'PAUSED' | 'ENDED';
 
@@ -68,6 +68,34 @@ export interface RuleDraft {
   model: string;
   promptVersion: string;
   generatedAt: string;
+}
+
+export interface OutboxStats {
+  pending: number;
+  processing: number;
+  published: number;
+  deadLettered: number;
+}
+
+export interface OutboxRecord {
+  event: {
+    eventId: string;
+    requestId: string;
+    campaignId: string;
+    creativeId: string;
+    type: 'impression' | 'click' | 'conversion';
+  };
+  status: 'PENDING' | 'PROCESSING' | 'PUBLISHED' | 'DEAD_LETTERED';
+  attempts: number;
+  nextAttemptAt: string;
+  lastError?: string;
+  createdAt: string;
+}
+
+export interface KafkaPartitionLag {
+  topic: string;
+  partition: number;
+  lag: number;
 }
 
 type ApiErrorBody = { error?: { message?: string; code?: string } };
@@ -180,6 +208,17 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ prompt }),
     }),
+  operationsOutbox: (status = '') =>
+    request<{ items: OutboxRecord[]; stats: OutboxStats }>(
+      `/v1/operations/outbox?limit=50${status ? `&status=${status}` : ''}`,
+    ),
+  operationsKafkaLag: () =>
+    request<{ items: KafkaPartitionLag[] }>('/v1/operations/kafka-lag'),
+  replayDeadLetter: (eventID: string) =>
+    request<{ eventId: string; status: string }>(
+      `/v1/operations/dead-letters/${eventID}/replay`,
+      { method: 'POST' },
+    ),
 };
 
 export function newClientID(prefix: string) {

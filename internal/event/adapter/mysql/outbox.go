@@ -208,3 +208,70 @@ func (o *Outbox) Stats(ctx context.Context) (domain.OutboxStats, error) {
 	}
 	return stats, rows.Err()
 }
+
+func (o *Outbox) ListOutbox(ctx context.Context, filter domain.OutboxFilter) ([]domain.OutboxRecord, error) {
+	query := `SELECT payload, status, attempts, next_attempt_at, locked_by, locked_until,
+		published_at, dead_lettered_at, last_error, created_at FROM event_outbox`
+	args := make([]any, 0, 3)
+	if filter.Status != "" {
+		query += " WHERE status = ?"
+		args = append(args, filter.Status)
+	}
+	query += " ORDER BY created_at DESC, event_id ASC LIMIT ? OFFSET ?"
+	args = append(args, filter.Limit, filter.Offset)
+	rows, err := o.db.QueryContext(ctx, query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	records := make([]domain.OutboxRecord, 0)
+	for rows.Next() {
+		var record domain.OutboxRecord
+		var payload []byte
+		var lockedBy, lastError sql.NullString
+		var lockedUntil, publishedAt, deadLetteredAt sql.NullTime
+		if err := rows.Scan(&payload, &record.Status, &record.Attempts, &record.NextAttemptAt, &lockedBy, &lockedUntil, &publishedAt, &deadLetteredAt, &lastError, &record.CreatedAt); err != nil {
+			return nil, err
+		}
+		if err := json.Unmarshal(payload, &record.Event); err != nil {
+			return nil, err
+		}
+		record.LockedBy, record.LastError = lockedBy.String, lastError.String
+		if lockedUntil.Valid {
+			value := lockedUntil.Time.UTC()
+			record.LockedUntil = &value
+		}
+		if publishedAt.Valid {
+			value := publishedAt.Time.UTC()
+			record.PublishedAt = &value
+		}
+		if deadLetteredAt.Valid {
+			value := deadLetteredAt.Time.UTC()
+			record.DeadLetteredAt = &value
+		}
+		record.NextAttemptAt, record.CreatedAt = record.NextAttemptAt.UTC(), record.CreatedAt.UTC()
+		records = append(records, record)
+	}
+	return records, rows.Err()
+}
+
+func (o *Outbox) ReplayDeadLetter(ctx context.Context, eventID string, now time.Time) error {
+	result, err := o.db.ExecContext(ctx, `UPDATE event_outbox
+		SET status = 'PENDING', attempts = 0, next_attempt_at = ?, locked_by = NULL,
+			locked_until = NULL, dead_lettered_at = NULL, last_error = NULL
+		WHERE event_id = ? AND status = 'DEAD_LETTERED'`, now.UTC(), eventID)
+	if err != nil {
+		return err
+	}
+	updated, err := result.RowsAffected()
+	if err != nil || updated == 1 {
+		return err
+	}
+	var status string
+	if err := o.db.QueryRowContext(ctx, `SELECT status FROM event_outbox WHERE event_id = ?`, eventID).Scan(&status); err == sql.ErrNoRows {
+		return domain.ErrOutboxEntryNotFound
+	} else if err != nil {
+		return err
+	}
+	return domain.ErrOutboxNotDeadLetter
+}

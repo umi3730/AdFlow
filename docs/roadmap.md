@@ -45,11 +45,11 @@ The modular monolith already covers the complete MVP path from campaign configur
 
 - The Agent baseline now includes Responses and Chat Completions adapters, strict structured decoding, safety limits, bounded retries, circuit breaking, Mock fallback, usage telemetry, and an opt-in evaluation set.
 - The DeepSeek V4 Flash live evaluation is recorded: default-thinking and taxonomy failures drove compatibility/prompt fixes, after which all four safety/semantic cases and one HTTP end-to-end request passed.
-- Add operator views and APIs for outbox backlog, Kafka lag, dead-letter inspection, and controlled replay.
+- Outbox backlog, Kafka lag, dead-letter inspection, and admin-only replay are exposed through operator APIs and the responsive administration console.
 - Add dashboards and alerts for decision latency, error rate, reservation failures, outbox age, and consumer lag.
 
 ## P5 — Frontend follow-up
 
 - Add campaign detail and immutable-version comparison views.
-- Add delivery trends and operational Kafka/Outbox panels using real metrics.
+- The responsive Kafka/Outbox operations workspace is implemented; add longer-window delivery and lag trends after a metrics time-series backend is selected.
 - Improve narrow-screen data-table workflows and add component-level tests.

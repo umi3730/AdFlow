@@ -13,6 +13,9 @@ func requiredRole(method, route string) (domain.Role, bool) {
 	if route == "/v1/campaigns/:id/publish" {
 		return domain.RoleAdmin, method == http.MethodPost
 	}
+	if route == "/v1/operations/dead-letters/:eventId/replay" {
+		return domain.RoleAdmin, method == http.MethodPost
+	}
 	if route == "/v1/auth/me" {
 		return domain.RoleViewer, method == http.MethodGet
 	}

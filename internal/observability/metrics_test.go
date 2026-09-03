@@ -34,6 +34,10 @@ func TestMetricsExposeHTTPDecisionAndEventSeries(t *testing.T) {
 	metrics.SetOutboxDepth(eventdomain.OutboxStats{Pending: 2})
 	metrics.ObserveOutboxResult("published")
 	metrics.SetKafkaConsumerLag("adflow.ad-events.v1", 0, 3)
+	lag := metrics.KafkaLagSnapshot()
+	if len(lag) != 1 || lag[0].Lag != 3 {
+		t.Fatalf("lag=%v", lag)
+	}
 
 	metricsRecorder := httptest.NewRecorder()
 	metrics.Handler().ServeHTTP(metricsRecorder, httptest.NewRequest(http.MethodGet, "/metrics", nil))

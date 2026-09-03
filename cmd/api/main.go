@@ -50,6 +50,8 @@ import (
 	identitypassword "github.com/zhanghaiyang/adflow/internal/identity/adapter/password"
 	identityapp "github.com/zhanghaiyang/adflow/internal/identity/application"
 	"github.com/zhanghaiyang/adflow/internal/observability"
+	operationshttp "github.com/zhanghaiyang/adflow/internal/operations/adapter/http"
+	operationsapp "github.com/zhanghaiyang/adflow/internal/operations/application"
 	"github.com/zhanghaiyang/adflow/internal/platform/cache"
 	"github.com/zhanghaiyang/adflow/internal/platform/database"
 	httptransport "github.com/zhanghaiyang/adflow/internal/transport/http"
@@ -192,12 +194,14 @@ func main() {
 		Metrics(context.Context, string) (eventdomain.Metrics, error)
 	}
 	asyncEvents := cfg.EventTransport == "kafka"
+	var operationsStore eventdomain.OperationsStore
 	if asyncEvents {
 		eventStore := eventmysql.NewStore(db)
 		// Kafka ingestion settles reservations after the durable Outbox write.
 		// The consumer therefore persists trusted, already-settled events in batches.
 		eventProcessor := eventapp.NewService(eventStore, decisionStore, nil)
 		outbox := eventmysql.NewOutbox(db, fmt.Sprintf("relay-%d-%d", os.Getpid(), time.Now().UnixNano()))
+		operationsStore = outbox
 		brokers := strings.Split(cfg.KafkaBrokers, ",")
 		publisher, kafkaErr := eventkafka.NewPublisher(brokers, cfg.KafkaTopic, cfg.KafkaDeadLetterTopic)
 		if kafkaErr != nil {
@@ -230,6 +234,7 @@ func main() {
 	}
 	logger.Info("event transport selected", "adapter", cfg.EventTransport)
 	eventHandler := eventhttp.NewHandler(eventService, metrics, asyncEvents)
+	operationsHandler := operationshttp.NewHandler(operationsapp.NewService(operationsStore, metrics))
 	var agentProvider agentdomain.Provider = agentmock.NewProvider()
 	if cfg.AgentProvider == "openai-compatible" {
 		primaryProvider, providerErr := agentopenai.NewProvider(agentopenai.ProviderConfig{
@@ -259,7 +264,7 @@ func main() {
 	})
 	agentHandler := agenthttp.NewHandler(agentService)
 	server := httptransport.NewServer(cfg.HTTPAddr, cfg.Environment, logger, healthService, metrics,
-		identityHandler, auditHandler, campaignHandler, decisionHandler, eventHandler, agentHandler)
+		identityHandler, auditHandler, campaignHandler, decisionHandler, eventHandler, operationsHandler, agentHandler)
 
 	errCh := make(chan error, 1)
 	go func() {

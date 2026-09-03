@@ -232,6 +232,32 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/RuleDraft' }
         '422': { description: Prompt or generated draft is invalid }
+  /v1/operations/outbox:
+    get:
+      summary: Inspect Outbox records and status totals
+      parameters:
+        - { name: status, in: query, schema: { type: string, enum: [PENDING, PROCESSING, PUBLISHED, DEAD_LETTERED] } }
+        - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 100, default: 50 } }
+        - { name: offset, in: query, schema: { type: integer, minimum: 0, default: 0 } }
+      responses:
+        '200': { description: Outbox page and aggregate status counts }
+  /v1/operations/kafka-lag:
+    get:
+      summary: Read the latest observed Kafka consumer lag per partition
+      responses:
+        '200': { description: Latest in-process Kafka partition lag samples }
+  /v1/operations/dead-letters/{eventId}/replay:
+    parameters:
+      - { name: eventId, in: path, required: true, schema: { type: string } }
+    post:
+      summary: Requeue a dead-lettered Outbox event
+      description: Requires the admin role when authentication is enabled.
+      responses:
+        '202': { description: Dead letter reset to PENDING }
+        '404': { description: Outbox event does not exist }
+        '409': { description: Outbox event is not dead-lettered }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
 components:
   securitySchemes:
     bearerAuth:

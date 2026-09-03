@@ -9,6 +9,7 @@ import {
   Boxes,
   CheckCircle2,
   CircleDollarSign,
+  DatabaseZap,
   Gauge,
   ImageIcon,
   Inbox,
@@ -18,6 +19,7 @@ import {
   Plus,
   RadioTower,
   RefreshCw,
+  RotateCcw,
   Search,
   Send,
   Sparkles,
@@ -30,6 +32,9 @@ import {
   Creative,
   Decision,
   Metrics,
+  KafkaPartitionLag,
+  OutboxRecord,
+  OutboxStats,
   RuleDraft,
   newClientID,
 } from '@/lib/api';
@@ -59,6 +64,7 @@ type View =
   | 'creatives'
   | 'profiles'
   | 'decision'
+  | 'operations'
   | 'agent';
 
 const navItems = [
@@ -67,6 +73,7 @@ const navItems = [
   { id: 'creatives' as const, label: '素材管理', icon: Boxes },
   { id: 'profiles' as const, label: '用户画像', icon: UsersRound },
   { id: 'decision' as const, label: '决策调试', icon: RadioTower },
+  { id: 'operations' as const, label: '运行态', icon: DatabaseZap },
   { id: 'agent' as const, label: 'Agent规则助手', icon: Sparkles },
 ];
 
@@ -367,6 +374,9 @@ export function AdFlowConsole() {
           )}
           {view === 'profiles' && <ProfilesView busy={busy} run={run} />}
           {view === 'decision' && <DecisionView busy={busy} run={run} />}
+          {view === 'operations' && (
+            <OperationsView busy={busy} run={run} connected={connected} />
+          )}
           {view === 'agent' && (
             <AgentView campaigns={campaigns} busy={busy} run={run} />
           )}
@@ -1218,6 +1228,252 @@ function AgentView({
   );
 }
 
+function OperationsView({
+  busy,
+  run,
+  connected,
+}: {
+  busy: boolean;
+  run: (action: () => Promise<void>, message: string) => Promise<void>;
+  connected: boolean;
+}) {
+  const [status, setStatus] = useState('');
+  const [records, setRecords] = useState<OutboxRecord[]>([]);
+  const [stats, setStats] = useState<OutboxStats>({
+    pending: 0,
+    processing: 0,
+    published: 0,
+    deadLettered: 0,
+  });
+  const [lag, setLag] = useState<KafkaPartitionLag[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const [outbox, kafka] = await Promise.all([
+        api.operationsOutbox(status),
+        api.operationsKafkaLag(),
+      ]);
+      setRecords(outbox.items);
+      setStats(outbox.stats);
+      setLag(kafka.items);
+    } catch (loadError) {
+      setError(
+        loadError instanceof Error ? loadError.message : '运行态加载失败',
+      );
+    } finally {
+      setLoading(false);
+    }
+  }, [status]);
+
+  useEffect(() => {
+    void Promise.resolve().then(load);
+  }, [load]);
+
+  const totalLag = lag.reduce((sum, item) => sum + item.lag, 0);
+  const unhealthy = stats.pending + stats.processing + stats.deadLettered;
+  return (
+    <>
+      <PageTitle
+        kicker="Delivery operations"
+        title="运行态工作台"
+        description="追踪 Outbox 投递、Kafka 分区积压与死信重放。"
+        action={
+          <Button
+            variant="outline"
+            onClick={() => void load()}
+            disabled={loading}
+          >
+            <RefreshCw className={loading ? 'animate-spin' : ''} />
+            刷新运行态
+          </Button>
+        }
+      />
+      <section className="mt-7 grid grid-cols-2 gap-3 xl:grid-cols-4">
+        <MetricCard
+          label="待发布"
+          value={String(stats.pending)}
+          change="Outbox pending"
+          icon={Inbox}
+          tone="amber"
+        />
+        <MetricCard
+          label="处理中"
+          value={String(stats.processing)}
+          change="持有 Relay 租约"
+          icon={Activity}
+          tone="blue"
+        />
+        <MetricCard
+          label="Kafka Lag"
+          value={totalLag.toLocaleString()}
+          change={`${lag.length} 个分区`}
+          icon={RadioTower}
+          tone="violet"
+        />
+        <MetricCard
+          label="死信"
+          value={String(stats.deadLettered)}
+          change={unhealthy === 0 ? '投递链路健康' : '需要运维关注'}
+          icon={AlertTriangle}
+          tone={stats.deadLettered > 0 ? 'rose' : 'mint'}
+        />
+      </section>
+
+      <div className="mt-6 grid gap-5 xl:grid-cols-[1fr_360px]">
+        <Card className="min-w-0">
+          <CardHeader className="border-b">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <CardTitle>Outbox 事件</CardTitle>
+                <CardDescription>
+                  最近 50 条，死信可由管理员重新入队。
+                </CardDescription>
+              </div>
+              <select
+                value={status}
+                onChange={(event) => setStatus(event.target.value)}
+                className="h-9 rounded-lg border border-input bg-background px-3 text-sm"
+              >
+                <option value="">全部状态</option>
+                <option value="PENDING">待发布</option>
+                <option value="PROCESSING">处理中</option>
+                <option value="PUBLISHED">已发布</option>
+                <option value="DEAD_LETTERED">死信</option>
+              </select>
+            </div>
+          </CardHeader>
+          <CardContent className="overflow-x-auto p-0">
+            {error ? (
+              <Empty text={error} />
+            ) : loading ? (
+              <Empty text="正在读取投递状态…" />
+            ) : records.length === 0 ? (
+              <Empty
+                text={
+                  connected
+                    ? '当前筛选下没有 Outbox 事件'
+                    : '连接 API 后查看真实运行态'
+                }
+              />
+            ) : (
+              <Table className="min-w-[760px]">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="pl-5">事件</TableHead>
+                    <TableHead>状态</TableHead>
+                    <TableHead>重试</TableHead>
+                    <TableHead>时间</TableHead>
+                    <TableHead>最近错误</TableHead>
+                    <TableHead className="pr-5 text-right">操作</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {records.map((record) => (
+                    <TableRow key={record.event.eventId}>
+                      <TableCell className="pl-5">
+                        <p className="font-medium">{record.event.type}</p>
+                        <p className="max-w-52 truncate font-mono text-[11px] text-muted-foreground">
+                          {record.event.eventId}
+                        </p>
+                      </TableCell>
+                      <TableCell>
+                        <StatusBadge status={record.status} />
+                      </TableCell>
+                      <TableCell className="tabular-nums">
+                        {record.attempts}
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap text-xs text-muted-foreground">
+                        {new Date(record.createdAt).toLocaleString('zh-CN')}
+                      </TableCell>
+                      <TableCell
+                        className="max-w-64 truncate text-xs text-rose-700"
+                        title={record.lastError}
+                      >
+                        {record.lastError || '—'}
+                      </TableCell>
+                      <TableCell className="pr-5 text-right">
+                        {record.status === 'DEAD_LETTERED' && (
+                          <Button
+                            size="xs"
+                            variant="outline"
+                            disabled={busy}
+                            onClick={() =>
+                              void run(async () => {
+                                await api.replayDeadLetter(
+                                  record.event.eventId,
+                                );
+                                await load();
+                              }, '死信已重新进入 Outbox 队列')
+                            }
+                          >
+                            <RotateCcw />
+                            重放
+                          </Button>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card className="self-start bg-[#102d35] text-white xl:sticky xl:top-24">
+          <CardHeader>
+            <CardTitle className="text-white">Kafka 分区</CardTitle>
+            <CardDescription className="text-white/55">
+              消费进度由运行中的 Consumer 实时上报。
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {lag.length === 0 ? (
+              <p className="rounded-lg border border-white/10 bg-white/5 p-4 text-sm text-white/55">
+                暂无分区采样；Consumer 收到消息后会显示。
+              </p>
+            ) : (
+              lag.map((item) => (
+                <div
+                  key={`${item.topic}-${item.partition}`}
+                  className="rounded-lg border border-white/10 bg-white/[.05] p-3"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono text-xs text-white/65">
+                      P{item.partition}
+                    </span>
+                    <span
+                      className={
+                        item.lag > 0 ? 'text-amber-300' : 'text-emerald-300'
+                      }
+                    >
+                      {item.lag.toLocaleString()} lag
+                    </span>
+                  </div>
+                  <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/10">
+                    <div
+                      className={`h-full rounded-full ${item.lag > 0 ? 'bg-amber-300' : 'bg-emerald-300'}`}
+                      style={{
+                        width: `${item.lag > 0 ? Math.min(100, 12 + Math.log10(item.lag + 1) * 28) : 4}%`,
+                      }}
+                    />
+                  </div>
+                  <p className="mt-2 truncate text-[10px] text-white/35">
+                    {item.topic}
+                  </p>
+                </div>
+              ))
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    </>
+  );
+}
+
 function CampaignTable({
   campaigns,
   metrics = {},
@@ -1323,7 +1579,7 @@ function MetricCard({
   value: string;
   change: string;
   icon: typeof Activity;
-  tone: 'mint' | 'blue' | 'violet' | 'amber';
+  tone: 'mint' | 'blue' | 'violet' | 'amber' | 'rose';
 }) {
   const toneStyles = {
     mint: 'bg-emerald-50 text-emerald-700 ring-emerald-600/10 dark:bg-emerald-400/10 dark:text-emerald-300',
@@ -1332,6 +1588,7 @@ function MetricCard({
       'bg-violet-50 text-violet-700 ring-violet-600/10 dark:bg-violet-400/10 dark:text-violet-300',
     amber:
       'bg-amber-50 text-amber-700 ring-amber-600/10 dark:bg-amber-400/10 dark:text-amber-300',
+    rose: 'bg-rose-50 text-rose-700 ring-rose-600/10 dark:bg-rose-400/10 dark:text-rose-300',
   };
   return (
     <Card className="gap-2 border-0 py-4 shadow-[0_10px_28px_rgba(20,52,60,.055)] ring-1 ring-foreground/[.065] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_16px_36px_rgba(20,52,60,.085)]">
@@ -1368,6 +1625,10 @@ function StatusBadge({ status }: { status: string }) {
       'border-slate-200 bg-slate-50 text-slate-500 dark:border-slate-400/20 dark:bg-slate-400/10 dark:text-slate-400',
     'NO-AD':
       'border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-400/25 dark:bg-rose-400/10 dark:text-rose-300',
+    PENDING: 'border-amber-200 bg-amber-50 text-amber-700',
+    PROCESSING: 'border-cyan-200 bg-cyan-50 text-cyan-700',
+    PUBLISHED: 'border-emerald-200 bg-emerald-50 text-emerald-700',
+    DEAD_LETTERED: 'border-rose-200 bg-rose-50 text-rose-700',
   };
   const labels: Record<string, string> = {
     ACTIVE: '投放中',
@@ -1376,6 +1637,10 @@ function StatusBadge({ status }: { status: string }) {
     DRAFT: '草稿',
     DISABLED: '已禁用',
     'NO-AD': '未命中',
+    PENDING: '待发布',
+    PROCESSING: '处理中',
+    PUBLISHED: '已发布',
+    DEAD_LETTERED: '死信',
   };
   return (
     <Badge variant="outline" className={styles[status] ?? ''} title={status}>

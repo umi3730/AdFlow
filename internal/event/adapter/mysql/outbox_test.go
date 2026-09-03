@@ -97,3 +97,28 @@ func TestOutboxMarksPublishedBatchInOneStatement(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestOutboxReplaysDeadLetter(t *testing.T) {
+	db, mock := mockDB(t)
+	outbox := NewOutbox(db, "worker-1")
+	now := time.Date(2026, 9, 3, 1, 0, 0, 0, time.UTC)
+	mock.ExpectExec("UPDATE event_outbox").WithArgs(now, "event-1").WillReturnResult(sqlmock.NewResult(0, 1))
+	if err := outbox.ReplayDeadLetter(context.Background(), "event-1", now); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestOutboxListsOperationalRecords(t *testing.T) {
+	db, mock := mockDB(t)
+	outbox := NewOutbox(db, "worker-1")
+	event := sampleEvent()
+	payload, _ := json.Marshal(event)
+	now := time.Date(2026, 9, 3, 1, 0, 0, 0, time.UTC)
+	mock.ExpectQuery("FROM event_outbox WHERE status =").WithArgs("DEAD_LETTERED", 50, 0).
+		WillReturnRows(sqlmock.NewRows([]string{"payload", "status", "attempts", "next_attempt_at", "locked_by", "locked_until", "published_at", "dead_lettered_at", "last_error", "created_at"}).
+			AddRow(payload, "DEAD_LETTERED", 8, now, nil, nil, nil, now, "broker unavailable", now))
+	records, err := outbox.ListOutbox(context.Background(), domain.OutboxFilter{Status: "DEAD_LETTERED", Limit: 50})
+	if err != nil || len(records) != 1 || records[0].Event.EventID != event.EventID || records[0].LastError != "broker unavailable" || records[0].DeadLetteredAt == nil {
+		t.Fatalf("records=%+v err=%v", records, err)
+	}
+}

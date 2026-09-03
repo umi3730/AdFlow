@@ -69,4 +69,7 @@ func TestRBACPolicy(t *testing.T) {
 	if service.Authorize(operator, http.MethodGet, "/v1/audit-logs") {
 		t.Fatal("only admin should read audit logs")
 	}
+	if service.Authorize(operator, http.MethodPost, "/v1/operations/dead-letters/:eventId/replay") || !service.Authorize(admin, http.MethodPost, "/v1/operations/dead-letters/:eventId/replay") {
+		t.Fatal("only admin should replay dead letters")
+	}
 }

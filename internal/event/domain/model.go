@@ -9,10 +9,12 @@ import (
 )
 
 var (
-	ErrInvalidEvent       = errors.New("ad event is invalid")
-	ErrDecisionNotFound   = errors.New("matched decision not found")
-	ErrDecisionExpired    = errors.New("advertising decision has expired")
-	ErrImpressionRequired = errors.New("impression must be recorded first")
+	ErrInvalidEvent        = errors.New("ad event is invalid")
+	ErrDecisionNotFound    = errors.New("matched decision not found")
+	ErrDecisionExpired     = errors.New("advertising decision has expired")
+	ErrImpressionRequired  = errors.New("impression must be recorded first")
+	ErrOutboxEntryNotFound = errors.New("outbox entry not found")
+	ErrOutboxNotDeadLetter = errors.New("outbox entry is not dead-lettered")
 )
 
 type Type string
@@ -100,8 +102,43 @@ type PublishedBatchMarker interface {
 }
 
 type OutboxStats struct {
-	Pending      int64
-	Processing   int64
-	Published    int64
-	DeadLettered int64
+	Pending      int64 `json:"pending"`
+	Processing   int64 `json:"processing"`
+	Published    int64 `json:"published"`
+	DeadLettered int64 `json:"deadLettered"`
+}
+
+type OutboxRecord struct {
+	Event          Event      `json:"event"`
+	Status         string     `json:"status"`
+	Attempts       int        `json:"attempts"`
+	NextAttemptAt  time.Time  `json:"nextAttemptAt"`
+	LockedBy       string     `json:"lockedBy,omitempty"`
+	LockedUntil    *time.Time `json:"lockedUntil,omitempty"`
+	PublishedAt    *time.Time `json:"publishedAt,omitempty"`
+	DeadLetteredAt *time.Time `json:"deadLetteredAt,omitempty"`
+	LastError      string     `json:"lastError,omitempty"`
+	CreatedAt      time.Time  `json:"createdAt"`
+}
+
+type OutboxFilter struct {
+	Status string
+	Limit  int
+	Offset int
+}
+
+type OperationsStore interface {
+	Stats(context.Context) (OutboxStats, error)
+	ListOutbox(context.Context, OutboxFilter) ([]OutboxRecord, error)
+	ReplayDeadLetter(context.Context, string, time.Time) error
+}
+
+type KafkaPartitionLag struct {
+	Topic     string `json:"topic"`
+	Partition int32  `json:"partition"`
+	Lag       int64  `json:"lag"`
+}
+
+type KafkaLagReader interface {
+	KafkaLagSnapshot() []KafkaPartitionLag
 }

@@ -34,6 +34,9 @@ func Middleware(service *application.Service) gin.HandlerFunc {
 		if resourceID == "" {
 			resourceID = c.Param("userId")
 		}
+		if resourceID == "" {
+			resourceID = c.Param("eventId")
+		}
 		metadata := map[string]string{"method": c.Request.Method, "route": c.FullPath(), "status": http.StatusText(c.Writer.Status())}
 		for key, value := range httptransport.AuditMetadataFrom(c) {
 			metadata[key] = value
@@ -63,6 +66,7 @@ func auditedAction(method, route string) (string, string, bool) {
 		http.MethodPost + " /v1/decisions":                                   {"REQUEST_DECISION", "decision"},
 		http.MethodPost + " /v1/events":                                      {"RECORD_EVENT", "event"},
 		http.MethodPost + " /v1/agent/rule-drafts":                           {"GENERATE_RULE_DRAFT", "agent_rule"},
+		http.MethodPost + " /v1/operations/dead-letters/:eventId/replay":     {"REPLAY_DEAD_LETTER", "event"},
 	}
 	matched, ok := actions[method+" "+route]
 	return matched.action, matched.resource, ok
