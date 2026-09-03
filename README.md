@@ -97,6 +97,15 @@ go run ./cmd/api
 
 Campaign persistence defaults to the in-memory adapter so the API can be explored without MySQL. Set `ADFLOW_CAMPAIGN_REPOSITORY=mysql` after applying the migration to use the MySQL adapter.
 
+Apply all pending MySQL migrations with the repeatable migration command:
+
+```powershell
+$env:ADFLOW_MYSQL_DSN = "adflow:adflow@tcp(127.0.0.1:3306)/adflow?parseTime=true&charset=utf8mb4&loc=UTC"
+go run ./cmd/migrate -dir migrations
+```
+
+The runner serializes concurrent migration attempts with a MySQL advisory lock and records each file checksum in `schema_migrations`. It refuses to continue if an already-applied migration file changes.
+
 Frequency and budget reservations also default to memory. Set `ADFLOW_RESERVATION_ADAPTER=redis` to use the atomic Redis Lua adapter.
 
 Event processing defaults to synchronous local mode. To enable Kafka, create the configured topic and set:
@@ -201,6 +210,22 @@ HTTP 429 and 503 are expected backpressure in this profile; HTTP 500 remains a f
 
 The script reports decision-specific P95/P99 latency and error rate. Keep the machine configuration and test parameters with any resume performance numbers.
 
+## Real infrastructure verification
+
+The default test suite remains self-contained. Real MySQL, Redis, and Kafka checks are opt-in through the `integration` build tag and environment variables; no application container image is required.
+
+```powershell
+$env:ADFLOW_IT_MYSQL_DSN = "adflow:password@tcp(127.0.0.1:3306)/adflow_it?parseTime=true&charset=utf8mb4&loc=UTC"
+$env:ADFLOW_IT_REDIS_ADDR = "127.0.0.1:6379"
+$env:ADFLOW_IT_KAFKA_BROKERS = "127.0.0.1:9092"
+$env:ADFLOW_IT_KAFKA_TOPIC = "adflow.it.events.v1"
+$env:ADFLOW_IT_KAFKA_DEAD_LETTER_TOPIC = "adflow.it.dlq.v1"
+$env:ADFLOW_IT_KAFKA_RESTART_TOPIC = "adflow.it.restart.v1"
+go test -tags=integration -v ./tests/integration
+```
+
+Create the three Kafka topics before running the suite and apply every migration to the test database. The verification covers MySQL optimistic concurrency and Outbox lease competition, Redis atomic sliding-window/budget admission, duplicate publication after a Kafka acknowledgment, and consumer replay after a side effect but before offset commit. See `docs/integration-verification.md` for the tested failure timelines.
+
 Endpoints:
 
 - `GET /livez` — process liveness
@@ -231,4 +256,4 @@ The first release is a modular monolith. Gin is restricted to the HTTP transport
 
 ## Next milestone
 
-The next infrastructure step is a real Kafka/MySQL integration environment and end-to-end restart test. The local synchronous path remains the default until those services are available. Authentication remains opt-in until the administration UI gains a login flow.
+The real MySQL/Redis/Kafka correctness baseline is implemented. The next backend milestone is sustained load and chaos testing with production-shaped data, followed by query-plan and index regression evidence. The local synchronous path remains the default, and authentication remains opt-in until the administration UI gains a login flow.

@@ -69,11 +69,12 @@ func TestOutboxClaimBatchUsesLease(t *testing.T) {
 	outbox := NewOutbox(db, "worker-1")
 	event := sampleEvent()
 	payload, _ := json.Marshal(event)
-	now := time.Date(2026, 9, 3, 1, 0, 0, 0, time.UTC)
-	lockedUntil := now.Add(30 * time.Second)
+	now := time.Date(2026, 9, 3, 1, 0, 0, 123456789, time.UTC)
+	databaseNow := now.Truncate(time.Millisecond)
+	lockedUntil := databaseNow.Add(30 * time.Second)
 	mock.ExpectBegin()
 	mock.ExpectExec("UPDATE event_outbox").
-		WithArgs("worker-1", lockedUntil, now, now, 10).
+		WithArgs("worker-1", lockedUntil, databaseNow, databaseNow, 10).
 		WillReturnResult(sqlmock.NewResult(0, 1))
 	mock.ExpectQuery("SELECT payload, attempts").
 		WithArgs("worker-1", lockedUntil).

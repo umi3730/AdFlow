@@ -87,6 +87,8 @@ func handleError(c *gin.Context, err error) {
 		httptransport.RespondError(c, http.StatusUnprocessableEntity, "invalid_event", err.Error(), nil)
 	case errors.Is(err, domain.ErrDecisionNotFound):
 		httptransport.RespondError(c, http.StatusNotFound, "decision_not_found", err.Error(), nil)
+	case errors.Is(err, domain.ErrDecisionExpired):
+		httptransport.RespondError(c, http.StatusConflict, "decision_expired", err.Error(), nil)
 	case errors.Is(err, domain.ErrImpressionRequired):
 		httptransport.RespondError(c, http.StatusConflict, "impression_required", err.Error(), nil)
 	default:

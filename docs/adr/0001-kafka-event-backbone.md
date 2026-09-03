@@ -55,4 +55,11 @@ The repository now includes:
 
 The implementation claims at-least-once delivery with idempotent processing, not exactly once. A crash after Kafka accepts a record but before the relay marks the outbox row published can produce a duplicate; the consumer must safely absorb it.
 
-The remaining proof obligation is a real-broker integration test covering process restart between Kafka acknowledgment and Outbox publication marking, plus operational topic creation and retention settings.
+## Verification status
+
+The repository now has opt-in real-infrastructure tests for the two ambiguous at-least-once failure boundaries:
+
+1. Kafka acknowledges a record, the relay stops before marking its Outbox row, and the next relay publishes the record again. Both records are consumed while the unique `eventId` barrier produces one metric side effect.
+2. A consumer commits the MySQL side effect and then stops before committing its Kafka offset. A restarted consumer replays the record, observes the existing `eventId`, and commits without duplicating the metric.
+
+The same suite also verifies MySQL optimistic concurrency, lease competition between two Outbox relays, and Redis Lua atomicity against real services. This establishes the local correctness baseline; sustained broker outage, partition reassignment, retention, and production-scale load remain operational proof obligations.

@@ -35,6 +35,9 @@ func (s *Service) Record(ctx context.Context, event domain.Event) (bool, error) 
 	if event.OccurredAt.IsZero() {
 		event.OccurredAt = s.now().UTC()
 	}
+	if !decision.ExpiresAt.IsZero() && event.OccurredAt.After(decision.ExpiresAt) {
+		return false, domain.ErrDecisionExpired
+	}
 	if event.Type != domain.Impression {
 		hasImpression, err := s.store.HasImpression(ctx, event.RequestID)
 		if err != nil {
@@ -49,10 +52,10 @@ func (s *Service) Record(ctx context.Context, event domain.Event) (bool, error) 
 		return false, err
 	}
 	if event.Type == domain.Impression {
-		if err := s.confirmer.ConfirmFrequency(ctx, decision.ReservationToken, event.OccurredAt); err != nil {
+		if err := s.confirmer.ConfirmBudget(ctx, decision.ReservationToken, event.OccurredAt); err != nil {
 			return false, err
 		}
-		if err := s.confirmer.ConfirmBudget(ctx, decision.ReservationToken, event.OccurredAt); err != nil {
+		if err := s.confirmer.ConfirmFrequency(ctx, decision.ReservationToken, event.OccurredAt); err != nil {
 			return false, err
 		}
 	}

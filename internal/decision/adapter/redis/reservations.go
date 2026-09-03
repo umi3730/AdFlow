@@ -25,7 +25,7 @@ if existing then return 1 end
 redis.call('ZREMRANGEBYSCORE', KEYS[1], '-inf', ARGV[1])
 if redis.call('ZCARD', KEYS[1]) >= tonumber(ARGV[2]) then return 0 end
 redis.call('ZADD', KEYS[1], ARGV[3], ARGV[4])
-redis.call('PEXPIREAT', KEYS[1], ARGV[5])
+redis.call('PEXPIRE', KEYS[1], ARGV[5])
 redis.call('SET', KEYS[2], ARGV[6], 'PX', ARGV[7])
 return 1
 `)
@@ -38,7 +38,7 @@ return 1
 
 var confirmFrequencyScript = redis.NewScript(`
 redis.call('ZADD', KEYS[1], ARGV[1], ARGV[2])
-redis.call('PEXPIREAT', KEYS[1], ARGV[3])
+redis.call('PEXPIRE', KEYS[1], ARGV[3])
 redis.call('DEL', KEYS[2])
 return 1
 `)
@@ -47,9 +47,8 @@ func (r *Reservations) ReserveFrequency(ctx context.Context, userID, campaignID,
 	base := fmt.Sprintf("%s:%s:%s", now.UTC().Format("2006-01-02"), campaignID, userID)
 	frequencyKey := r.prefix + ":freq:" + base
 	metaKey := r.prefix + ":freq:rsv:" + requestID
-	dayEnd := endOfDay(now)
 	value, err := reserveFrequencyScript.Run(ctx, r.client, []string{frequencyKey, metaKey},
-		now.UnixMilli(), limit, now.Add(ttl).UnixMilli(), requestID, dayEnd.Add(24*time.Hour).UnixMilli(), base, ttl.Milliseconds(),
+		now.UnixMilli(), limit, now.Add(ttl).UnixMilli(), requestID, dailyStateTTL(now).Milliseconds(), base, ttl.Milliseconds(),
 	).Int()
 	return requestID, value == 1, err
 }
@@ -76,7 +75,7 @@ func (r *Reservations) ConfirmFrequency(ctx context.Context, token string, now t
 		return err
 	}
 	dayEnd := endOfDay(now)
-	return confirmFrequencyScript.Run(ctx, r.client, []string{r.prefix + ":freq:" + base, metaKey}, dayEnd.UnixMilli(), token, dayEnd.Add(24*time.Hour).UnixMilli()).Err()
+	return confirmFrequencyScript.Run(ctx, r.client, []string{r.prefix + ":freq:" + base, metaKey}, dayEnd.UnixMilli(), token, dailyStateTTL(now).Milliseconds()).Err()
 }
 
 var reserveBudgetScript = redis.NewScript(`
@@ -97,7 +96,7 @@ redis.call('INCRBY', KEYS[2], cost)
 redis.call('HSET', KEYS[3], ARGV[4], cost)
 redis.call('ZADD', KEYS[4], ARGV[5], ARGV[4])
 redis.call('SET', KEYS[5], ARGV[6], 'PX', ARGV[7])
-for i = 1, 4 do redis.call('PEXPIREAT', KEYS[i], ARGV[8]) end
+for i = 1, 4 do redis.call('PEXPIRE', KEYS[i], ARGV[8]) end
 return 1
 `)
 
@@ -116,7 +115,7 @@ func (r *Reservations) ReserveBudget(ctx context.Context, campaignID string, dai
 	base := fmt.Sprintf("%s:%s", now.UTC().Format("2006-01-02"), campaignID)
 	keys := r.budgetKeys(base, requestID)
 	value, err := reserveBudgetScript.Run(ctx, r.client, keys,
-		now.UnixMilli(), dailyBudgetFen, costFen, requestID, now.Add(ttl).UnixMilli(), base, ttl.Milliseconds(), endOfDay(now).Add(24*time.Hour).UnixMilli(),
+		now.UnixMilli(), dailyBudgetFen, costFen, requestID, now.Add(ttl).UnixMilli(), base, ttl.Milliseconds(), dailyStateTTL(now).Milliseconds(),
 	).Int()
 	return requestID, value == 1, err
 }
@@ -149,6 +148,10 @@ func (r *Reservations) budgetKeys(base, token string) []string {
 func endOfDay(now time.Time) time.Time {
 	utc := now.UTC()
 	return time.Date(utc.Year(), utc.Month(), utc.Day()+1, 0, 0, 0, 0, time.UTC)
+}
+
+func dailyStateTTL(now time.Time) time.Duration {
+	return endOfDay(now).Add(24 * time.Hour).Sub(now)
 }
 
 func (r *Reservations) DebugBudgetSpent(ctx context.Context, campaignID string, now time.Time) (int64, error) {

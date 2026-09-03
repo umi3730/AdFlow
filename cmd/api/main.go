@@ -192,7 +192,7 @@ func main() {
 			os.Exit(1)
 		}
 		defer consumer.Close()
-		eventService = eventapp.NewAsyncService(eventProcessor, decisionStore, outbox)
+		eventService = eventapp.NewAsyncService(eventProcessor, decisionStore, outbox, reservations)
 		relay := eventapp.NewOutboxRelay(outbox, publisher, publisher, metrics)
 		go func() {
 			if relayErr := relay.Run(ctx); relayErr != nil {

@@ -11,6 +11,7 @@ import (
 var (
 	ErrInvalidEvent       = errors.New("ad event is invalid")
 	ErrDecisionNotFound   = errors.New("matched decision not found")
+	ErrDecisionExpired    = errors.New("advertising decision has expired")
 	ErrImpressionRequired = errors.New("impression must be recorded first")
 )
 

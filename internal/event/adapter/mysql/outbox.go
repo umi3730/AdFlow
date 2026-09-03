@@ -64,7 +64,8 @@ func (o *Outbox) ClaimBatch(ctx context.Context, limit int, now time.Time, lease
 	if limit <= 0 {
 		return []domain.OutboxEntry{}, nil
 	}
-	lockedUntil := now.Add(lease)
+	now = now.UTC().Truncate(time.Millisecond)
+	lockedUntil := now.Add(lease).Truncate(time.Millisecond)
 	tx, err := o.db.BeginTx(ctx, nil)
 	if err != nil {
 		return nil, err

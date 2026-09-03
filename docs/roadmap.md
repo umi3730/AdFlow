@@ -14,11 +14,11 @@ The modular monolith already covers the complete MVP path from campaign configur
 ## P1 — Concurrency and persistence proof
 
 - The admission baseline now includes a local token bucket, optional Redis ZSET sliding window, bounded per-process execution concurrency, queue timeout, processing deadline, cancellation-safe reservation cleanup, and overload metrics.
-- Add a real MySQL, Redis, and Kafka integration environment when external infrastructure work resumes.
-- Apply every migration through a repeatable migration command rather than mounting only the first SQL file.
-- Test process restart after Kafka acknowledges an event but before the outbox row is marked published.
-- Test duplicate Kafka delivery, consumer restart, lease expiry, concurrent outbox relays, and Redis reservation release.
+- The opt-in real MySQL, Redis, and Kafka suite now verifies optimistic revisions, concurrent Outbox lease ownership, atomic admission, duplicate publication, and consumer restart/replay.
+- A repeatable migration command applies ordered SQL files under a MySQL advisory lock and verifies stored checksums.
+- Kafka acknowledgment-before-Outbox-mark and side-effect-before-offset-commit failure boundaries are covered with persistent `eventId` idempotency assertions.
 - Run sustained load tests with representative campaign, creative, and profile cardinality.
+- Add longer broker-outage, partition-reassignment, lease-expiry, and dead-letter replay chaos scenarios.
 - Record repeatable P50, P95, P99, throughput, error rate, database pool usage, Redis latency, outbox depth, and Kafka lag.
 
 ## P2 — Database depth

@@ -54,3 +54,30 @@ func TestRedisBudgetReserveReleaseAndConfirm(t *testing.T) {
 		t.Fatalf("spent=%d err=%v", spent, err)
 	}
 }
+
+func TestRedisReservationsUseRelativeExpiryAcrossHostClockSkew(t *testing.T) {
+	reservations, server := testReservations(t)
+	appNow := time.Date(2026, 9, 2, 1, 0, 0, 0, time.UTC)
+	server.SetTime(appNow.Add(72 * time.Hour))
+
+	if _, allowed, err := reservations.ReserveBudget(context.Background(), "campaign", 100, 100, "budget-request", appNow, time.Minute); err != nil || !allowed {
+		t.Fatalf("reserve budget: allowed=%v err=%v", allowed, err)
+	}
+	if err := reservations.ConfirmBudget(context.Background(), "budget-request", appNow); err != nil {
+		t.Fatal(err)
+	}
+	spent, err := reservations.DebugBudgetSpent(context.Background(), "campaign", appNow)
+	if err != nil || spent != 100 {
+		t.Fatalf("spent=%d err=%v", spent, err)
+	}
+
+	if _, allowed, err := reservations.ReserveFrequency(context.Background(), "user", "campaign", "frequency-request", 1, appNow, time.Minute); err != nil || !allowed {
+		t.Fatalf("reserve frequency: allowed=%v err=%v", allowed, err)
+	}
+	if err := reservations.ConfirmFrequency(context.Background(), "frequency-request", appNow); err != nil {
+		t.Fatal(err)
+	}
+	if _, allowed, err := reservations.ReserveFrequency(context.Background(), "user", "campaign", "frequency-request-2", 1, appNow, time.Minute); err != nil || allowed {
+		t.Fatalf("frequency cap after confirm: allowed=%v err=%v", allowed, err)
+	}
+}
