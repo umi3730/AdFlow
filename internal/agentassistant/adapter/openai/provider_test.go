@@ -33,7 +33,7 @@ func TestResponsesProviderUsesStrictStructuredOutput(t *testing.T) {
 			t.Error(err)
 			return
 		}
-		if request["input"] != prompt || !strings.Contains(request["instructions"].(string), "untrusted") {
+		if request["input"] != prompt || !strings.Contains(request["instructions"].(string), "untrusted") || !strings.Contains(request["instructions"].(string), "strategy_game") {
 			t.Errorf("prompt was not isolated from instructions: %+v", request)
 			return
 		}
@@ -75,12 +75,13 @@ func TestChatCompletionsCompatibilityMode(t *testing.T) {
 				Content string `json:"content"`
 			} `json:"messages"`
 			ResponseFormat map[string]string `json:"response_format"`
+			Thinking       map[string]string `json:"thinking"`
 		}
 		if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 			t.Error(err)
 			return
 		}
-		if len(request.Messages) != 2 || request.Messages[1].Content != "生成二次元用户规则" || request.ResponseFormat["type"] != "json_object" {
+		if len(request.Messages) != 2 || request.Messages[1].Content != "生成二次元用户规则" || request.ResponseFormat["type"] != "json_object" || request.Thinking["type"] != ThinkingDisabled {
 			t.Errorf("unexpected compatibility request: %+v", request)
 			return
 		}
@@ -91,7 +92,9 @@ func TestChatCompletionsCompatibilityMode(t *testing.T) {
 		})
 	}))
 	defer server.Close()
-	provider, err := NewProvider(providerConfig(server.URL, APIStyleChatCompletions))
+	config := providerConfig(server.URL, APIStyleChatCompletions)
+	config.ThinkingMode = ThinkingDisabled
+	provider, err := NewProvider(config)
 	if err != nil {
 		t.Fatal(err)
 	}

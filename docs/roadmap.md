@@ -44,7 +44,7 @@ The modular monolith already covers the complete MVP path from campaign configur
 ## P4 — Agent and operations
 
 - The Agent baseline now includes Responses and Chat Completions adapters, strict structured decoding, safety limits, bounded retries, circuit breaking, Mock fallback, usage telemetry, and an opt-in evaluation set.
-- Run and record the live evaluation set against the selected production model before enabling it outside development.
+- The DeepSeek V4 Flash live evaluation is recorded: default-thinking and taxonomy failures drove compatibility/prompt fixes, after which all four safety/semantic cases and one HTTP end-to-end request passed.
 - Add operator views and APIs for outbox backlog, Kafka lag, dead-letter inspection, and controlled replay.
 - Add dashboards and alerts for decision latency, error rate, reservation failures, outbox age, and consumer lag.
 

@@ -120,6 +120,7 @@ func TestLoadOpenAICompatibleAgentSettings(t *testing.T) {
 	t.Setenv("ADFLOW_AGENT_API_KEY", "test-key")
 	t.Setenv("ADFLOW_AGENT_MODEL", "test-model")
 	t.Setenv("ADFLOW_AGENT_API_STYLE", "chat_completions")
+	t.Setenv("ADFLOW_AGENT_THINKING", "disabled")
 	t.Setenv("ADFLOW_AGENT_TIMEOUT", "5s")
 	t.Setenv("ADFLOW_AGENT_MAX_RETRIES", "1")
 	t.Setenv("ADFLOW_AGENT_FALLBACK_ENABLED", "false")
@@ -127,7 +128,7 @@ func TestLoadOpenAICompatibleAgentSettings(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if cfg.AgentProvider != "openai-compatible" || cfg.AgentModel != "test-model" || cfg.AgentAPIStyle != "chat_completions" || cfg.AgentTimeout != 5*time.Second || cfg.AgentMaxRetries != 1 || cfg.AgentFallbackEnabled {
+	if cfg.AgentProvider != "openai-compatible" || cfg.AgentModel != "test-model" || cfg.AgentAPIStyle != "chat_completions" || cfg.AgentThinkingMode != "disabled" || cfg.AgentTimeout != 5*time.Second || cfg.AgentMaxRetries != 1 || cfg.AgentFallbackEnabled {
 		t.Fatalf("unexpected Agent config: %+v", cfg)
 	}
 }

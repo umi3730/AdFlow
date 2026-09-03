@@ -233,7 +233,7 @@ func main() {
 	var agentProvider agentdomain.Provider = agentmock.NewProvider()
 	if cfg.AgentProvider == "openai-compatible" {
 		primaryProvider, providerErr := agentopenai.NewProvider(agentopenai.ProviderConfig{
-			BaseURL: cfg.AgentBaseURL, APIKey: cfg.AgentAPIKey, Model: cfg.AgentModel, APIStyle: cfg.AgentAPIStyle,
+			BaseURL: cfg.AgentBaseURL, APIKey: cfg.AgentAPIKey, Model: cfg.AgentModel, APIStyle: cfg.AgentAPIStyle, ThinkingMode: cfg.AgentThinkingMode,
 			Timeout: cfg.AgentTimeout, MaxRetries: cfg.AgentMaxRetries,
 			MaxDailyBudgetFen: cfg.AgentMaxDailyBudgetFen, MaxImpressionCostFen: cfg.AgentMaxImpressionCostFen,
 			MaxConditions: cfg.AgentMaxConditions,
@@ -252,7 +252,7 @@ func main() {
 			os.Exit(1)
 		}
 	}
-	logger.Info("Agent provider selected", "provider", cfg.AgentProvider, "model", cfg.AgentModel, "api_style", cfg.AgentAPIStyle)
+	logger.Info("Agent provider selected", "provider", cfg.AgentProvider, "model", cfg.AgentModel, "api_style", cfg.AgentAPIStyle, "thinking", cfg.AgentThinkingMode)
 	agentService := agentapp.NewServiceWithPolicy(agentProvider, agentapp.Policy{
 		MaxDailyBudgetFen: cfg.AgentMaxDailyBudgetFen, MaxImpressionCostFen: cfg.AgentMaxImpressionCostFen,
 		MaxConditions: cfg.AgentMaxConditions,

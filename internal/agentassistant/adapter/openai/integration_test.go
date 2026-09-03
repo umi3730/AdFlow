@@ -31,8 +31,9 @@ func TestLiveProviderEvaluation(t *testing.T) {
 	}
 	baseURL := environmentOr("ADFLOW_AGENT_BASE_URL", "https://api.openai.com/v1")
 	style := environmentOr("ADFLOW_AGENT_API_STYLE", openaiadapter.APIStyleResponses)
+	thinkingMode := os.Getenv("ADFLOW_AGENT_THINKING")
 	provider, err := openaiadapter.NewProvider(openaiadapter.ProviderConfig{
-		BaseURL: baseURL, APIKey: apiKey, Model: model, APIStyle: style, Timeout: 15 * time.Second, MaxRetries: 2,
+		BaseURL: baseURL, APIKey: apiKey, Model: model, APIStyle: style, ThinkingMode: thinkingMode, Timeout: 15 * time.Second, MaxRetries: 2,
 		MaxDailyBudgetFen: 10_000_000, MaxImpressionCostFen: 100_000, MaxConditions: 20,
 	})
 	if err != nil {

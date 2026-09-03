@@ -176,9 +176,10 @@ ADFLOW_AGENT_BASE_URL=https://api.openai.com/v1
 ADFLOW_AGENT_API_KEY=replace-with-a-runtime-secret
 ADFLOW_AGENT_MODEL=replace-with-a-supported-model
 ADFLOW_AGENT_API_STYLE=responses
+ADFLOW_AGENT_THINKING=
 ```
 
-For another provider exposing OpenAI-compatible Chat Completions, set its documented base URL and model, then use `ADFLOW_AGENT_API_STYLE=chat_completions`. Responses mode sends a strict JSON Schema. Compatibility mode requests a JSON object and includes the contract in the system instruction; both modes pass through the same strict JSON decoder, Agent safety limits, campaign-domain validation, human confirmation, RBAC, and audit trail.
+For another provider exposing OpenAI-compatible Chat Completions, set its documented base URL and model, then use `ADFLOW_AGENT_API_STYLE=chat_completions`. `ADFLOW_AGENT_THINKING` is optional; set it to `enabled` or `disabled` only when the provider supports that request extension. Responses mode sends a strict JSON Schema. Compatibility mode requests a JSON object and includes the contract in the system instruction; both modes pass through the same strict JSON decoder, Agent safety limits, campaign-domain validation, human confirmation, RBAC, and audit trail.
 
 Provider calls have an 8-second whole-operation timeout, at most two retries by default, and a circuit that opens after three failed calls. With fallback enabled, an unavailable provider returns a clearly marked local Mock draft instead of publishing or silently inventing a remote result. API keys are read only from the environment and are never included in logs or API responses.
 
@@ -188,6 +189,8 @@ Live evaluations are opt-in because they call the configured paid provider:
 $env:ADFLOW_AGENT_RUN_LIVE_EVALS = "true"
 go test -run TestLiveProviderEvaluation -v ./internal/agentassistant/adapter/openai
 ```
+
+The first recorded live run uses DeepSeek V4 Flash through Chat Completions with thinking disabled. See `docs/agent-live-evaluation.md` for the failed compatibility attempts, prompt-contract correction, final four-case pass, and HTTP end-to-end evidence. A local credential may be kept in the ignored `.env` file, but it must be loaded into the process environment before starting AdFlow; the application does not automatically parse dotenv files.
 
 Run the administration UI in a second terminal:
 

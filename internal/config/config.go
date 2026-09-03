@@ -49,6 +49,7 @@ type Config struct {
 	AgentAPIKey               string
 	AgentModel                string
 	AgentAPIStyle             string
+	AgentThinkingMode         string
 	AgentTimeout              time.Duration
 	AgentMaxRetries           int
 	AgentFallbackEnabled      bool
@@ -98,6 +99,7 @@ func Load() (Config, error) {
 		AgentAPIKey:               os.Getenv("ADFLOW_AGENT_API_KEY"),
 		AgentModel:                os.Getenv("ADFLOW_AGENT_MODEL"),
 		AgentAPIStyle:             envOr("ADFLOW_AGENT_API_STYLE", "responses"),
+		AgentThinkingMode:         os.Getenv("ADFLOW_AGENT_THINKING"),
 		AgentTimeout:              8 * time.Second,
 		AgentMaxRetries:           2,
 		AgentFallbackEnabled:      true,
@@ -231,6 +233,9 @@ func Load() (Config, error) {
 	}
 	if cfg.AgentAPIStyle != "responses" && cfg.AgentAPIStyle != "chat_completions" {
 		return Config{}, fmt.Errorf("ADFLOW_AGENT_API_STYLE must be responses or chat_completions: %q", cfg.AgentAPIStyle)
+	}
+	if cfg.AgentThinkingMode != "" && cfg.AgentThinkingMode != "enabled" && cfg.AgentThinkingMode != "disabled" {
+		return Config{}, fmt.Errorf("ADFLOW_AGENT_THINKING must be enabled, disabled, or empty: %q", cfg.AgentThinkingMode)
 	}
 	if cfg.AgentProvider == "openai-compatible" && (cfg.AgentAPIKey == "" || cfg.AgentModel == "") {
 		return Config{}, fmt.Errorf("ADFLOW_AGENT_API_KEY and ADFLOW_AGENT_MODEL are required for the OpenAI-compatible provider")
