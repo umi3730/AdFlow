@@ -21,7 +21,8 @@ The modular monolith already covers the complete MVP path from campaign configur
 - The first real-adapter run is recorded: it exposed and removed candidate-loading N+1 reads, established a stable 20 iteration/s full-path baseline, and showed that 100 iteration/s still exceeds the local cross-host database path.
 - Kafka consumption now runs partitions concurrently, preserves in-partition order, batches contiguous offset commits, and rewinds a failed partition for retry.
 - Consumer persistence and Outbox publication now use idempotent batches; the final 50 iteration/s run completed with zero errors, zero Outbox backlog, and zero Kafka lag.
-- Evaluate short-lived immutable candidate snapshots before raising the supported arrival-rate baseline; 100 iteration/s still saturates the synchronous decision path.
+- A five-second immutable candidate snapshot with deep-copy reads, miss coalescing, and Prometheus metrics raises the stable full-path baseline from 50 to 80 iteration/s.
+- Profile lookup and request-specific decision persistence are the next measured online-path bottlenecks; 100 iteration/s is retained as a failing boundary rather than reported as supported throughput.
 - Add longer broker-outage, partition-reassignment, lease-expiry, and dead-letter replay chaos scenarios.
 - Record repeatable P50, P95, P99, throughput, error rate, database pool usage, Redis latency, outbox depth, and Kafka lag.
 

@@ -135,3 +135,28 @@ Migration `000006_event_processing_batches.up.sql` adds the nullable batch ident
 The same final implementation completed 1,630 decision/impression paths, but 894 of 2,524 decision attempts reached the 500 ms deadline, for a 35.41% decision error rate. All 1,630 accepted impressions were published and consumed without residual Outbox backlog or Kafka lag.
 
 This separates the remaining limitation from the asynchronous pipeline: the batched Outbox and consumer can drain every accepted event, while the synchronous decision path saturates near this local environment's database/network boundary. The supported local full-path baseline is therefore 50 iterations/s, not 100 iterations/s. The next experiment should introduce a short-lived immutable candidate snapshot and then repeat the same A/B workload.
+
+## Baseline 005 — immutable candidate snapshot
+
+Campaign/version and active-creative data changes much less frequently than decisions arrive. A per-process snapshot now caches the complete candidate list by slot, returns deep copies to callers, and coalesces concurrent cold/expired reads so one goroutine refreshes MySQL while the others wait. The cache never contains user profiles, budget, frequency, reservation, or decision-idempotency state.
+
+At a one-second TTL, the 100 iteration/s test recorded 2,159 direct hits, 27 refresh misses, and 333 shared waits. Decision failures fell from 35.41% without the snapshot to 2.21%, and successful full paths increased from 1,630 to 2,468 of 2,524 attempts.
+
+A five-second TTL reduced refresh pressure to six successful misses and 75 shared waits during the next 100 iteration/s run. That run still had 2.61% full-path errors, confirming that candidate refresh was no longer the main saturation point. Five seconds is the default because campaign changes can tolerate bounded eventual propagation while profile and budget data remain live.
+
+### Stable 80 iteration/s run
+
+| Metric | Result |
+| --- | ---: |
+| Completed full-path iterations | 2,019 |
+| Decision and impression errors | 0.00% |
+| Dropped iterations | 0 |
+| Decision latency average | 101.87 ms |
+| Decision latency P95 | 148.79 ms |
+| Decision latency P99 | 161.66 ms |
+| Impression-ingestion latency P95 | 220.09 ms |
+| Full-path latency P95 | 346 ms |
+| Outbox rows not published after the run | 0 |
+| Kafka consumer lag after the run | 0 on all three partitions |
+
+The supported local full-path baseline is therefore raised from 50 to 80 iterations/s. The unchanged 100 iteration/s threshold failure is retained as the next boundary: profile lookup, decision persistence, reservation calls, and Outbox ingestion still perform request-specific network operations and cannot be replaced by the shared candidate snapshot.

@@ -79,6 +79,7 @@ func TestLoadAuthenticationSettings(t *testing.T) {
 }
 
 func TestLoadDecisionAdmissionSettings(t *testing.T) {
+	t.Setenv("ADFLOW_CANDIDATE_CACHE_TTL", "7s")
 	t.Setenv("ADFLOW_DECISION_RATE_LIMITER", "redis")
 	t.Setenv("ADFLOW_DECISION_RATE_LIMIT", "2500.5")
 	t.Setenv("ADFLOW_DECISION_RATE_WINDOW", "2s")
@@ -90,7 +91,7 @@ func TestLoadDecisionAdmissionSettings(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if cfg.DecisionRateLimiter != "redis" || cfg.DecisionRateLimit != 2500.5 || cfg.DecisionRateWindow != 2*time.Second || cfg.DecisionBurst != 300 || cfg.DecisionMaxInFlight != 64 || cfg.DecisionQueueTimeout != 7*time.Millisecond || cfg.DecisionTimeout != 90*time.Millisecond {
+	if cfg.CandidateCacheTTL != 7*time.Second || cfg.DecisionRateLimiter != "redis" || cfg.DecisionRateLimit != 2500.5 || cfg.DecisionRateWindow != 2*time.Second || cfg.DecisionBurst != 300 || cfg.DecisionMaxInFlight != 64 || cfg.DecisionQueueTimeout != 7*time.Millisecond || cfg.DecisionTimeout != 90*time.Millisecond {
 		t.Fatalf("unexpected decision admission config: %+v", cfg)
 	}
 }

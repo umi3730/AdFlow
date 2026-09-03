@@ -142,7 +142,13 @@ func main() {
 		reservations = decisionRuntime
 	}
 	logger.Info("reservation adapter selected", "adapter", cfg.ReservationAdapter)
-	candidateProvider := decisioncampaign.NewProvider(campaignRepository, campaignRepository)
+	candidateSource := decisioncampaign.NewProvider(campaignRepository, campaignRepository)
+	candidateProvider, err := decisioncampaign.NewCachedProvider(candidateSource, cfg.CandidateCacheTTL, metrics)
+	if err != nil {
+		logger.Error("initialize candidate cache", "error", err)
+		os.Exit(1)
+	}
+	logger.Info("candidate cache configured", "ttl", cfg.CandidateCacheTTL)
 	decisionService := decisionapp.NewService(candidateProvider, profileStore, reservations, reservations, decisionStore)
 	var decisionRateLimiter decisionapp.RateLimiter
 	if cfg.DecisionRateLimiter == "redis" {

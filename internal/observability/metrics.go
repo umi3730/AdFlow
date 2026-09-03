@@ -23,6 +23,8 @@ type Metrics struct {
 	decisionQueueDuration prometheus.Histogram
 	decisionInFlight      prometheus.Gauge
 	decisionTimeouts      prometheus.Counter
+	candidateCache        *prometheus.CounterVec
+	candidateCacheRefresh prometheus.Histogram
 	agentGenerations      *prometheus.CounterVec
 	agentDuration         *prometheus.HistogramVec
 	agentTokens           *prometheus.CounterVec
@@ -66,6 +68,13 @@ func New() *Metrics {
 		decisionTimeouts: prometheus.NewCounter(prometheus.CounterOpts{
 			Namespace: "adflow", Subsystem: "decision", Name: "execution_timeouts_total", Help: "Decision executions canceled by the configured processing deadline.",
 		}),
+		candidateCache: prometheus.NewCounterVec(prometheus.CounterOpts{
+			Namespace: "adflow", Subsystem: "decision", Name: "candidate_cache_total", Help: "Candidate snapshot cache lookups by result.",
+		}, []string{"result"}),
+		candidateCacheRefresh: prometheus.NewHistogram(prometheus.HistogramOpts{
+			Namespace: "adflow", Subsystem: "decision", Name: "candidate_cache_refresh_duration_seconds", Help: "Candidate snapshot source refresh duration.",
+			Buckets: []float64{0.001, 0.003, 0.01, 0.03, 0.1, 0.3, 0.75},
+		}),
 		agentGenerations: prometheus.NewCounterVec(prometheus.CounterOpts{
 			Namespace: "adflow", Subsystem: "agent", Name: "generations_total", Help: "Agent rule-generation calls by provider, model, and outcome.",
 		}, []string{"provider", "model", "outcome"}),
@@ -96,6 +105,7 @@ func New() *Metrics {
 		collectors.NewGoCollector(), collectors.NewProcessCollector(collectors.ProcessCollectorOpts{}),
 		m.httpRequests, m.httpDuration, m.httpInFlight, m.decisionResults, m.decisionDuration,
 		m.decisionAdmission, m.decisionQueueDuration, m.decisionInFlight, m.decisionTimeouts, m.events,
+		m.candidateCache, m.candidateCacheRefresh,
 		m.agentGenerations, m.agentDuration, m.agentTokens, m.agentCircuitOpen,
 		m.outboxDepth, m.outboxResults, m.kafkaConsumerLag,
 	)
@@ -139,6 +149,13 @@ func (m *Metrics) AddDecisionInFlight(delta float64) {
 
 func (m *Metrics) ObserveDecisionTimeout() {
 	m.decisionTimeouts.Inc()
+}
+
+func (m *Metrics) ObserveCandidateCache(result string, duration time.Duration) {
+	m.candidateCache.WithLabelValues(result).Inc()
+	if result == "miss" || result == "error" {
+		m.candidateCacheRefresh.Observe(duration.Seconds())
+	}
 }
 
 func (m *Metrics) ObserveAgentGeneration(provider, model, outcome string, duration time.Duration, inputTokens, outputTokens int64) {

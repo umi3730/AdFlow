@@ -150,6 +150,7 @@ The decision endpoint protects the hot path with two independent controls:
 ADFLOW_DECISION_RATE_LIMIT=5000
 ADFLOW_DECISION_RATE_LIMITER=memory
 ADFLOW_DECISION_RATE_WINDOW=1s
+ADFLOW_CANDIDATE_CACHE_TTL=5s
 ADFLOW_DECISION_BURST=1000
 ADFLOW_DECISION_MAX_IN_FLIGHT=256
 ADFLOW_DECISION_QUEUE_TIMEOUT=5ms
@@ -157,6 +158,8 @@ ADFLOW_DECISION_TIMEOUT=100ms
 ```
 
 `memory` uses a process-local token bucket and its burst setting. Set `ADFLOW_DECISION_RATE_LIMITER=redis` to enforce a shared exact sliding window across API replicas. The Redis adapter uses one Lua script to remove expired ZSET members, count the active window, append the current request, and refresh the key TTL. Redis server time avoids application-host clock skew; a limiter dependency error fails closed with HTTP 503.
+
+Active campaign and creative candidates are held in a per-process immutable snapshot keyed by slot. The default five-second TTL bounds configuration propagation delay, while concurrent cache misses are coalesced into one MySQL refresh. Prometheus exposes cache hit, miss, shared-wait, error, and refresh-duration metrics. Profile, reservation, budget, and decision-idempotency state remain request-specific and are never stored in this snapshot.
 
 Both adapters reject excess arrival rate with HTTP 429. The per-process concurrency gate remains in place because it protects each replica's CPU, database pool, and downstream dependencies independently of the shared rate limit. It waits only for the configured queue timeout before returning HTTP 503. Accepted execution receives its own processing deadline and returns HTTP 504 if it expires. Prometheus exposes admission outcomes, queue duration, current decision concurrency, and execution timeouts.
 

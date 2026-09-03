@@ -33,6 +33,7 @@ type Config struct {
 	AccessTokenTTL            time.Duration
 	AuthUsers                 string
 	AuditStore                string
+	CandidateCacheTTL         time.Duration
 	DecisionRateLimit         float64
 	DecisionRateLimiter       string
 	DecisionRateWindow        time.Duration
@@ -78,6 +79,7 @@ func Load() (Config, error) {
 		AccessTokenTTL:            30 * time.Minute,
 		AuthUsers:                 os.Getenv("ADFLOW_AUTH_USERS"),
 		AuditStore:                envOr("ADFLOW_AUDIT_STORE", "memory"),
+		CandidateCacheTTL:         5 * time.Second,
 		DecisionRateLimit:         5000,
 		DecisionRateLimiter:       envOr("ADFLOW_DECISION_RATE_LIMITER", "memory"),
 		DecisionRateWindow:        time.Second,
@@ -114,6 +116,9 @@ func Load() (Config, error) {
 		return Config{}, err
 	}
 	if cfg.AccessTokenTTL, err = durationEnv("ADFLOW_ACCESS_TOKEN_TTL", cfg.AccessTokenTTL); err != nil {
+		return Config{}, err
+	}
+	if cfg.CandidateCacheTTL, err = durationEnv("ADFLOW_CANDIDATE_CACHE_TTL", cfg.CandidateCacheTTL); err != nil {
 		return Config{}, err
 	}
 	if cfg.DecisionRateLimit, err = floatEnv("ADFLOW_DECISION_RATE_LIMIT", cfg.DecisionRateLimit); err != nil {
