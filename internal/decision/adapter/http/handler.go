@@ -1,6 +1,7 @@
 package httpadapter
 
 import (
+	"context"
 	"errors"
 	"net/http"
 	"time"
@@ -12,14 +13,14 @@ import (
 )
 
 type Handler struct {
-	service  *application.Service
+	service  application.DecisionEngine
 	profiles domain.ProfileStore
 	observer interface {
 		ObserveDecision(bool, string, time.Duration)
 	}
 }
 
-func NewHandler(service *application.Service, profiles domain.ProfileStore, observer interface {
+func NewHandler(service application.DecisionEngine, profiles domain.ProfileStore, observer interface {
 	ObserveDecision(bool, string, time.Duration)
 }) *Handler {
 	return &Handler{service: service, profiles: profiles, observer: observer}
@@ -82,9 +83,20 @@ func (h *Handler) putProfile(c *gin.Context) {
 }
 
 func handleError(c *gin.Context, err error) {
-	if errors.Is(err, domain.ErrInvalidRequest) {
+	switch {
+	case errors.Is(err, domain.ErrRateLimited):
+		c.Header("Retry-After", "1")
+		httptransport.RespondError(c, http.StatusTooManyRequests, "decision_rate_limited", "decision request rate exceeded", nil)
+	case errors.Is(err, domain.ErrOverloaded):
+		c.Header("Retry-After", "1")
+		httptransport.RespondError(c, http.StatusServiceUnavailable, "decision_overloaded", "decision service is at capacity", nil)
+	case errors.Is(err, domain.ErrDecisionTimeout):
+		httptransport.RespondError(c, http.StatusGatewayTimeout, "decision_timeout", "decision request exceeded its deadline", nil)
+	case errors.Is(err, context.Canceled):
+		httptransport.RespondError(c, http.StatusRequestTimeout, "decision_canceled", "decision request was canceled", nil)
+	case errors.Is(err, domain.ErrInvalidRequest):
 		httptransport.RespondError(c, http.StatusUnprocessableEntity, "invalid_decision_request", err.Error(), nil)
-		return
+	default:
+		httptransport.RespondError(c, http.StatusInternalServerError, "decision_failed", "decision could not be completed", nil)
 	}
-	httptransport.RespondError(c, http.StatusInternalServerError, "decision_failed", "decision could not be completed", nil)
 }

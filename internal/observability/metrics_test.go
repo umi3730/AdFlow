@@ -20,6 +20,10 @@ func TestMetricsExposeHTTPDecisionAndEventSeries(t *testing.T) {
 	recorder := httptest.NewRecorder()
 	router.ServeHTTP(recorder, httptest.NewRequest(http.MethodGet, "/ok", nil))
 	metrics.ObserveDecision(true, "matched", time.Millisecond)
+	metrics.ObserveDecisionAdmission("accepted", time.Millisecond)
+	metrics.AddDecisionInFlight(1)
+	metrics.AddDecisionInFlight(-1)
+	metrics.ObserveDecisionTimeout()
 	metrics.ObserveEvent("impression", true)
 	metrics.SetOutboxDepth(eventdomain.OutboxStats{Pending: 2})
 	metrics.ObserveOutboxResult("published")
@@ -28,7 +32,7 @@ func TestMetricsExposeHTTPDecisionAndEventSeries(t *testing.T) {
 	metricsRecorder := httptest.NewRecorder()
 	metrics.Handler().ServeHTTP(metricsRecorder, httptest.NewRequest(http.MethodGet, "/metrics", nil))
 	body := metricsRecorder.Body.String()
-	for _, name := range []string{"adflow_http_requests_total", "adflow_decision_results_total", "adflow_event_records_total", "adflow_outbox_rows", "adflow_kafka_consumer_lag", "go_goroutines"} {
+	for _, name := range []string{"adflow_http_requests_total", "adflow_decision_results_total", "adflow_decision_admission_total", "adflow_decision_queue_duration_seconds", "adflow_decision_in_flight", "adflow_decision_execution_timeouts_total", "adflow_event_records_total", "adflow_outbox_rows", "adflow_kafka_consumer_lag", "go_goroutines"} {
 		if !strings.Contains(body, name) {
 			t.Fatalf("missing metric %s", name)
 		}

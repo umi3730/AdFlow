@@ -13,6 +13,7 @@ The modular monolith already covers the complete MVP path from campaign configur
 
 ## P1 — Concurrency and persistence proof
 
+- The in-process baseline now includes token-bucket admission, bounded execution concurrency, queue timeout, processing deadline, cancellation-safe reservation cleanup, and overload metrics.
 - Add a real MySQL, Redis, and Kafka integration environment when container work resumes.
 - Apply every migration through a repeatable migration command rather than mounting only the first SQL file.
 - Test process restart after Kafka acknowledges an event but before the outbox row is marked published.

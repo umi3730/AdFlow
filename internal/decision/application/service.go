@@ -11,6 +11,7 @@ import (
 )
 
 const reservationTTL = 30 * time.Second
+const reservationCleanupTimeout = 250 * time.Millisecond
 
 type Service struct {
 	candidates domain.CandidateProvider
@@ -35,6 +36,9 @@ func (s *Service) Decide(ctx context.Context, request domain.Request) (domain.Re
 	request.SlotID = strings.TrimSpace(request.SlotID)
 	if request.RequestID == "" || request.UserID == "" || request.SlotID == "" {
 		return domain.Result{}, domain.ErrInvalidRequest
+	}
+	if err := ctx.Err(); err != nil {
+		return domain.Result{}, err
 	}
 	if existing, found, err := s.decisions.FindDecision(ctx, request.RequestID); err != nil {
 		return domain.Result{}, err
@@ -77,17 +81,25 @@ func (s *Service) Decide(ctx context.Context, request domain.Request) (domain.Re
 			reason = domain.ReasonFrequencyCapped
 			continue
 		}
+		if err := ctx.Err(); err != nil {
+			s.releaseFrequency(ctx, frequencyToken)
+			return domain.Result{}, err
+		}
 		budgetToken, allowed, reserveErr := s.budget.ReserveBudget(
 			ctx, candidate.CampaignID, candidate.DailyBudgetFen, candidate.ImpressionCostFen, request.RequestID, now, reservationTTL,
 		)
 		if reserveErr != nil {
-			_ = s.frequency.ReleaseFrequency(ctx, frequencyToken)
+			s.releaseFrequency(ctx, frequencyToken)
 			return s.noAd(ctx, request, domain.ReasonDependencyUnavailable)
 		}
 		if !allowed {
-			_ = s.frequency.ReleaseFrequency(ctx, frequencyToken)
+			s.releaseFrequency(ctx, frequencyToken)
 			reason = domain.ReasonBudgetExhausted
 			continue
+		}
+		if err := ctx.Err(); err != nil {
+			s.releaseReservations(ctx, frequencyToken, budgetToken)
+			return domain.Result{}, err
 		}
 
 		result := domain.Result{
@@ -97,8 +109,7 @@ func (s *Service) Decide(ctx context.Context, request domain.Request) (domain.Re
 			ReservationToken: budgetToken, ExpiresAt: now.Add(reservationTTL), Reason: domain.ReasonMatched,
 		}
 		if err := s.decisions.SaveDecision(ctx, result); err != nil {
-			_ = s.frequency.ReleaseFrequency(ctx, frequencyToken)
-			_ = s.budget.ReleaseBudget(ctx, budgetToken)
+			s.releaseReservations(ctx, frequencyToken, budgetToken)
 			return domain.Result{}, err
 		}
 		return result, nil
@@ -106,8 +117,24 @@ func (s *Service) Decide(ctx context.Context, request domain.Request) (domain.Re
 	return s.noAd(ctx, request, reason)
 }
 
+func (s *Service) releaseFrequency(ctx context.Context, token string) {
+	cleanupCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), reservationCleanupTimeout)
+	defer cancel()
+	_ = s.frequency.ReleaseFrequency(cleanupCtx, token)
+}
+
+func (s *Service) releaseReservations(ctx context.Context, frequencyToken, budgetToken string) {
+	cleanupCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), reservationCleanupTimeout)
+	defer cancel()
+	_ = s.frequency.ReleaseFrequency(cleanupCtx, frequencyToken)
+	_ = s.budget.ReleaseBudget(cleanupCtx, budgetToken)
+}
+
 func (s *Service) noAd(ctx context.Context, request domain.Request, reason domain.Reason) (domain.Result, error) {
 	result := domain.Result{RequestID: request.RequestID, UserID: request.UserID, SlotID: request.SlotID, Matched: false, Reason: reason}
+	if err := ctx.Err(); err != nil {
+		return domain.Result{}, err
+	}
 	if err := s.decisions.SaveDecision(ctx, result); err != nil {
 		return domain.Result{}, err
 	}

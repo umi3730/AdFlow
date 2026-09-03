@@ -20,6 +20,47 @@ type candidateProvider struct {
 	candidates []domain.Candidate
 }
 
+type cleanupGate struct {
+	frequencyReleased bool
+	budgetReleased    bool
+	cleanupCanceled   bool
+}
+
+func (g *cleanupGate) ReserveFrequency(context.Context, string, string, string, uint32, time.Time, time.Duration) (string, bool, error) {
+	return "frequency-token", true, nil
+}
+
+func (g *cleanupGate) ReleaseFrequency(ctx context.Context, _ string) error {
+	g.frequencyReleased = true
+	g.cleanupCanceled = g.cleanupCanceled || ctx.Err() != nil
+	return nil
+}
+
+func (*cleanupGate) ConfirmFrequency(context.Context, string, time.Time) error { return nil }
+
+func (g *cleanupGate) ReserveBudget(context.Context, string, int64, int64, string, time.Time, time.Duration) (string, bool, error) {
+	return "budget-token", true, nil
+}
+
+func (g *cleanupGate) ReleaseBudget(ctx context.Context, _ string) error {
+	g.budgetReleased = true
+	g.cleanupCanceled = g.cleanupCanceled || ctx.Err() != nil
+	return nil
+}
+
+func (*cleanupGate) ConfirmBudget(context.Context, string, time.Time) error { return nil }
+
+type cancelingDecisionStore struct{ cancel context.CancelFunc }
+
+func (cancelingDecisionStore) FindDecision(context.Context, string) (domain.Result, bool, error) {
+	return domain.Result{}, false, nil
+}
+
+func (s cancelingDecisionStore) SaveDecision(ctx context.Context, _ domain.Result) error {
+	s.cancel()
+	return ctx.Err()
+}
+
 func (p candidateProvider) ActiveCandidates(context.Context, string, time.Time) ([]domain.Candidate, error) {
 	return append([]domain.Candidate(nil), p.candidates...), nil
 }
@@ -77,5 +118,24 @@ func TestDecideFailsClosedWhenCandidateDependencyIsUnavailable(t *testing.T) {
 	}
 	if result.Matched || result.Reason != domain.ReasonDependencyUnavailable {
 		t.Fatalf("unexpected result: %+v", result)
+	}
+}
+
+func TestDecideReleasesReservationsAfterRequestCancellation(t *testing.T) {
+	profiles := memory.NewRuntime()
+	_ = profiles.PutProfile(t.Context(), domain.NewProfile("user-1", []string{"anime"}, nil))
+	provider := candidateProvider{candidates: []domain.Candidate{{
+		CampaignID: "campaign-1", CreativeIDs: []string{"creative-1"},
+		Targeting:      domain.TargetingRule{All: []domain.Condition{{Tag: "anime"}}},
+		DailyBudgetFen: 1000, ImpressionCostFen: 100, FrequencyLimit: 3,
+	}}}
+	ctx, cancel := context.WithCancel(t.Context())
+	gates := &cleanupGate{}
+	service := NewService(provider, profiles, gates, gates, cancelingDecisionStore{cancel: cancel})
+	if _, err := service.Decide(ctx, domain.Request{RequestID: "request-canceled", UserID: "user-1", SlotID: "slot-1"}); !errors.Is(err, context.Canceled) {
+		t.Fatalf("Decide() error=%v", err)
+	}
+	if !gates.frequencyReleased || !gates.budgetReleased || gates.cleanupCanceled {
+		t.Fatalf("cleanup state: %+v", gates)
 	}
 }

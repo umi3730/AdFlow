@@ -186,6 +186,12 @@ paths:
       responses:
         '200':
           description: Matched decision or fail-closed No-Ad result
+        '429':
+          description: Global decision arrival rate exceeded; retry after the response Retry-After interval
+        '503':
+          description: Decision concurrency slots remained full beyond the queue timeout
+        '504':
+          description: Accepted decision execution exceeded its processing deadline
   /v1/events:
     post:
       summary: Record or enqueue advertising event

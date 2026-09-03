@@ -18,6 +18,7 @@ import (
 	httpadapter "github.com/zhanghaiyang/adflow/internal/decision/adapter/http"
 	decisionmemory "github.com/zhanghaiyang/adflow/internal/decision/adapter/memory"
 	decisionapp "github.com/zhanghaiyang/adflow/internal/decision/application"
+	decisiondomain "github.com/zhanghaiyang/adflow/internal/decision/domain"
 	"github.com/zhanghaiyang/adflow/internal/health"
 	"github.com/zhanghaiyang/adflow/internal/observability"
 	httptransport "github.com/zhanghaiyang/adflow/internal/transport/http"
@@ -26,6 +27,12 @@ import (
 type okChecker struct{}
 
 func (okChecker) PingContext(context.Context) error { return nil }
+
+type errorDecisionEngine struct{ err error }
+
+func (e errorDecisionEngine) Decide(context.Context, decisiondomain.Request) (decisiondomain.Result, error) {
+	return decisiondomain.Result{}, e.err
+}
 
 func TestDecisionHTTPFlow(t *testing.T) {
 	ctx := context.Background()
@@ -69,6 +76,31 @@ func TestDecisionHTTPFlow(t *testing.T) {
 	assertDecision(t, first, true, "matched")
 	second := request(t, router, http.MethodPost, "/v1/decisions", `{"requestId":"request-2","userId":"user-1","slotId":"game-home-banner"}`)
 	assertDecision(t, second, false, "frequency_capped")
+}
+
+func TestDecisionAdmissionErrorsUseExplicitHTTPStatuses(t *testing.T) {
+	cases := []struct {
+		name   string
+		err    error
+		status int
+		code   string
+	}{
+		{name: "rate limited", err: decisiondomain.ErrRateLimited, status: http.StatusTooManyRequests, code: "decision_rate_limited"},
+		{name: "overloaded", err: decisiondomain.ErrOverloaded, status: http.StatusServiceUnavailable, code: "decision_overloaded"},
+		{name: "timed out", err: decisiondomain.ErrDecisionTimeout, status: http.StatusGatewayTimeout, code: "decision_timeout"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			handler := httpadapter.NewHandler(errorDecisionEngine{err: tc.err}, nil, nil)
+			logger := slog.New(slog.NewTextHandler(io.Discard, nil))
+			healthService := health.NewService(time.Second, map[string]health.Checker{"test": okChecker{}})
+			router := httptransport.NewRouter("test", logger, healthService, observability.New(), handler)
+			response := request(t, router, http.MethodPost, "/v1/decisions", `{"requestId":"request-1","userId":"user-1","slotId":"slot-1"}`)
+			if response.Code != tc.status || !strings.Contains(response.Body.String(), `"code":"`+tc.code+`"`) {
+				t.Fatalf("status=%d body=%s", response.Code, response.Body.String())
+			}
+		})
+	}
 }
 
 func request(t *testing.T, handler http.Handler, method, path, body string) *httptest.ResponseRecorder {

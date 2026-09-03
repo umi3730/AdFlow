@@ -77,3 +77,31 @@ func TestLoadAuthenticationSettings(t *testing.T) {
 		t.Fatalf("unexpected authentication config: %+v", cfg)
 	}
 }
+
+func TestLoadDecisionAdmissionSettings(t *testing.T) {
+	t.Setenv("ADFLOW_DECISION_RATE_LIMIT", "2500.5")
+	t.Setenv("ADFLOW_DECISION_BURST", "300")
+	t.Setenv("ADFLOW_DECISION_MAX_IN_FLIGHT", "64")
+	t.Setenv("ADFLOW_DECISION_QUEUE_TIMEOUT", "7ms")
+	t.Setenv("ADFLOW_DECISION_TIMEOUT", "90ms")
+	cfg, err := Load()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.DecisionRateLimit != 2500.5 || cfg.DecisionBurst != 300 || cfg.DecisionMaxInFlight != 64 || cfg.DecisionQueueTimeout != 7*time.Millisecond || cfg.DecisionTimeout != 90*time.Millisecond {
+		t.Fatalf("unexpected decision admission config: %+v", cfg)
+	}
+}
+
+func TestLoadRejectsInvalidDecisionAdmissionSettings(t *testing.T) {
+	t.Setenv("ADFLOW_DECISION_MAX_IN_FLIGHT", "0")
+	if _, err := Load(); err == nil {
+		t.Fatal("Load() expected an error")
+	}
+	t.Setenv("ADFLOW_DECISION_MAX_IN_FLIGHT", "10")
+	t.Setenv("ADFLOW_DECISION_QUEUE_TIMEOUT", "100ms")
+	t.Setenv("ADFLOW_DECISION_TIMEOUT", "50ms")
+	if _, err := Load(); err == nil {
+		t.Fatal("Load() expected an error")
+	}
+}

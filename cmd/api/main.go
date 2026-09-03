@@ -141,7 +141,20 @@ func main() {
 	logger.Info("reservation adapter selected", "adapter", cfg.ReservationAdapter)
 	candidateProvider := decisioncampaign.NewProvider(campaignRepository, campaignRepository)
 	decisionService := decisionapp.NewService(candidateProvider, profileStore, reservations, reservations, decisionStore)
-	decisionHandler := decisionhttp.NewHandler(decisionService, profileStore, metrics)
+	admittedDecisionService, err := decisionapp.NewAdmissionService(decisionService, decisionapp.AdmissionConfig{
+		RatePerSecond: cfg.DecisionRateLimit, Burst: cfg.DecisionBurst, MaxInFlight: cfg.DecisionMaxInFlight,
+		QueueTimeout: cfg.DecisionQueueTimeout, RequestTimeout: cfg.DecisionTimeout,
+	}, metrics)
+	if err != nil {
+		logger.Error("initialize decision admission control", "error", err)
+		os.Exit(1)
+	}
+	logger.Info("decision admission configured",
+		"rate_per_second", cfg.DecisionRateLimit, "burst", cfg.DecisionBurst,
+		"max_in_flight", cfg.DecisionMaxInFlight, "queue_timeout", cfg.DecisionQueueTimeout,
+		"request_timeout", cfg.DecisionTimeout,
+	)
+	decisionHandler := decisionhttp.NewHandler(admittedDecisionService, profileStore, metrics)
 	var eventService interface {
 		Record(context.Context, eventdomain.Event) (bool, error)
 		Metrics(context.Context, string) (eventdomain.Metrics, error)

@@ -33,6 +33,11 @@ type Config struct {
 	AccessTokenTTL       time.Duration
 	AuthUsers            string
 	AuditStore           string
+	DecisionRateLimit    float64
+	DecisionBurst        int
+	DecisionMaxInFlight  int
+	DecisionQueueTimeout time.Duration
+	DecisionTimeout      time.Duration
 }
 
 func Load() (Config, error) {
@@ -58,6 +63,11 @@ func Load() (Config, error) {
 		AccessTokenTTL:       30 * time.Minute,
 		AuthUsers:            os.Getenv("ADFLOW_AUTH_USERS"),
 		AuditStore:           envOr("ADFLOW_AUDIT_STORE", "memory"),
+		DecisionRateLimit:    5000,
+		DecisionBurst:        1000,
+		DecisionMaxInFlight:  256,
+		DecisionQueueTimeout: 5 * time.Millisecond,
+		DecisionTimeout:      100 * time.Millisecond,
 	}
 
 	var err error
@@ -74,6 +84,21 @@ func Load() (Config, error) {
 		return Config{}, err
 	}
 	if cfg.AccessTokenTTL, err = durationEnv("ADFLOW_ACCESS_TOKEN_TTL", cfg.AccessTokenTTL); err != nil {
+		return Config{}, err
+	}
+	if cfg.DecisionRateLimit, err = floatEnv("ADFLOW_DECISION_RATE_LIMIT", cfg.DecisionRateLimit); err != nil {
+		return Config{}, err
+	}
+	if cfg.DecisionBurst, err = intEnv("ADFLOW_DECISION_BURST", cfg.DecisionBurst); err != nil {
+		return Config{}, err
+	}
+	if cfg.DecisionMaxInFlight, err = intEnv("ADFLOW_DECISION_MAX_IN_FLIGHT", cfg.DecisionMaxInFlight); err != nil {
+		return Config{}, err
+	}
+	if cfg.DecisionQueueTimeout, err = durationEnv("ADFLOW_DECISION_QUEUE_TIMEOUT", cfg.DecisionQueueTimeout); err != nil {
+		return Config{}, err
+	}
+	if cfg.DecisionTimeout, err = durationEnv("ADFLOW_DECISION_TIMEOUT", cfg.DecisionTimeout); err != nil {
 		return Config{}, err
 	}
 	if cfg.HTTPAddr == "" || cfg.MySQLDSN == "" || cfg.RedisAddr == "" {
@@ -108,6 +133,12 @@ func Load() (Config, error) {
 	}
 	if cfg.AuthEnabled && cfg.Environment != "local" && cfg.Environment != "test" && cfg.JWTSecret == localJWTSecret {
 		return Config{}, fmt.Errorf("ADFLOW_JWT_SECRET must be replaced outside local and test environments")
+	}
+	if cfg.DecisionBurst <= 0 || cfg.DecisionMaxInFlight <= 0 {
+		return Config{}, fmt.Errorf("decision burst and max in-flight limits must be positive")
+	}
+	if cfg.DecisionTimeout <= cfg.DecisionQueueTimeout {
+		return Config{}, fmt.Errorf("ADFLOW_DECISION_TIMEOUT must exceed ADFLOW_DECISION_QUEUE_TIMEOUT")
 	}
 	return cfg, nil
 }
@@ -151,6 +182,18 @@ func boolEnv(key string, fallback bool) (bool, error) {
 	parsed, err := strconv.ParseBool(value)
 	if err != nil {
 		return false, fmt.Errorf("%s must be a boolean: %q", key, value)
+	}
+	return parsed, nil
+}
+
+func floatEnv(key string, fallback float64) (float64, error) {
+	value, ok := os.LookupEnv(key)
+	if !ok || value == "" {
+		return fallback, nil
+	}
+	parsed, err := strconv.ParseFloat(value, 64)
+	if err != nil || parsed <= 0 {
+		return 0, fmt.Errorf("%s must be a positive number: %q", key, value)
 	}
 	return parsed, nil
 }

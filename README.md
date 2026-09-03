@@ -33,6 +33,10 @@ M2 decision context (implemented):
 - atomic in-memory frequency and budget reservations with TTL release
 - deterministic creative selection
 - matched and explicit No-Ad responses
+- per-process global token-bucket request admission with burst capacity
+- bounded in-flight decision execution and short queue timeout
+- per-request processing deadline and fail-fast 429/503/504 responses
+- cancellation-safe release of frequency and budget reservations
 
 M3 measurement context (implemented with local and Kafka modes):
 
@@ -122,6 +126,18 @@ Local and test environments provide three demonstration accounts when `ADFLOW_AU
 
 Outside local/test environments, enabled authentication requires `ADFLOW_AUTH_USERS`. Its format is a semicolon-separated list of `username:role:bcryptHash` entries. Never store plaintext production passwords in this value. Set `ADFLOW_AUDIT_STORE=mysql` after applying migration `000005_identity_audit` to persist the audit trail.
 
+The decision endpoint protects the hot path with two independent controls:
+
+```env
+ADFLOW_DECISION_RATE_LIMIT=5000
+ADFLOW_DECISION_BURST=1000
+ADFLOW_DECISION_MAX_IN_FLIGHT=256
+ADFLOW_DECISION_QUEUE_TIMEOUT=5ms
+ADFLOW_DECISION_TIMEOUT=100ms
+```
+
+The token bucket rejects excess arrival rate with HTTP 429. The concurrency gate waits only for the configured queue timeout before returning HTTP 503. Accepted execution receives its own processing deadline and returns HTTP 504 if it expires. Prometheus exposes admission outcomes, queue duration, current decision concurrency, and execution timeouts.
+
 Run the administration UI in a second terminal:
 
 ```powershell
@@ -138,6 +154,18 @@ Run a decision load test after installing k6:
 ```powershell
 k6 run tests/load/decision.js
 ```
+
+To demonstrate overload behavior, lower the admission limits and run the arrival-rate spike profile:
+
+```powershell
+$env:ADFLOW_DECISION_RATE_LIMIT = "200"
+$env:ADFLOW_DECISION_BURST = "50"
+go run ./cmd/api
+
+k6 run tests/load/decision-spike.js
+```
+
+HTTP 429 and 503 are expected backpressure in this profile; HTTP 500 remains a failure.
 
 The script reports decision-specific P95/P99 latency and error rate. Keep the machine configuration and test parameters with any resume performance numbers.
 

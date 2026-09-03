@@ -13,16 +13,20 @@ import (
 )
 
 type Metrics struct {
-	registry         *prometheus.Registry
-	httpRequests     *prometheus.CounterVec
-	httpDuration     *prometheus.HistogramVec
-	httpInFlight     prometheus.Gauge
-	decisionResults  *prometheus.CounterVec
-	decisionDuration prometheus.Histogram
-	events           *prometheus.CounterVec
-	outboxDepth      *prometheus.GaugeVec
-	outboxResults    *prometheus.CounterVec
-	kafkaConsumerLag *prometheus.GaugeVec
+	registry              *prometheus.Registry
+	httpRequests          *prometheus.CounterVec
+	httpDuration          *prometheus.HistogramVec
+	httpInFlight          prometheus.Gauge
+	decisionResults       *prometheus.CounterVec
+	decisionDuration      prometheus.Histogram
+	decisionAdmission     *prometheus.CounterVec
+	decisionQueueDuration prometheus.Histogram
+	decisionInFlight      prometheus.Gauge
+	decisionTimeouts      prometheus.Counter
+	events                *prometheus.CounterVec
+	outboxDepth           *prometheus.GaugeVec
+	outboxResults         *prometheus.CounterVec
+	kafkaConsumerLag      *prometheus.GaugeVec
 }
 
 func New() *Metrics {
@@ -45,6 +49,19 @@ func New() *Metrics {
 			Namespace: "adflow", Subsystem: "decision", Name: "duration_seconds", Help: "End-to-end decision duration.",
 			Buckets: []float64{0.0005, 0.001, 0.003, 0.005, 0.01, 0.02, 0.05, 0.08, 0.15},
 		}),
+		decisionAdmission: prometheus.NewCounterVec(prometheus.CounterOpts{
+			Namespace: "adflow", Subsystem: "decision", Name: "admission_total", Help: "Decision admission outcomes before business processing.",
+		}, []string{"result"}),
+		decisionQueueDuration: prometheus.NewHistogram(prometheus.HistogramOpts{
+			Namespace: "adflow", Subsystem: "decision", Name: "queue_duration_seconds", Help: "Time spent waiting for a decision concurrency slot.",
+			Buckets: []float64{0.0001, 0.0005, 0.001, 0.003, 0.005, 0.01, 0.02, 0.05, 0.1},
+		}),
+		decisionInFlight: prometheus.NewGauge(prometheus.GaugeOpts{
+			Namespace: "adflow", Subsystem: "decision", Name: "in_flight", Help: "Decision requests currently executing after admission.",
+		}),
+		decisionTimeouts: prometheus.NewCounter(prometheus.CounterOpts{
+			Namespace: "adflow", Subsystem: "decision", Name: "execution_timeouts_total", Help: "Decision executions canceled by the configured processing deadline.",
+		}),
 		events: prometheus.NewCounterVec(prometheus.CounterOpts{
 			Namespace: "adflow", Subsystem: "event", Name: "records_total", Help: "Ad events by type and idempotency result.",
 		}, []string{"type", "recorded"}),
@@ -60,7 +77,8 @@ func New() *Metrics {
 	}
 	m.registry.MustRegister(
 		collectors.NewGoCollector(), collectors.NewProcessCollector(collectors.ProcessCollectorOpts{}),
-		m.httpRequests, m.httpDuration, m.httpInFlight, m.decisionResults, m.decisionDuration, m.events,
+		m.httpRequests, m.httpDuration, m.httpInFlight, m.decisionResults, m.decisionDuration,
+		m.decisionAdmission, m.decisionQueueDuration, m.decisionInFlight, m.decisionTimeouts, m.events,
 		m.outboxDepth, m.outboxResults, m.kafkaConsumerLag,
 	)
 	return m
@@ -88,6 +106,21 @@ func (m *Metrics) Handler() http.Handler {
 func (m *Metrics) ObserveDecision(matched bool, reason string, duration time.Duration) {
 	m.decisionResults.WithLabelValues(strconv.FormatBool(matched), reason).Inc()
 	m.decisionDuration.Observe(duration.Seconds())
+}
+
+func (m *Metrics) ObserveDecisionAdmission(result string, queueDuration time.Duration) {
+	m.decisionAdmission.WithLabelValues(result).Inc()
+	if result != "rate_limited" {
+		m.decisionQueueDuration.Observe(queueDuration.Seconds())
+	}
+}
+
+func (m *Metrics) AddDecisionInFlight(delta float64) {
+	m.decisionInFlight.Add(delta)
+}
+
+func (m *Metrics) ObserveDecisionTimeout() {
+	m.decisionTimeouts.Inc()
 }
 
 func (m *Metrics) ObserveEvent(eventType string, recorded bool) {
