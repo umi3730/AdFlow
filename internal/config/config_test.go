@@ -79,7 +79,9 @@ func TestLoadAuthenticationSettings(t *testing.T) {
 }
 
 func TestLoadDecisionAdmissionSettings(t *testing.T) {
+	t.Setenv("ADFLOW_DECISION_RATE_LIMITER", "redis")
 	t.Setenv("ADFLOW_DECISION_RATE_LIMIT", "2500.5")
+	t.Setenv("ADFLOW_DECISION_RATE_WINDOW", "2s")
 	t.Setenv("ADFLOW_DECISION_BURST", "300")
 	t.Setenv("ADFLOW_DECISION_MAX_IN_FLIGHT", "64")
 	t.Setenv("ADFLOW_DECISION_QUEUE_TIMEOUT", "7ms")
@@ -88,8 +90,15 @@ func TestLoadDecisionAdmissionSettings(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if cfg.DecisionRateLimit != 2500.5 || cfg.DecisionBurst != 300 || cfg.DecisionMaxInFlight != 64 || cfg.DecisionQueueTimeout != 7*time.Millisecond || cfg.DecisionTimeout != 90*time.Millisecond {
+	if cfg.DecisionRateLimiter != "redis" || cfg.DecisionRateLimit != 2500.5 || cfg.DecisionRateWindow != 2*time.Second || cfg.DecisionBurst != 300 || cfg.DecisionMaxInFlight != 64 || cfg.DecisionQueueTimeout != 7*time.Millisecond || cfg.DecisionTimeout != 90*time.Millisecond {
 		t.Fatalf("unexpected decision admission config: %+v", cfg)
+	}
+}
+
+func TestLoadRejectsInvalidDecisionRateLimiter(t *testing.T) {
+	t.Setenv("ADFLOW_DECISION_RATE_LIMITER", "database")
+	if _, err := Load(); err == nil {
+		t.Fatal("Load() expected an error")
 	}
 }
 

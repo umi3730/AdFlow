@@ -34,6 +34,8 @@ type Config struct {
 	AuthUsers            string
 	AuditStore           string
 	DecisionRateLimit    float64
+	DecisionRateLimiter  string
+	DecisionRateWindow   time.Duration
 	DecisionBurst        int
 	DecisionMaxInFlight  int
 	DecisionQueueTimeout time.Duration
@@ -64,6 +66,8 @@ func Load() (Config, error) {
 		AuthUsers:            os.Getenv("ADFLOW_AUTH_USERS"),
 		AuditStore:           envOr("ADFLOW_AUDIT_STORE", "memory"),
 		DecisionRateLimit:    5000,
+		DecisionRateLimiter:  envOr("ADFLOW_DECISION_RATE_LIMITER", "memory"),
+		DecisionRateWindow:   time.Second,
 		DecisionBurst:        1000,
 		DecisionMaxInFlight:  256,
 		DecisionQueueTimeout: 5 * time.Millisecond,
@@ -87,6 +91,9 @@ func Load() (Config, error) {
 		return Config{}, err
 	}
 	if cfg.DecisionRateLimit, err = floatEnv("ADFLOW_DECISION_RATE_LIMIT", cfg.DecisionRateLimit); err != nil {
+		return Config{}, err
+	}
+	if cfg.DecisionRateWindow, err = durationEnv("ADFLOW_DECISION_RATE_WINDOW", cfg.DecisionRateWindow); err != nil {
 		return Config{}, err
 	}
 	if cfg.DecisionBurst, err = intEnv("ADFLOW_DECISION_BURST", cfg.DecisionBurst); err != nil {
@@ -136,6 +143,12 @@ func Load() (Config, error) {
 	}
 	if cfg.DecisionBurst <= 0 || cfg.DecisionMaxInFlight <= 0 {
 		return Config{}, fmt.Errorf("decision burst and max in-flight limits must be positive")
+	}
+	if cfg.DecisionRateLimiter != "memory" && cfg.DecisionRateLimiter != "redis" {
+		return Config{}, fmt.Errorf("ADFLOW_DECISION_RATE_LIMITER must be memory or redis: %q", cfg.DecisionRateLimiter)
+	}
+	if cfg.DecisionRateWindow < time.Millisecond {
+		return Config{}, fmt.Errorf("ADFLOW_DECISION_RATE_WINDOW must be at least 1ms")
 	}
 	if cfg.DecisionTimeout <= cfg.DecisionQueueTimeout {
 		return Config{}, fmt.Errorf("ADFLOW_DECISION_TIMEOUT must exceed ADFLOW_DECISION_QUEUE_TIMEOUT")

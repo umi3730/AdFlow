@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"math"
 	"net/http"
 	"os"
 	"os/signal"
@@ -141,8 +142,19 @@ func main() {
 	logger.Info("reservation adapter selected", "adapter", cfg.ReservationAdapter)
 	candidateProvider := decisioncampaign.NewProvider(campaignRepository, campaignRepository)
 	decisionService := decisionapp.NewService(candidateProvider, profileStore, reservations, reservations, decisionStore)
-	admittedDecisionService, err := decisionapp.NewAdmissionService(decisionService, decisionapp.AdmissionConfig{
-		RatePerSecond: cfg.DecisionRateLimit, Burst: cfg.DecisionBurst, MaxInFlight: cfg.DecisionMaxInFlight,
+	var decisionRateLimiter decisionapp.RateLimiter
+	if cfg.DecisionRateLimiter == "redis" {
+		windowLimit := int(math.Ceil(cfg.DecisionRateLimit * cfg.DecisionRateWindow.Seconds()))
+		decisionRateLimiter, err = decisionredis.NewSlidingWindowLimiter(redisClient.Client(), "adflow:admission:decision", windowLimit, cfg.DecisionRateWindow)
+	} else {
+		decisionRateLimiter, err = decisionapp.NewTokenBucketLimiter(cfg.DecisionRateLimit, cfg.DecisionBurst)
+	}
+	if err != nil {
+		logger.Error("initialize decision rate limiter", "error", err)
+		os.Exit(1)
+	}
+	admittedDecisionService, err := decisionapp.NewAdmissionService(decisionService, decisionRateLimiter, decisionapp.AdmissionConfig{
+		MaxInFlight:  cfg.DecisionMaxInFlight,
 		QueueTimeout: cfg.DecisionQueueTimeout, RequestTimeout: cfg.DecisionTimeout,
 	}, metrics)
 	if err != nil {
@@ -150,7 +162,8 @@ func main() {
 		os.Exit(1)
 	}
 	logger.Info("decision admission configured",
-		"rate_per_second", cfg.DecisionRateLimit, "burst", cfg.DecisionBurst,
+		"rate_limiter", cfg.DecisionRateLimiter, "rate_per_second", cfg.DecisionRateLimit,
+		"window", cfg.DecisionRateWindow, "memory_burst", cfg.DecisionBurst,
 		"max_in_flight", cfg.DecisionMaxInFlight, "queue_timeout", cfg.DecisionQueueTimeout,
 		"request_timeout", cfg.DecisionTimeout,
 	)

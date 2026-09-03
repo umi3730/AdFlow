@@ -87,6 +87,7 @@ func TestDecisionAdmissionErrorsUseExplicitHTTPStatuses(t *testing.T) {
 	}{
 		{name: "rate limited", err: decisiondomain.ErrRateLimited, status: http.StatusTooManyRequests, code: "decision_rate_limited"},
 		{name: "overloaded", err: decisiondomain.ErrOverloaded, status: http.StatusServiceUnavailable, code: "decision_overloaded"},
+		{name: "limiter unavailable", err: decisiondomain.ErrAdmissionUnavailable, status: http.StatusServiceUnavailable, code: "decision_admission_unavailable"},
 		{name: "timed out", err: decisiondomain.ErrDecisionTimeout, status: http.StatusGatewayTimeout, code: "decision_timeout"},
 	}
 	for _, tc := range cases {

@@ -33,7 +33,7 @@ M2 decision context (implemented):
 - atomic in-memory frequency and budget reservations with TTL release
 - deterministic creative selection
 - matched and explicit No-Ad responses
-- per-process global token-bucket request admission with burst capacity
+- selectable per-process token-bucket or Redis shared sliding-window request admission
 - bounded in-flight decision execution and short queue timeout
 - per-request processing deadline and fail-fast 429/503/504 responses
 - cancellation-safe release of frequency and budget reservations
@@ -130,13 +130,17 @@ The decision endpoint protects the hot path with two independent controls:
 
 ```env
 ADFLOW_DECISION_RATE_LIMIT=5000
+ADFLOW_DECISION_RATE_LIMITER=memory
+ADFLOW_DECISION_RATE_WINDOW=1s
 ADFLOW_DECISION_BURST=1000
 ADFLOW_DECISION_MAX_IN_FLIGHT=256
 ADFLOW_DECISION_QUEUE_TIMEOUT=5ms
 ADFLOW_DECISION_TIMEOUT=100ms
 ```
 
-The token bucket rejects excess arrival rate with HTTP 429. The concurrency gate waits only for the configured queue timeout before returning HTTP 503. Accepted execution receives its own processing deadline and returns HTTP 504 if it expires. Prometheus exposes admission outcomes, queue duration, current decision concurrency, and execution timeouts.
+`memory` uses a process-local token bucket and its burst setting. Set `ADFLOW_DECISION_RATE_LIMITER=redis` to enforce a shared exact sliding window across API replicas. The Redis adapter uses one Lua script to remove expired ZSET members, count the active window, append the current request, and refresh the key TTL. Redis server time avoids application-host clock skew; a limiter dependency error fails closed with HTTP 503.
+
+Both adapters reject excess arrival rate with HTTP 429. The per-process concurrency gate remains in place because it protects each replica's CPU, database pool, and downstream dependencies independently of the shared rate limit. It waits only for the configured queue timeout before returning HTTP 503. Accepted execution receives its own processing deadline and returns HTTP 504 if it expires. Prometheus exposes admission outcomes, queue duration, current decision concurrency, and execution timeouts.
 
 Run the administration UI in a second terminal:
 

@@ -90,6 +90,8 @@ func handleError(c *gin.Context, err error) {
 	case errors.Is(err, domain.ErrOverloaded):
 		c.Header("Retry-After", "1")
 		httptransport.RespondError(c, http.StatusServiceUnavailable, "decision_overloaded", "decision service is at capacity", nil)
+	case errors.Is(err, domain.ErrAdmissionUnavailable):
+		httptransport.RespondError(c, http.StatusServiceUnavailable, "decision_admission_unavailable", "decision admission control is unavailable", nil)
 	case errors.Is(err, domain.ErrDecisionTimeout):
 		httptransport.RespondError(c, http.StatusGatewayTimeout, "decision_timeout", "decision request exceeded its deadline", nil)
 	case errors.Is(err, context.Canceled):

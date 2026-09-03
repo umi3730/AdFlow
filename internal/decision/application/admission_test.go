@@ -17,6 +17,12 @@ func (immediateEngine) Decide(_ context.Context, request domain.Request) (domain
 	return domain.Result{RequestID: request.RequestID}, nil
 }
 
+type failingLimiter struct{}
+
+func (failingLimiter) Allow(context.Context, string) (bool, error) {
+	return false, errors.New("Redis unavailable")
+}
+
 type blockingEngine struct {
 	entered chan struct{}
 	release chan struct{}
@@ -36,14 +42,29 @@ func (e blockingEngine) Decide(ctx context.Context, request domain.Request) (dom
 }
 
 func admissionConfig() AdmissionConfig {
-	return AdmissionConfig{RatePerSecond: 100000, Burst: 1000, MaxInFlight: 4, QueueTimeout: 100 * time.Millisecond, RequestTimeout: time.Second}
+	return AdmissionConfig{MaxInFlight: 4, QueueTimeout: 100 * time.Millisecond, RequestTimeout: time.Second}
+}
+
+func testAdmission(t testing.TB, engine DecisionEngine, cfg AdmissionConfig) *AdmissionService {
+	t.Helper()
+	limiter, err := NewTokenBucketLimiter(100000, 1000)
+	if err != nil {
+		t.Fatal(err)
+	}
+	service, err := NewAdmissionService(engine, limiter, cfg, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return service
 }
 
 func TestAdmissionRateLimitsBurst(t *testing.T) {
 	cfg := admissionConfig()
-	cfg.RatePerSecond = 1
-	cfg.Burst = 1
-	service, err := NewAdmissionService(immediateEngine{}, cfg, nil)
+	limiter, err := NewTokenBucketLimiter(1, 1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	service, err := NewAdmissionService(immediateEngine{}, limiter, cfg, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -55,15 +76,22 @@ func TestAdmissionRateLimitsBurst(t *testing.T) {
 	}
 }
 
+func TestAdmissionFailsClosedWhenLimiterIsUnavailable(t *testing.T) {
+	service, err := NewAdmissionService(immediateEngine{}, failingLimiter{}, admissionConfig(), nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := service.Decide(t.Context(), domain.Request{RequestID: "request"}); !errors.Is(err, domain.ErrAdmissionUnavailable) {
+		t.Fatalf("Decide() error=%v", err)
+	}
+}
+
 func TestAdmissionRejectsWhenConcurrencyQueueExpires(t *testing.T) {
 	engine := blockingEngine{entered: make(chan struct{}, 1), release: make(chan struct{})}
 	cfg := admissionConfig()
 	cfg.MaxInFlight = 1
 	cfg.QueueTimeout = 5 * time.Millisecond
-	service, err := NewAdmissionService(engine, cfg, nil)
-	if err != nil {
-		t.Fatal(err)
-	}
+	service := testAdmission(t, engine, cfg)
 	done := make(chan error, 1)
 	go func() {
 		_, callErr := service.Decide(context.Background(), domain.Request{RequestID: "first"})
@@ -83,10 +111,7 @@ func TestAdmissionAppliesRequestDeadline(t *testing.T) {
 	engine := blockingEngine{entered: make(chan struct{}, 1), release: make(chan struct{})}
 	cfg := admissionConfig()
 	cfg.RequestTimeout = 5 * time.Millisecond
-	service, err := NewAdmissionService(engine, cfg, nil)
-	if err != nil {
-		t.Fatal(err)
-	}
+	service := testAdmission(t, engine, cfg)
 	if _, err := service.Decide(t.Context(), domain.Request{RequestID: "slow"}); !errors.Is(err, domain.ErrDecisionTimeout) {
 		t.Fatalf("slow request error=%v", err)
 	}
@@ -115,10 +140,7 @@ func TestAdmissionCapsConcurrentExecution(t *testing.T) {
 	cfg := admissionConfig()
 	cfg.MaxInFlight = 4
 	cfg.QueueTimeout = time.Second
-	service, err := NewAdmissionService(engine, cfg, nil)
-	if err != nil {
-		t.Fatal(err)
-	}
+	service := testAdmission(t, engine, cfg)
 	var wait sync.WaitGroup
 	errorsFound := make(chan error, 40)
 	for index := 0; index < 40; index++ {
@@ -143,10 +165,12 @@ func TestAdmissionCapsConcurrentExecution(t *testing.T) {
 
 func BenchmarkAdmissionFastPath(b *testing.B) {
 	cfg := admissionConfig()
-	cfg.RatePerSecond = 1e12
-	cfg.Burst = b.N + 1
 	cfg.MaxInFlight = 256
-	service, err := NewAdmissionService(immediateEngine{}, cfg, nil)
+	limiter, err := NewTokenBucketLimiter(1e12, b.N+1)
+	if err != nil {
+		b.Fatal(err)
+	}
+	service, err := NewAdmissionService(immediateEngine{}, limiter, cfg, nil)
 	if err != nil {
 		b.Fatal(err)
 	}

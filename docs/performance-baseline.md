@@ -34,7 +34,7 @@ Do not copy these numbers into a resume as production QPS. A resume baseline sho
 
 The pure targeting evaluator benchmark completed at approximately 123.8 ns/op with 0 B/op and 0 allocations/op on the same machine. This measures only in-process rule evaluation and must not be compared directly with HTTP decision latency.
 
-The admission-controller fast-path benchmark completed at approximately 728 ns/op with 272 B/op and 4 allocations/op. It includes the synchronized token bucket, uncontended semaphore admission, and request deadline context. This is a local microbenchmark rather than a production capacity result.
+The admission-controller fast-path benchmark completed at approximately 469.6 ns/op with 272 B/op and 4 allocations/op. It includes the synchronized token bucket, uncontended semaphore admission, and request deadline context. This is a local microbenchmark rather than a production capacity result.
 
 ## Baseline 002 — admission-control spike
 

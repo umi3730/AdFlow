@@ -16,11 +16,13 @@ type DecisionEngine interface {
 }
 
 type AdmissionConfig struct {
-	RatePerSecond  float64
-	Burst          int
 	MaxInFlight    int
 	QueueTimeout   time.Duration
 	RequestTimeout time.Duration
+}
+
+type RateLimiter interface {
+	Allow(context.Context, string) (bool, error)
 }
 
 type AdmissionObserver interface {
@@ -31,26 +33,39 @@ type AdmissionObserver interface {
 
 type AdmissionService struct {
 	next           DecisionEngine
-	limiter        *tokenBucket
+	limiter        RateLimiter
 	slots          chan struct{}
 	queueTimeout   time.Duration
 	requestTimeout time.Duration
 	observer       AdmissionObserver
 }
 
-func NewAdmissionService(next DecisionEngine, cfg AdmissionConfig, observer AdmissionObserver) (*AdmissionService, error) {
-	if next == nil || cfg.RatePerSecond <= 0 || cfg.Burst <= 0 || cfg.MaxInFlight <= 0 || cfg.QueueTimeout <= 0 || cfg.RequestTimeout <= 0 {
+func NewAdmissionService(next DecisionEngine, limiter RateLimiter, cfg AdmissionConfig, observer AdmissionObserver) (*AdmissionService, error) {
+	if next == nil || limiter == nil || cfg.MaxInFlight <= 0 || cfg.QueueTimeout <= 0 || cfg.RequestTimeout <= 0 {
 		return nil, errors.New("admission control requires positive limits and a decision engine")
 	}
 	return &AdmissionService{
-		next: next, limiter: newTokenBucket(cfg.RatePerSecond, cfg.Burst), slots: make(chan struct{}, cfg.MaxInFlight),
+		next: next, limiter: limiter, slots: make(chan struct{}, cfg.MaxInFlight),
 		queueTimeout: cfg.QueueTimeout, requestTimeout: cfg.RequestTimeout, observer: observer,
 	}, nil
 }
 
 func (s *AdmissionService) Decide(ctx context.Context, request domain.Request) (domain.Result, error) {
 	started := time.Now()
-	if !s.limiter.Allow(started) {
+	if err := ctx.Err(); err != nil {
+		s.observe("canceled", 0)
+		return domain.Result{}, err
+	}
+	allowed, err := s.limiter.Allow(ctx, request.RequestID)
+	if err != nil {
+		if ctx.Err() != nil {
+			s.observe("canceled", time.Since(started))
+			return domain.Result{}, ctx.Err()
+		}
+		s.observe("limiter_error", 0)
+		return domain.Result{}, fmt.Errorf("%w: %v", domain.ErrAdmissionUnavailable, err)
+	}
+	if !allowed {
 		s.observe("rate_limited", 0)
 		return domain.Result{}, domain.ErrRateLimited
 	}
@@ -117,7 +132,7 @@ func (s *AdmissionService) observe(result string, queueDuration time.Duration) {
 	}
 }
 
-type tokenBucket struct {
+type TokenBucketLimiter struct {
 	mu       sync.Mutex
 	rate     float64
 	capacity float64
@@ -125,11 +140,15 @@ type tokenBucket struct {
 	last     time.Time
 }
 
-func newTokenBucket(rate float64, burst int) *tokenBucket {
-	return &tokenBucket{rate: rate, capacity: float64(burst), tokens: float64(burst)}
+func NewTokenBucketLimiter(rate float64, burst int) (*TokenBucketLimiter, error) {
+	if rate <= 0 || burst <= 0 {
+		return nil, errors.New("token bucket requires a positive rate and burst")
+	}
+	return &TokenBucketLimiter{rate: rate, capacity: float64(burst), tokens: float64(burst)}, nil
 }
 
-func (b *tokenBucket) Allow(now time.Time) bool {
+func (b *TokenBucketLimiter) Allow(_ context.Context, _ string) (bool, error) {
+	now := time.Now()
 	b.mu.Lock()
 	defer b.mu.Unlock()
 	if b.last.IsZero() {
@@ -139,8 +158,8 @@ func (b *tokenBucket) Allow(now time.Time) bool {
 		b.last = now
 	}
 	if b.tokens < 1 {
-		return false
+		return false, nil
 	}
 	b.tokens--
-	return true
+	return true, nil
 }
