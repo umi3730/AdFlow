@@ -15,6 +15,11 @@ import (
 	agenthttp "github.com/zhanghaiyang/adflow/internal/agentassistant/adapter/http"
 	agentmock "github.com/zhanghaiyang/adflow/internal/agentassistant/adapter/mock"
 	agentapp "github.com/zhanghaiyang/adflow/internal/agentassistant/application"
+	audithttp "github.com/zhanghaiyang/adflow/internal/audit/adapter/http"
+	auditmemory "github.com/zhanghaiyang/adflow/internal/audit/adapter/memory"
+	auditmysql "github.com/zhanghaiyang/adflow/internal/audit/adapter/mysql"
+	auditapp "github.com/zhanghaiyang/adflow/internal/audit/application"
+	auditdomain "github.com/zhanghaiyang/adflow/internal/audit/domain"
 	campaignhttp "github.com/zhanghaiyang/adflow/internal/campaign/adapter/http"
 	"github.com/zhanghaiyang/adflow/internal/campaign/adapter/memory"
 	campaignmysql "github.com/zhanghaiyang/adflow/internal/campaign/adapter/mysql"
@@ -35,6 +40,11 @@ import (
 	eventapp "github.com/zhanghaiyang/adflow/internal/event/application"
 	eventdomain "github.com/zhanghaiyang/adflow/internal/event/domain"
 	"github.com/zhanghaiyang/adflow/internal/health"
+	identityhttp "github.com/zhanghaiyang/adflow/internal/identity/adapter/http"
+	identityjwt "github.com/zhanghaiyang/adflow/internal/identity/adapter/jwt"
+	identitymemory "github.com/zhanghaiyang/adflow/internal/identity/adapter/memory"
+	identitypassword "github.com/zhanghaiyang/adflow/internal/identity/adapter/password"
+	identityapp "github.com/zhanghaiyang/adflow/internal/identity/application"
 	"github.com/zhanghaiyang/adflow/internal/observability"
 	"github.com/zhanghaiyang/adflow/internal/platform/cache"
 	"github.com/zhanghaiyang/adflow/internal/platform/database"
@@ -68,6 +78,28 @@ func main() {
 		"redis": redisClient,
 	})
 	metrics := observability.New()
+	userStore, err := identitymemory.NewUserStore(cfg.AuthUsers, cfg.Environment, cfg.AuthEnabled)
+	if err != nil {
+		logger.Error("initialize authentication users", "error", err)
+		os.Exit(1)
+	}
+	tokenManager, err := identityjwt.NewManager(cfg.JWTSecret, cfg.JWTIssuer, cfg.AccessTokenTTL)
+	if err != nil {
+		logger.Error("initialize JWT manager", "error", err)
+		os.Exit(1)
+	}
+	identityService := identityapp.NewService(userStore, identitypassword.Bcrypt{}, tokenManager)
+	identityHandler := identityhttp.NewHandler(identityService, cfg.AuthEnabled)
+	logger.Info("authentication configured", "enabled", cfg.AuthEnabled)
+	var auditStore auditdomain.Store
+	if cfg.AuditStore == "mysql" {
+		auditStore = auditmysql.NewStore(db)
+	} else {
+		auditStore = auditmemory.NewStore()
+	}
+	auditService := auditapp.NewService(auditStore)
+	auditHandler := audithttp.NewHandler(auditService)
+	logger.Info("audit store selected", "adapter", cfg.AuditStore)
 	var campaignRepository interface {
 		domain.Repository
 		domain.CreativeRepository
@@ -156,7 +188,8 @@ func main() {
 	eventHandler := eventhttp.NewHandler(eventService, metrics, asyncEvents)
 	agentService := agentapp.NewService(agentmock.NewProvider())
 	agentHandler := agenthttp.NewHandler(agentService)
-	server := httptransport.NewServer(cfg.HTTPAddr, cfg.Environment, logger, healthService, metrics, campaignHandler, decisionHandler, eventHandler, agentHandler)
+	server := httptransport.NewServer(cfg.HTTPAddr, cfg.Environment, logger, healthService, metrics,
+		identityHandler, auditHandler, campaignHandler, decisionHandler, eventHandler, agentHandler)
 
 	errCh := make(chan error, 1)
 	go func() {

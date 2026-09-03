@@ -7,6 +7,8 @@ import (
 	"time"
 )
 
+const localJWTSecret = "adflow-local-development-secret-change-me"
+
 type Config struct {
 	Environment          string
 	HTTPAddr             string
@@ -25,6 +27,12 @@ type Config struct {
 	KafkaTopic           string
 	KafkaDeadLetterTopic string
 	KafkaConsumerGroup   string
+	AuthEnabled          bool
+	JWTSecret            string
+	JWTIssuer            string
+	AccessTokenTTL       time.Duration
+	AuthUsers            string
+	AuditStore           string
 }
 
 func Load() (Config, error) {
@@ -45,6 +53,11 @@ func Load() (Config, error) {
 		KafkaTopic:           envOr("ADFLOW_KAFKA_TOPIC", "adflow.ad-events.v1"),
 		KafkaDeadLetterTopic: envOr("ADFLOW_KAFKA_DEAD_LETTER_TOPIC", "adflow.ad-events.dlq.v1"),
 		KafkaConsumerGroup:   envOr("ADFLOW_KAFKA_CONSUMER_GROUP", "adflow-metrics-v1"),
+		JWTSecret:            envOr("ADFLOW_JWT_SECRET", localJWTSecret),
+		JWTIssuer:            envOr("ADFLOW_JWT_ISSUER", "adflow"),
+		AccessTokenTTL:       30 * time.Minute,
+		AuthUsers:            os.Getenv("ADFLOW_AUTH_USERS"),
+		AuditStore:           envOr("ADFLOW_AUDIT_STORE", "memory"),
 	}
 
 	var err error
@@ -55,6 +68,12 @@ func Load() (Config, error) {
 		return Config{}, err
 	}
 	if cfg.RedisDB, err = intEnv("ADFLOW_REDIS_DB", 0); err != nil {
+		return Config{}, err
+	}
+	if cfg.AuthEnabled, err = boolEnv("ADFLOW_AUTH_ENABLED", false); err != nil {
+		return Config{}, err
+	}
+	if cfg.AccessTokenTTL, err = durationEnv("ADFLOW_ACCESS_TOKEN_TTL", cfg.AccessTokenTTL); err != nil {
 		return Config{}, err
 	}
 	if cfg.HTTPAddr == "" || cfg.MySQLDSN == "" || cfg.RedisAddr == "" {
@@ -77,6 +96,18 @@ func Load() (Config, error) {
 	}
 	if cfg.EventTransport == "kafka" && (cfg.KafkaBrokers == "" || cfg.KafkaTopic == "" || cfg.KafkaDeadLetterTopic == "" || cfg.KafkaConsumerGroup == "") {
 		return Config{}, fmt.Errorf("kafka brokers, topic and consumer group must not be empty")
+	}
+	if cfg.AuditStore != "memory" && cfg.AuditStore != "mysql" {
+		return Config{}, fmt.Errorf("ADFLOW_AUDIT_STORE must be memory or mysql: %q", cfg.AuditStore)
+	}
+	if len(cfg.JWTSecret) < 32 || cfg.JWTIssuer == "" {
+		return Config{}, fmt.Errorf("JWT secret must contain at least 32 characters and issuer must not be empty")
+	}
+	if cfg.AuthEnabled && cfg.Environment != "local" && cfg.Environment != "test" && cfg.AuthUsers == "" {
+		return Config{}, fmt.Errorf("ADFLOW_AUTH_USERS is required when authentication is enabled outside local and test environments")
+	}
+	if cfg.AuthEnabled && cfg.Environment != "local" && cfg.Environment != "test" && cfg.JWTSecret == localJWTSecret {
+		return Config{}, fmt.Errorf("ADFLOW_JWT_SECRET must be replaced outside local and test environments")
 	}
 	return cfg, nil
 }
@@ -108,6 +139,18 @@ func intEnv(key string, fallback int) (int, error) {
 	parsed, err := strconv.Atoi(value)
 	if err != nil || parsed < 0 {
 		return 0, fmt.Errorf("%s must be a non-negative integer: %q", key, value)
+	}
+	return parsed, nil
+}
+
+func boolEnv(key string, fallback bool) (bool, error) {
+	value, ok := os.LookupEnv(key)
+	if !ok || value == "" {
+		return fallback, nil
+	}
+	parsed, err := strconv.ParseBool(value)
+	if err != nil {
+		return false, fmt.Errorf("%s must be a boolean: %q", key, value)
 	}
 	return parsed, nil
 }

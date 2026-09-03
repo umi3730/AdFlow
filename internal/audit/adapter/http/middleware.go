@@ -1,0 +1,65 @@
+package httpadapter
+
+import (
+	"context"
+	"log/slog"
+	"net/http"
+
+	"github.com/gin-gonic/gin"
+	"github.com/zhanghaiyang/adflow/internal/audit/application"
+	"github.com/zhanghaiyang/adflow/internal/audit/domain"
+	identityhttp "github.com/zhanghaiyang/adflow/internal/identity/adapter/http"
+	httptransport "github.com/zhanghaiyang/adflow/internal/transport/http"
+)
+
+func Middleware(service *application.Service) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Next()
+		action, resourceType, ok := auditedAction(c.Request.Method, c.FullPath())
+		if !ok {
+			return
+		}
+		principal, exists := identityhttp.PrincipalFrom(c)
+		if !exists {
+			return
+		}
+		outcome := domain.OutcomeSucceeded
+		if c.Writer.Status() >= http.StatusBadRequest {
+			outcome = domain.OutcomeFailed
+		}
+		resourceID := c.Param("creativeId")
+		if resourceID == "" {
+			resourceID = c.Param("id")
+		}
+		if resourceID == "" {
+			resourceID = c.Param("userId")
+		}
+		err := service.Record(context.WithoutCancel(c.Request.Context()), application.RecordCommand{
+			Principal: principal, Action: action, ResourceType: resourceType, ResourceID: resourceID,
+			RequestID: httptransport.RequestIDFrom(c), Outcome: outcome,
+			Metadata: map[string]string{"method": c.Request.Method, "route": c.FullPath(), "status": http.StatusText(c.Writer.Status())},
+		})
+		if err != nil {
+			slog.Error("append audit log", "request_id", httptransport.RequestIDFrom(c), "error", err)
+		}
+	}
+}
+
+func auditedAction(method, route string) (string, string, bool) {
+	type actionDefinition struct{ action, resource string }
+	actions := map[string]actionDefinition{
+		http.MethodPost + " /v1/campaigns":                                   {"CREATE_CAMPAIGN", "campaign"},
+		http.MethodPut + " /v1/campaigns/:id":                                {"UPDATE_CAMPAIGN", "campaign"},
+		http.MethodPost + " /v1/campaigns/:id/publish":                       {"PUBLISH_CAMPAIGN", "campaign"},
+		http.MethodPost + " /v1/campaigns/:id/pause":                         {"PAUSE_CAMPAIGN", "campaign"},
+		http.MethodPost + " /v1/campaigns/:id/resume":                        {"RESUME_CAMPAIGN", "campaign"},
+		http.MethodPost + " /v1/campaigns/:id/creatives":                     {"CREATE_CREATIVE", "creative"},
+		http.MethodPost + " /v1/campaigns/:id/creatives/:creativeId/disable": {"DISABLE_CREATIVE", "creative"},
+		http.MethodPut + " /v1/profiles/:userId":                             {"UPSERT_PROFILE", "profile"},
+		http.MethodPost + " /v1/decisions":                                   {"REQUEST_DECISION", "decision"},
+		http.MethodPost + " /v1/events":                                      {"RECORD_EVENT", "event"},
+		http.MethodPost + " /v1/agent/rule-drafts":                           {"GENERATE_RULE_DRAFT", "agent_rule"},
+	}
+	matched, ok := actions[method+" "+route]
+	return matched.action, matched.resource, ok
+}

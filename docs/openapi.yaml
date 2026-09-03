@@ -1,27 +1,70 @@
 openapi: 3.1.0
 info:
   title: AdFlow API
-  version: 0.1.0
-  description: Local API for campaign management, advertising decisions, event collection, and Agent-assisted rule drafts.
+  version: 0.2.0
+  description: API for campaign management, advertising decisions, event collection, Agent-assisted rule drafts, and administration security. Bearer authentication is enforced when ADFLOW_AUTH_ENABLED=true.
 servers:
   - url: http://localhost:18080
+security:
+  - bearerAuth: []
 paths:
   /livez:
     get:
       summary: Process liveness
+      security: []
       responses:
         '200': { description: Process is alive }
   /readyz:
     get:
       summary: Dependency readiness
+      security: []
       responses:
         '200': { description: All configured dependencies are ready }
         '503': { description: One or more dependencies are unavailable }
   /metrics:
     get:
       summary: Prometheus metrics
+      security: []
       responses:
         '200': { description: Prometheus text exposition }
+  /v1/auth/login:
+    post:
+      summary: Exchange credentials for an access token
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, password]
+              properties:
+                username: { type: string, minLength: 2, maxLength: 64 }
+                password: { type: string, minLength: 8, maxLength: 256 }
+      responses:
+        '200':
+          description: Short-lived bearer token and principal
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/IssuedToken' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+  /v1/auth/me:
+    get:
+      summary: Read current authentication mode and principal
+      responses:
+        '200': { description: Current principal and role }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+  /v1/audit-logs:
+    get:
+      summary: List append-only administrative action records
+      description: Requires the admin role when authentication is enabled.
+      parameters:
+        - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 100, default: 50 } }
+        - { name: offset, in: query, schema: { type: integer, minimum: 0, default: 0 } }
+      responses:
+        '200': { description: Audit-log page ordered newest first }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
   /v1/campaigns:
     get:
       summary: List campaigns
@@ -180,6 +223,11 @@ paths:
         '200': { description: Validated rule draft with provider metadata and warnings }
         '422': { description: Prompt or generated draft is invalid }
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
   parameters:
     CampaignId:
       name: campaignId
@@ -189,7 +237,26 @@ components:
   responses:
     BadRequest:
       description: Invalid JSON or field validation failure
+    Unauthorized:
+      description: Missing, malformed, expired, or invalid bearer token
+    Forbidden:
+      description: Authenticated role does not permit the operation
   schemas:
+    Principal:
+      type: object
+      required: [userId, username, role]
+      properties:
+        userId: { type: string }
+        username: { type: string }
+        role: { type: string, enum: [viewer, operator, admin] }
+    IssuedToken:
+      type: object
+      required: [accessToken, tokenType, expiresAt, principal]
+      properties:
+        accessToken: { type: string }
+        tokenType: { type: string, const: Bearer }
+        expiresAt: { type: string, format: date-time }
+        principal: { $ref: '#/components/schemas/Principal' }
     CampaignWrite:
       type: object
       required: [name, slotId, startAt, endAt]

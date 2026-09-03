@@ -40,3 +40,40 @@ func TestLoadRejectsInvalidEventTransport(t *testing.T) {
 		t.Fatal("Load() expected an error")
 	}
 }
+
+func TestLoadRejectsShortJWTSecret(t *testing.T) {
+	t.Setenv("ADFLOW_JWT_SECRET", "short")
+	if _, err := Load(); err == nil {
+		t.Fatal("Load() expected an error")
+	}
+}
+
+func TestLoadRequiresUsersWhenAuthEnabledOutsideLocal(t *testing.T) {
+	t.Setenv("ADFLOW_ENV", "production")
+	t.Setenv("ADFLOW_AUTH_ENABLED", "true")
+	t.Setenv("ADFLOW_AUTH_USERS", "")
+	if _, err := Load(); err == nil {
+		t.Fatal("Load() expected an error")
+	}
+}
+
+func TestLoadRejectsDevelopmentSecretOutsideLocal(t *testing.T) {
+	t.Setenv("ADFLOW_ENV", "production")
+	t.Setenv("ADFLOW_AUTH_ENABLED", "true")
+	t.Setenv("ADFLOW_AUTH_USERS", "admin:admin:$2a$04$valid-looking-placeholder")
+	if _, err := Load(); err == nil {
+		t.Fatal("Load() expected an error")
+	}
+}
+
+func TestLoadAuthenticationSettings(t *testing.T) {
+	t.Setenv("ADFLOW_AUTH_ENABLED", "true")
+	t.Setenv("ADFLOW_ACCESS_TOKEN_TTL", "45m")
+	cfg, err := Load()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !cfg.AuthEnabled || cfg.AccessTokenTTL != 45*time.Minute {
+		t.Fatalf("unexpected authentication config: %+v", cfg)
+	}
+}

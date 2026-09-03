@@ -66,6 +66,15 @@ M4 administration UI (basic implementation):
 - Agent rule draft preview and explicit human-confirmed publication
 - responsive navigation, API connection state, and failure feedback
 
+M6 identity and audit context (implemented):
+
+- optional HS256 JWT authentication with issuer and expiry validation
+- hierarchical RBAC roles: viewer, operator, and admin
+- admin-only campaign publication and audit-log access
+- append-only business-action audit records with success/failure outcomes
+- in-memory and MySQL audit-store adapters
+- local development identities without changing the default frontend workflow
+
 ## Run locally
 
 Prerequisites: Go 1.27+. MySQL 5.7+ and Redis 6+ are optional while using the in-memory adapters.
@@ -95,6 +104,24 @@ Kafka uses `requestId` as the record key, at-least-once delivery, manual offset 
 
 The local API listens on `http://localhost:18080` by default; the administration UI runs on `http://localhost:3000`.
 
+Authentication is disabled by default so the local UI remains frictionless. Enable it with:
+
+```env
+ADFLOW_AUTH_ENABLED=true
+ADFLOW_JWT_SECRET=replace-with-at-least-32-random-characters
+ADFLOW_ACCESS_TOKEN_TTL=30m
+```
+
+Local and test environments provide three demonstration accounts when `ADFLOW_AUTH_USERS` is empty:
+
+| Username | Password | Role | Permissions |
+| --- | --- | --- | --- |
+| `viewer` | `adflow-viewer` | viewer | Read APIs |
+| `operator` | `adflow-operator` | operator | Read, configure, and run debugging workflows |
+| `admin` | `adflow-admin` | admin | Operator permissions, campaign publication, and audit-log access |
+
+Outside local/test environments, enabled authentication requires `ADFLOW_AUTH_USERS`. Its format is a semicolon-separated list of `username:role:bcryptHash` entries. Never store plaintext production passwords in this value. Set `ADFLOW_AUDIT_STORE=mysql` after applying migration `000005_identity_audit` to persist the audit trail.
+
 Run the administration UI in a second terminal:
 
 ```powershell
@@ -119,6 +146,9 @@ Endpoints:
 - `GET /livez` — process liveness
 - `GET /readyz` — MySQL and Redis readiness
 - `GET /metrics` — Prometheus HTTP, decision, event, process, and Go runtime metrics
+- `POST /v1/auth/login` — exchange credentials for a short-lived JWT
+- `GET /v1/auth/me` — read the authenticated principal and role
+- `GET /v1/audit-logs` — list append-only action records (admin only)
 - `POST /v1/campaigns` — create a draft campaign
 - `PUT /v1/campaigns/{id}` — edit a draft campaign
 - `GET /v1/campaigns` — list campaigns with status/limit/offset filters
@@ -147,4 +177,4 @@ The first release is a modular monolith. Gin is restricted to the HTTP transport
 
 ## Next milestone
 
-The next infrastructure step is a real Kafka/MySQL integration environment and end-to-end restart test. The local synchronous path remains the default until those services are available.
+The next infrastructure step is a real Kafka/MySQL integration environment and end-to-end restart test. The local synchronous path remains the default until those services are available. Authentication remains opt-in until the administration UI gains a login flow.

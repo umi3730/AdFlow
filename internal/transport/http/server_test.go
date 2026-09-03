@@ -117,4 +117,7 @@ func TestLocalCORSAllowsAdministrationUI(t *testing.T) {
 	if got := recorder.Header().Get("Access-Control-Allow-Origin"); got != "http://localhost:3000" {
 		t.Fatalf("allow origin = %q", got)
 	}
+	if got := recorder.Header().Get("Access-Control-Allow-Headers"); !strings.Contains(got, "Authorization") {
+		t.Fatalf("allow headers = %q", got)
+	}
 }

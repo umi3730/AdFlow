@@ -27,10 +27,11 @@ The modular monolith already covers the complete MVP path from campaign configur
 - Add index regression checks for campaign lookup, outbox claiming, event deduplication, and metric aggregation.
 - Define data retention and archival policies for decisions, receipts, processed events, and dead letters.
 
-## P3 — Administration security
+## P3 — Administration security (baseline implemented)
 
-- Add authentication and role-based access control for administrators, operators, and read-only users.
-- Record an immutable audit trail for campaign publication, pause/resume, creative changes, and Agent-assisted rule confirmation.
+- Extend the implemented JWT and hierarchical RBAC baseline with refresh-token rotation or external identity when production integration requires it.
+- Move from action-level append-only audit writes to transaction-coupled audit/outbox records for operations that require strict compliance guarantees.
+- Add the administration UI login flow and audit-log workspace.
 - Add request rate limits and administrative action protection where appropriate.
 
 ## P4 — Agent and operations

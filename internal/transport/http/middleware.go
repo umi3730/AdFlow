@@ -27,7 +27,7 @@ func CORS(environment string) gin.HandlerFunc {
 		if _, ok := allowed[origin]; ok {
 			c.Header("Access-Control-Allow-Origin", origin)
 			c.Header("Vary", "Origin")
-			c.Header("Access-Control-Allow-Headers", "Content-Type, X-Request-ID")
+			c.Header("Access-Control-Allow-Headers", "Authorization, Content-Type, X-Request-ID")
 			c.Header("Access-Control-Allow-Methods", "GET, POST, PUT, OPTIONS")
 		}
 		if c.Request.Method == http.MethodOptions {
