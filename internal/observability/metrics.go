@@ -25,6 +25,8 @@ type Metrics struct {
 	decisionTimeouts      prometheus.Counter
 	candidateCache        *prometheus.CounterVec
 	candidateCacheRefresh prometheus.Histogram
+	profileCache          *prometheus.CounterVec
+	profileCacheDuration  *prometheus.HistogramVec
 	agentGenerations      *prometheus.CounterVec
 	agentDuration         *prometheus.HistogramVec
 	agentTokens           *prometheus.CounterVec
@@ -75,6 +77,13 @@ func New() *Metrics {
 			Namespace: "adflow", Subsystem: "decision", Name: "candidate_cache_refresh_duration_seconds", Help: "Candidate snapshot source refresh duration.",
 			Buckets: []float64{0.001, 0.003, 0.01, 0.03, 0.1, 0.3, 0.75},
 		}),
+		profileCache: prometheus.NewCounterVec(prometheus.CounterOpts{
+			Namespace: "adflow", Subsystem: "decision", Name: "profile_cache_total", Help: "Profile cache operations by result.",
+		}, []string{"result"}),
+		profileCacheDuration: prometheus.NewHistogramVec(prometheus.HistogramOpts{
+			Namespace: "adflow", Subsystem: "decision", Name: "profile_cache_duration_seconds", Help: "Profile cache operation duration by result.",
+			Buckets: []float64{0.0005, 0.001, 0.003, 0.01, 0.03, 0.1, 0.3},
+		}, []string{"result"}),
 		agentGenerations: prometheus.NewCounterVec(prometheus.CounterOpts{
 			Namespace: "adflow", Subsystem: "agent", Name: "generations_total", Help: "Agent rule-generation calls by provider, model, and outcome.",
 		}, []string{"provider", "model", "outcome"}),
@@ -106,6 +115,7 @@ func New() *Metrics {
 		m.httpRequests, m.httpDuration, m.httpInFlight, m.decisionResults, m.decisionDuration,
 		m.decisionAdmission, m.decisionQueueDuration, m.decisionInFlight, m.decisionTimeouts, m.events,
 		m.candidateCache, m.candidateCacheRefresh,
+		m.profileCache, m.profileCacheDuration,
 		m.agentGenerations, m.agentDuration, m.agentTokens, m.agentCircuitOpen,
 		m.outboxDepth, m.outboxResults, m.kafkaConsumerLag,
 	)
@@ -156,6 +166,11 @@ func (m *Metrics) ObserveCandidateCache(result string, duration time.Duration) {
 	if result == "miss" || result == "error" {
 		m.candidateCacheRefresh.Observe(duration.Seconds())
 	}
+}
+
+func (m *Metrics) ObserveProfileCache(result string, duration time.Duration) {
+	m.profileCache.WithLabelValues(result).Inc()
+	m.profileCacheDuration.WithLabelValues(result).Observe(duration.Seconds())
 }
 
 func (m *Metrics) ObserveAgentGeneration(provider, model, outcome string, duration time.Duration, inputTokens, outputTokens int64) {

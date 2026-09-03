@@ -115,7 +115,10 @@ Event processing defaults to synchronous local mode. To enable Kafka, create the
 ```env
 ADFLOW_EVENT_TRANSPORT=kafka
 ADFLOW_DECISION_STORE=mysql
-ADFLOW_PROFILE_STORE=mysql
+ADFLOW_PROFILE_STORE=mysql-redis
+ADFLOW_PROFILE_CACHE_TTL=5m
+ADFLOW_PROFILE_NEGATIVE_CACHE_TTL=5s
+ADFLOW_PROFILE_CACHE_TIMEOUT=10ms
 ADFLOW_KAFKA_BROKERS=127.0.0.1:9092
 ADFLOW_KAFKA_TOPIC=adflow.ad-events.v1
 ADFLOW_KAFKA_DEAD_LETTER_TOPIC=adflow.ad-events.dlq.v1
@@ -123,6 +126,8 @@ ADFLOW_KAFKA_CONSUMER_GROUP=adflow-metrics-v1
 ```
 
 Kafka uses `requestId` as the record key, at-least-once delivery, manual offset commits after successful processing, and `eventId` idempotency at the consumer boundary. Kafka mode requires migrations `000002_events` and `000003_decisions`.
+
+`mysql-redis` keeps MySQL as the profile source of truth and applies Redis Cache-Aside reads with write-through updates. Missing users receive a short negative-cache entry to limit cache penetration. Redis operations have a small independent timeout so cache trouble leaves time for MySQL fallback; a failed cache update after a successful MySQL PUT is surfaced so the idempotent PUT can be retried.
 
 The local API listens on `http://localhost:18080` by default; the administration UI runs on `http://localhost:3000`.
 

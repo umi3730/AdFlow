@@ -19,7 +19,10 @@ import (
 	"github.com/redis/go-redis/v9"
 	campaignmysql "github.com/zhanghaiyang/adflow/internal/campaign/adapter/mysql"
 	campaigndomain "github.com/zhanghaiyang/adflow/internal/campaign/domain"
+	decisionmysql "github.com/zhanghaiyang/adflow/internal/decision/adapter/mysql"
+	decisionprofilecache "github.com/zhanghaiyang/adflow/internal/decision/adapter/profilecache"
 	decisionredis "github.com/zhanghaiyang/adflow/internal/decision/adapter/redis"
+	decisiondomain "github.com/zhanghaiyang/adflow/internal/decision/domain"
 	eventmysql "github.com/zhanghaiyang/adflow/internal/event/adapter/mysql"
 	eventdomain "github.com/zhanghaiyang/adflow/internal/event/domain"
 	"github.com/zhanghaiyang/adflow/internal/platform/database"
@@ -216,6 +219,35 @@ func TestRedisSlidingWindowAndBudgetReservationAreAtomic(t *testing.T) {
 	spent, err := reservations.DebugBudgetSpent(t.Context(), confirmationCampaign, now)
 	if err != nil || spent != 100 {
 		t.Fatalf("confirmed budget spent=%d err=%v", spent, err)
+	}
+}
+
+func TestRedisMySQLProfileCacheAsideReturnsWrittenProfile(t *testing.T) {
+	db := integrationMySQL(t)
+	address := integrationEnv(t, "ADFLOW_IT_REDIS_ADDR")
+	client := redis.NewClient(&redis.Options{Addr: address, Protocol: 2, DisableIdentity: true})
+	t.Cleanup(func() { _ = client.Close() })
+	userID := "cache-user-" + newID(t)
+	prefix := "adflow:it:profile:" + newID(t)
+	t.Cleanup(func() {
+		deletePrefix(context.Background(), client, prefix)
+		_, _ = db.Exec(`DELETE FROM user_profiles WHERE user_id = ?`, userID)
+	})
+	store, err := decisionprofilecache.New(decisionmysql.NewProfileStore(db), client, prefix, time.Minute, 5*time.Second, 20*time.Millisecond, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	profile := decisiondomain.NewProfile(userID, []string{"anime"}, map[string]string{"device": "ios"})
+	if err := store.PutProfile(t.Context(), profile); err != nil {
+		t.Fatal(err)
+	}
+	// Remove the source row to prove the following read is served by Redis.
+	if _, err := db.ExecContext(t.Context(), `DELETE FROM user_profiles WHERE user_id = ?`, userID); err != nil {
+		t.Fatal(err)
+	}
+	cached, err := store.FindProfile(t.Context(), userID)
+	if err != nil || cached.Fields["device"] != "ios" {
+		t.Fatalf("cached=%+v err=%v", cached, err)
 	}
 }
 

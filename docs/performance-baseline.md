@@ -160,3 +160,34 @@ A five-second TTL reduced refresh pressure to six successful misses and 75 share
 | Kafka consumer lag after the run | 0 on all three partitions |
 
 The supported local full-path baseline is therefore raised from 50 to 80 iterations/s. The unchanged 100 iteration/s threshold failure is retained as the next boundary: profile lookup, decision persistence, reservation calls, and Outbox ingestion still perform request-specific network operations and cannot be replaced by the shared candidate snapshot.
+
+## Baseline 006 — Redis/MySQL profile Cache-Aside
+
+The `mysql-redis` profile adapter keeps MySQL authoritative while caching positive profiles for five minutes and missing users for five seconds. Concurrent misses for one user are coalesced inside each API process. Profile writes update MySQL first and then replace the Redis representation; Redis read failures degrade to MySQL rather than failing the decision immediately.
+
+The first run began with an empty Redis profile namespace and therefore included a real cold-fill phase:
+
+| Metric | Cold-fill result at 100 iteration/s |
+| --- | ---: |
+| Completed full-path iterations | 2,524 |
+| MySQL profile fills | 500 |
+| Redis profile hits | 2,024 |
+| Decision and impression errors | 0.00% |
+| Decision latency average | 70.43 ms |
+| Decision latency P95 | 157.90 ms |
+| Decision latency P99 | 211.01 ms |
+| Full-path latency P95 | 363.84 ms |
+
+The immediately repeated hot-cache run also completed all 2,524 iterations without error:
+
+| Metric | Hot-cache result at 100 iteration/s |
+| --- | ---: |
+| Decision latency average | 55.64 ms |
+| Decision latency P95 | 100.10 ms |
+| Decision latency P99 | 111.36 ms |
+| Impression-ingestion latency P95 | 215.39 ms |
+| Full-path latency P95 | 296 ms |
+| Outbox rows not published after both runs | 0 |
+| Kafka consumer lag after both runs | 0 on all three partitions |
+
+Across both runs, Prometheus recorded exactly 500 source fills and 4,548 Redis hits. This raises the supported local full-path baseline from 80 to 100 iterations/s while retaining an explicit cold-cache measurement. The next performance work should target request-specific Decision/Outbox writes or a colocated Linux deployment rather than adding more shared configuration caches.

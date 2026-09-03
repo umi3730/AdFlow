@@ -26,6 +26,7 @@ func TestMetricsExposeHTTPDecisionAndEventSeries(t *testing.T) {
 	metrics.ObserveDecisionTimeout()
 	metrics.ObserveCandidateCache("hit", 0)
 	metrics.ObserveCandidateCache("miss", time.Millisecond)
+	metrics.ObserveProfileCache("hit", time.Millisecond)
 	metrics.ObserveAgentGeneration("openai-compatible", "test-model", "success", time.Second, 10, 5)
 	metrics.SetAgentCircuitOpen(true)
 	metrics.SetAgentCircuitOpen(false)
@@ -37,7 +38,7 @@ func TestMetricsExposeHTTPDecisionAndEventSeries(t *testing.T) {
 	metricsRecorder := httptest.NewRecorder()
 	metrics.Handler().ServeHTTP(metricsRecorder, httptest.NewRequest(http.MethodGet, "/metrics", nil))
 	body := metricsRecorder.Body.String()
-	for _, name := range []string{"adflow_http_requests_total", "adflow_decision_results_total", "adflow_decision_admission_total", "adflow_decision_queue_duration_seconds", "adflow_decision_in_flight", "adflow_decision_execution_timeouts_total", "adflow_decision_candidate_cache_total", "adflow_decision_candidate_cache_refresh_duration_seconds", "adflow_agent_generations_total", "adflow_agent_generation_duration_seconds", "adflow_agent_tokens_total", "adflow_agent_circuit_open", "adflow_event_records_total", "adflow_outbox_rows", "adflow_kafka_consumer_lag", "go_goroutines"} {
+	for _, name := range []string{"adflow_http_requests_total", "adflow_decision_results_total", "adflow_decision_admission_total", "adflow_decision_queue_duration_seconds", "adflow_decision_in_flight", "adflow_decision_execution_timeouts_total", "adflow_decision_candidate_cache_total", "adflow_decision_candidate_cache_refresh_duration_seconds", "adflow_decision_profile_cache_total", "adflow_decision_profile_cache_duration_seconds", "adflow_agent_generations_total", "adflow_agent_generation_duration_seconds", "adflow_agent_tokens_total", "adflow_agent_circuit_open", "adflow_event_records_total", "adflow_outbox_rows", "adflow_kafka_consumer_lag", "go_goroutines"} {
 		if !strings.Contains(body, name) {
 			t.Fatalf("missing metric %s", name)
 		}

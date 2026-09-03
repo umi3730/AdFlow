@@ -22,7 +22,8 @@ The modular monolith already covers the complete MVP path from campaign configur
 - Kafka consumption now runs partitions concurrently, preserves in-partition order, batches contiguous offset commits, and rewinds a failed partition for retry.
 - Consumer persistence and Outbox publication now use idempotent batches; the final 50 iteration/s run completed with zero errors, zero Outbox backlog, and zero Kafka lag.
 - A five-second immutable candidate snapshot with deep-copy reads, miss coalescing, and Prometheus metrics raises the stable full-path baseline from 50 to 80 iteration/s.
-- Profile lookup and request-specific decision persistence are the next measured online-path bottlenecks; 100 iteration/s is retained as a failing boundary rather than reported as supported throughput.
+- Redis/MySQL Profile Cache-Aside with miss coalescing, negative caching, write-through updates, and MySQL fallback raises the stable full-path baseline from 80 to 100 iteration/s, including a zero-error cold-fill run.
+- Request-specific Decision and Outbox writes are the remaining measured hot-path database work.
 - Add longer broker-outage, partition-reassignment, lease-expiry, and dead-letter replay chaos scenarios.
 - Record repeatable P50, P95, P99, throughput, error rate, database pool usage, Redis latency, outbox depth, and Kafka lag.
 

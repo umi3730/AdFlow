@@ -22,6 +22,9 @@ type Config struct {
 	ReservationAdapter        string
 	DecisionStore             string
 	ProfileStore              string
+	ProfileCacheTTL           time.Duration
+	ProfileNegativeCacheTTL   time.Duration
+	ProfileCacheTimeout       time.Duration
 	EventTransport            string
 	KafkaBrokers              string
 	KafkaTopic                string
@@ -69,6 +72,9 @@ func Load() (Config, error) {
 		ReservationAdapter:        envOr("ADFLOW_RESERVATION_ADAPTER", "memory"),
 		DecisionStore:             envOr("ADFLOW_DECISION_STORE", "memory"),
 		ProfileStore:              envOr("ADFLOW_PROFILE_STORE", "memory"),
+		ProfileCacheTTL:           5 * time.Minute,
+		ProfileNegativeCacheTTL:   5 * time.Second,
+		ProfileCacheTimeout:       10 * time.Millisecond,
 		EventTransport:            envOr("ADFLOW_EVENT_TRANSPORT", "sync"),
 		KafkaBrokers:              envOr("ADFLOW_KAFKA_BROKERS", "127.0.0.1:9092"),
 		KafkaTopic:                envOr("ADFLOW_KAFKA_TOPIC", "adflow.ad-events.v1"),
@@ -119,6 +125,15 @@ func Load() (Config, error) {
 		return Config{}, err
 	}
 	if cfg.CandidateCacheTTL, err = durationEnv("ADFLOW_CANDIDATE_CACHE_TTL", cfg.CandidateCacheTTL); err != nil {
+		return Config{}, err
+	}
+	if cfg.ProfileCacheTTL, err = durationEnv("ADFLOW_PROFILE_CACHE_TTL", cfg.ProfileCacheTTL); err != nil {
+		return Config{}, err
+	}
+	if cfg.ProfileNegativeCacheTTL, err = durationEnv("ADFLOW_PROFILE_NEGATIVE_CACHE_TTL", cfg.ProfileNegativeCacheTTL); err != nil {
+		return Config{}, err
+	}
+	if cfg.ProfileCacheTimeout, err = durationEnv("ADFLOW_PROFILE_CACHE_TIMEOUT", cfg.ProfileCacheTimeout); err != nil {
 		return Config{}, err
 	}
 	if cfg.DecisionRateLimit, err = floatEnv("ADFLOW_DECISION_RATE_LIMIT", cfg.DecisionRateLimit); err != nil {
@@ -175,8 +190,11 @@ func Load() (Config, error) {
 	if cfg.DecisionStore != "memory" && cfg.DecisionStore != "mysql" {
 		return Config{}, fmt.Errorf("ADFLOW_DECISION_STORE must be memory or mysql: %q", cfg.DecisionStore)
 	}
-	if cfg.ProfileStore != "memory" && cfg.ProfileStore != "mysql" {
-		return Config{}, fmt.Errorf("ADFLOW_PROFILE_STORE must be memory or mysql: %q", cfg.ProfileStore)
+	if cfg.ProfileStore != "memory" && cfg.ProfileStore != "mysql" && cfg.ProfileStore != "mysql-redis" {
+		return Config{}, fmt.Errorf("ADFLOW_PROFILE_STORE must be memory, mysql, or mysql-redis: %q", cfg.ProfileStore)
+	}
+	if cfg.ProfileNegativeCacheTTL > cfg.ProfileCacheTTL {
+		return Config{}, fmt.Errorf("ADFLOW_PROFILE_NEGATIVE_CACHE_TTL must not exceed ADFLOW_PROFILE_CACHE_TTL")
 	}
 	if cfg.EventTransport != "sync" && cfg.EventTransport != "kafka" {
 		return Config{}, fmt.Errorf("ADFLOW_EVENT_TRANSPORT must be sync or kafka: %q", cfg.EventTransport)

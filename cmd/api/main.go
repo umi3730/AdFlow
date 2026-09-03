@@ -33,6 +33,7 @@ import (
 	decisionhttp "github.com/zhanghaiyang/adflow/internal/decision/adapter/http"
 	decisionmemory "github.com/zhanghaiyang/adflow/internal/decision/adapter/memory"
 	decisionmysql "github.com/zhanghaiyang/adflow/internal/decision/adapter/mysql"
+	decisionprofilecache "github.com/zhanghaiyang/adflow/internal/decision/adapter/profilecache"
 	decisionredis "github.com/zhanghaiyang/adflow/internal/decision/adapter/redis"
 	decisionapp "github.com/zhanghaiyang/adflow/internal/decision/application"
 	decisiondomain "github.com/zhanghaiyang/adflow/internal/decision/domain"
@@ -128,6 +129,16 @@ func main() {
 	var profileStore decisiondomain.ProfileStore
 	if cfg.ProfileStore == "mysql" {
 		profileStore = decisionmysql.NewProfileStore(db)
+	} else if cfg.ProfileStore == "mysql-redis" {
+		profileStore, err = decisionprofilecache.New(
+			decisionmysql.NewProfileStore(db), redisClient.Client(), "adflow:profile",
+			cfg.ProfileCacheTTL, cfg.ProfileNegativeCacheTTL, cfg.ProfileCacheTimeout, metrics,
+		)
+		if err != nil {
+			logger.Error("initialize profile cache", "error", err)
+			os.Exit(1)
+		}
+		logger.Info("profile cache configured", "ttl", cfg.ProfileCacheTTL, "negative_ttl", cfg.ProfileNegativeCacheTTL, "timeout", cfg.ProfileCacheTimeout)
 	} else {
 		profileStore = decisionRuntime
 	}
