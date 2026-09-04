@@ -664,7 +664,7 @@ function CampaignsView({
                   required
                 />
               </Field>
-              <Button className="w-full" disabled={busy || !name}>
+              <Button type="submit" className="w-full" disabled={busy || !name}>
                 {busy && <LoaderCircle className="animate-spin" />}
                 {busy ? '正在创建…' : '创建草稿'}
               </Button>
@@ -839,7 +839,11 @@ function CreativesView({
                   required
                 />
               </Field>
-              <Button className="w-full" disabled={busy || !selectedCampaignID}>
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={busy || !selectedCampaignID}
+              >
                 {busy && <LoaderCircle className="animate-spin" />}
                 {busy ? '正在添加…' : '添加素材'}
               </Button>
@@ -917,7 +921,7 @@ function ProfilesView({
               />
             </Field>
             <div className="flex items-end">
-              <Button className="w-full" disabled={busy}>
+              <Button type="submit" className="w-full" disabled={busy}>
                 {busy && <LoaderCircle className="animate-spin" />}
                 {busy ? '正在保存…' : '保存测试画像'}
               </Button>
@@ -1000,6 +1004,7 @@ function DecisionView({
                 />
               </Field>
               <Button
+                type="submit"
                 className="w-full bg-emerald-300 text-[#102d35] hover:bg-emerald-200"
                 disabled={busy}
               >
@@ -1140,6 +1145,7 @@ function AgentView({
                 aria-label="规则描述"
               />
               <Button
+                type="submit"
                 className="w-full bg-emerald-300 text-[#102d35] hover:bg-emerald-200"
                 disabled={busy || prompt.trim().length < 5}
               >

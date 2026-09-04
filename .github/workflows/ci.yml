@@ -72,5 +72,8 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      - name: Check form submit buttons
+        run: npm run test:forms
+
       - name: Build
         run: npm run build

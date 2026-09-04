@@ -10,6 +10,7 @@
     "build": "vinext build",
     "start": "wrangler dev --config dist/server/wrangler.json",
     "lint": "oxlint",
+    "test:forms": "node --test tests/forms.test.mjs",
     "format": "oxfmt"
   },
   "dependencies": {
