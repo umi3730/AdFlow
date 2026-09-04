@@ -6,10 +6,11 @@ import ts from 'typescript';
 test('all console forms explicitly declare a submit button', () => {
   const source = ts.createSourceFile(
     'adflow-console.tsx',
-    readFileSync(
-      new URL('../components/adflow-console.tsx', import.meta.url),
-      'utf8',
-    ),
+    ['adflow-console.tsx', 'campaign-rule-dialog.tsx']
+      .map((file) =>
+        readFileSync(new URL(`../components/${file}`, import.meta.url), 'utf8'),
+      )
+      .join('\n'),
     ts.ScriptTarget.Latest,
     true,
     ts.ScriptKind.TSX,
@@ -25,7 +26,10 @@ test('all console forms explicitly declare a submit button', () => {
     ts.forEachChild(node, visit);
   }
   visit(source);
-  assert.ok(forms.length >= 5, 'expected the five existing console forms');
+  assert.ok(
+    forms.length >= 6,
+    'expected the console forms and campaign rule editor',
+  );
   for (const form of forms) {
     let submitButtons = 0;
     function findSubmit(node) {

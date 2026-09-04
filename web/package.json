@@ -11,6 +11,7 @@
     "start": "wrangler dev --config dist/server/wrangler.json",
     "lint": "oxlint",
     "test:forms": "node --test tests/forms.test.mjs",
+    "test:rules": "node --test tests/campaign-rules.test.mjs",
     "format": "oxfmt"
   },
   "dependencies": {

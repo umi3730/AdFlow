@@ -39,6 +39,7 @@ import {
   newClientID,
 } from '@/lib/api';
 import { useAdFlowTools } from '@/hooks/use-adflow-tools';
+import { CampaignRuleDialog } from '@/components/campaign-rule-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -367,6 +368,7 @@ export function AdFlowConsole() {
               busy={busy}
               run={run}
               query={query}
+              onChanged={refresh}
             />
           )}
           {view === 'creatives' && (
@@ -553,15 +555,20 @@ function CampaignsView({
   busy,
   run,
   query,
+  onChanged,
 }: {
   campaigns: Campaign[];
   metrics: Record<string, Metrics>;
   busy: boolean;
   run: (action: () => Promise<void>, message: string) => Promise<void>;
   query: string;
+  onChanged: () => Promise<void>;
 }) {
   const [name, setName] = useState('');
   const [slotId, setSlotId] = useState('game-home-banner');
+  const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(
+    null,
+  );
   async function create(event: { preventDefault(): void }) {
     event.preventDefault();
     await run(async () => {
@@ -581,40 +588,32 @@ function CampaignsView({
       <PageTitle
         kicker="计划管理"
         title="广告计划"
-        description="配置投放周期、状态和不可变发布版本。"
+        description="点击计划名称查看规则；草稿可编辑发布，投放中的计划需先暂停再改版。"
       />
-      <div className="mt-7 grid gap-5 xl:grid-cols-[1fr_360px]">
+      <div className="mt-7 grid gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
         <CampaignTable
           campaigns={campaigns}
           metrics={metrics}
           emptyText={query ? `没有匹配“${query}”的计划` : undefined}
+          onInspect={setSelectedCampaign}
           actions={(campaign) => (
             <div className="flex gap-1">
-              {campaign.status === 'DRAFT' && (
-                <Button
-                  size="xs"
-                  onClick={() =>
-                    void run(
-                      () =>
-                        api
-                          .publishCampaign(campaign.id, {
-                            targeting: { all: [{ tag: 'anime' }] },
-                            dailyBudgetFen: 100000,
-                            impressionCostFen: 100,
-                            frequencyLimit: 3,
-                          })
-                          .then(() => {}),
-                      '计划已发布',
-                    )
-                  }
-                >
-                  发布示例规则
-                </Button>
-              )}
+              <Button
+                type="button"
+                size="sm"
+                variant={campaign.status === 'DRAFT' ? 'default' : 'outline'}
+                disabled={busy}
+                onClick={() => setSelectedCampaign(campaign)}
+              >
+                {campaign.status === 'DRAFT' || campaign.status === 'PAUSED'
+                  ? '编辑规则'
+                  : '查看规则'}
+              </Button>
               {campaign.status === 'ACTIVE' && (
                 <Button
                   size="xs"
                   variant="outline"
+                  disabled={busy}
                   onClick={() =>
                     void run(
                       () => api.pauseCampaign(campaign.id).then(() => {}),
@@ -628,6 +627,7 @@ function CampaignsView({
               {campaign.status === 'PAUSED' && (
                 <Button
                   size="xs"
+                  disabled={busy}
                   onClick={() =>
                     void run(
                       () => api.resumeCampaign(campaign.id).then(() => {}),
@@ -672,6 +672,14 @@ function CampaignsView({
           </CardContent>
         </Card>
       </div>
+      {selectedCampaign && (
+        <CampaignRuleDialog
+          key={selectedCampaign.id}
+          campaign={selectedCampaign}
+          onClose={() => setSelectedCampaign(null)}
+          onChanged={onChanged}
+        />
+      )}
     </>
   );
 }
@@ -1485,14 +1493,16 @@ function CampaignTable({
   metrics = {},
   actions,
   emptyText,
+  onInspect,
 }: {
   campaigns: Campaign[];
   metrics?: Record<string, Metrics>;
   actions?: (campaign: Campaign) => React.ReactNode;
   emptyText?: string;
+  onInspect?: (campaign: Campaign) => void;
 }) {
   return (
-    <Card className="border-0 shadow-[0_14px_40px_rgba(20,52,60,.065)] ring-1 ring-foreground/[.07]">
+    <Card className="min-w-0 border-0 shadow-[0_14px_40px_rgba(20,52,60,.065)] ring-1 ring-foreground/[.07]">
       <CardHeader className="border-b">
         <div className="flex items-center justify-between gap-4">
           <div>
@@ -1524,7 +1534,9 @@ function CampaignTable({
                 <TableHead className="text-right">点击</TableHead>
                 <TableHead className="text-right">CTR</TableHead>
                 {actions && (
-                  <TableHead className="pr-4 text-right">操作</TableHead>
+                  <TableHead className="sticky right-0 z-10 bg-card pr-4 text-right shadow-[-5px_0_8px_-7px_rgba(0,0,0,.3)]">
+                    操作
+                  </TableHead>
                 )}
               </TableRow>
             </TableHeader>
@@ -1539,7 +1551,23 @@ function CampaignTable({
                 return (
                   <TableRow key={campaign.id}>
                     <TableCell className="pl-4 font-medium">
-                      {campaign.name}
+                      {onInspect ? (
+                        <button
+                          type="button"
+                          className="text-left text-primary underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                          onClick={() => onInspect(campaign)}
+                          aria-label={`查看 ${campaign.name} 的规则`}
+                        >
+                          {campaign.name}
+                        </button>
+                      ) : (
+                        campaign.name
+                      )}
+                      {campaign.activeVersion && (
+                        <span className="ml-2 text-xs text-muted-foreground">
+                          v{campaign.activeVersion.number}
+                        </span>
+                      )}
                     </TableCell>
                     <TableCell className="font-mono text-xs text-muted-foreground">
                       {campaign.slotId}
@@ -1557,7 +1585,7 @@ function CampaignTable({
                       {ctr}
                     </TableCell>
                     {actions && (
-                      <TableCell className="pr-4">
+                      <TableCell className="sticky right-0 z-10 bg-card pr-4 shadow-[-5px_0_8px_-7px_rgba(0,0,0,.3)]">
                         <div className="flex justify-end">
                           {actions(campaign)}
                         </div>

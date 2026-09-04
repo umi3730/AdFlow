@@ -77,6 +77,7 @@ M4 administration UI (basic implementation):
 
 - React and TypeScript working console
 - campaign, creative, profile, decision, event, and metric workflows
+- campaign rule editor with all/any/none conditions, yuan-based budget inputs, preview/confirm publication, read-only active versions, and pause-before-edit version updates
 - Agent rule draft preview and explicit human-confirmed publication
 - responsive navigation, API connection state, and failure feedback
 
