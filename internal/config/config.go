@@ -32,6 +32,8 @@ type Config struct {
 	KafkaDeadLetterTopic      string
 	KafkaConsumerGroup        string
 	AuthEnabled               bool
+	AuthStore                 string
+	RegistrationEnabled       bool
 	JWTSecret                 string
 	JWTIssuer                 string
 	AccessTokenTTL            time.Duration
@@ -122,6 +124,20 @@ func Load() (Config, error) {
 	}
 
 	var err error
+	authStoreDefault := "memory"
+	if cfg.CampaignRepository == "mysql" || cfg.DecisionStore == "mysql" || cfg.AuditStore == "mysql" {
+		authStoreDefault = "mysql"
+	}
+	cfg.AuthStore = envOr("ADFLOW_AUTH_STORE", authStoreDefault)
+	if cfg.AuthStore == "" {
+		cfg.AuthStore = authStoreDefault
+	}
+	if cfg.AuthStore != "memory" && cfg.AuthStore != "mysql" {
+		return Config{}, fmt.Errorf("ADFLOW_AUTH_STORE must be memory or mysql")
+	}
+	if cfg.RegistrationEnabled, err = boolEnv("ADFLOW_REGISTRATION_ENABLED", cfg.Environment == "local" || cfg.Environment == "test"); err != nil {
+		return Config{}, err
+	}
 	if cfg.AsyncBackpressure, err = boolEnv("ADFLOW_ASYNC_BACKPRESSURE", cfg.AsyncBackpressure); err != nil {
 		return Config{}, err
 	}

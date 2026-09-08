@@ -2,8 +2,8 @@ package memory
 
 import (
 	"context"
-	decisiondomain "github.com/zhanghaiyang/adflow/internal/decision/domain"
-	"github.com/zhanghaiyang/adflow/internal/event/domain"
+	decisiondomain "github.com/umi3730/adflow/internal/decision/domain"
+	"github.com/umi3730/adflow/internal/event/domain"
 	"time"
 )
 

@@ -1,4 +1,4 @@
-module github.com/zhanghaiyang/adflow
+module github.com/umi3730/adflow
 
 go 1.27.0
 

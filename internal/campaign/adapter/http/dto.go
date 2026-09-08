@@ -3,7 +3,7 @@ package httpadapter
 import (
 	"time"
 
-	"github.com/zhanghaiyang/adflow/internal/campaign/domain"
+	"github.com/umi3730/adflow/internal/campaign/domain"
 )
 
 type createRequest struct {

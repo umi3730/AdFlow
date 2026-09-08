@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/zhanghaiyang/adflow/internal/decision/adapter/memory"
-	"github.com/zhanghaiyang/adflow/internal/decision/domain"
+	"github.com/umi3730/adflow/internal/decision/adapter/memory"
+	"github.com/umi3730/adflow/internal/decision/domain"
 )
 
 type backlogReaderFunc func(context.Context, int64, int64) (domain.AsyncBacklog, error)

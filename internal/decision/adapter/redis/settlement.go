@@ -3,7 +3,7 @@ package redisadapter
 import (
 	"context"
 	"github.com/redis/go-redis/v9"
-	"github.com/zhanghaiyang/adflow/internal/decision/domain"
+	"github.com/umi3730/adflow/internal/decision/domain"
 	"strings"
 	"time"
 )

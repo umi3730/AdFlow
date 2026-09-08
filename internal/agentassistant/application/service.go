@@ -5,8 +5,8 @@ import (
 	"strings"
 	"time"
 
-	agentdomain "github.com/zhanghaiyang/adflow/internal/agentassistant/domain"
-	campaigndomain "github.com/zhanghaiyang/adflow/internal/campaign/domain"
+	agentdomain "github.com/umi3730/adflow/internal/agentassistant/domain"
+	campaigndomain "github.com/umi3730/adflow/internal/campaign/domain"
 )
 
 type Service struct {

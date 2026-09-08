@@ -2,11 +2,11 @@ package httpadapter
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/zhanghaiyang/adflow/internal/decision/adapter/requestprofile"
-	"github.com/zhanghaiyang/adflow/internal/decision/application"
-	"github.com/zhanghaiyang/adflow/internal/decision/domain"
-	"github.com/zhanghaiyang/adflow/internal/profile/schema"
-	httptransport "github.com/zhanghaiyang/adflow/internal/transport/http"
+	"github.com/umi3730/adflow/internal/decision/adapter/requestprofile"
+	"github.com/umi3730/adflow/internal/decision/application"
+	"github.com/umi3730/adflow/internal/decision/domain"
+	"github.com/umi3730/adflow/internal/profile/schema"
+	httptransport "github.com/umi3730/adflow/internal/transport/http"
 	"net"
 	"regexp"
 	"strconv"

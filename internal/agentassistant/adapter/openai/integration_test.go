@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	openaiadapter "github.com/zhanghaiyang/adflow/internal/agentassistant/adapter/openai"
-	"github.com/zhanghaiyang/adflow/internal/agentassistant/application"
+	openaiadapter "github.com/umi3730/adflow/internal/agentassistant/adapter/openai"
+	"github.com/umi3730/adflow/internal/agentassistant/application"
 )
 
 type evaluationCase struct {

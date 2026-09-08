@@ -5,8 +5,8 @@ import (
 	"errors"
 	"time"
 
-	campaigndomain "github.com/zhanghaiyang/adflow/internal/campaign/domain"
-	decisiondomain "github.com/zhanghaiyang/adflow/internal/decision/domain"
+	campaigndomain "github.com/umi3730/adflow/internal/campaign/domain"
+	decisiondomain "github.com/umi3730/adflow/internal/decision/domain"
 )
 
 type Provider struct {

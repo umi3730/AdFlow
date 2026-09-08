@@ -2,7 +2,7 @@ package domain
 
 import (
 	"fmt"
-	"github.com/zhanghaiyang/adflow/internal/profile/schema"
+	"github.com/umi3730/adflow/internal/profile/schema"
 )
 
 // Kept separate from rehydration: invalid old rules can still be opened and fixed.

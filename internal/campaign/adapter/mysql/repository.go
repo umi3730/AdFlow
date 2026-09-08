@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/zhanghaiyang/adflow/internal/campaign/domain"
+	"github.com/umi3730/adflow/internal/campaign/domain"
 )
 
 type Repository struct {

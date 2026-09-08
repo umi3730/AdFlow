@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"sort"
 
-	decision "github.com/zhanghaiyang/adflow/internal/decision/domain"
+	decision "github.com/umi3730/adflow/internal/decision/domain"
 )
 
 func (s *DemoInitializer) mysqlGroup(ctx context.Context, key string, install func(*sql.Tx) error) (bool, error) {

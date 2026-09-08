@@ -7,8 +7,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/zhanghaiyang/adflow/internal/platform/database"
-	"github.com/zhanghaiyang/adflow/internal/platform/migrate"
+	"github.com/umi3730/adflow/internal/platform/database"
+	"github.com/umi3730/adflow/internal/platform/migrate"
 )
 
 func main() {

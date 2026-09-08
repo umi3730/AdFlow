@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/zhanghaiyang/adflow/internal/audit/domain"
-	identity "github.com/zhanghaiyang/adflow/internal/identity/domain"
+	"github.com/umi3730/adflow/internal/audit/domain"
+	identity "github.com/umi3730/adflow/internal/identity/domain"
 )
 
 type recordingStore struct {

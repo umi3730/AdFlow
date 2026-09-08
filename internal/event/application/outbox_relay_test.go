@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/zhanghaiyang/adflow/internal/event/domain"
+	"github.com/umi3730/adflow/internal/event/domain"
 )
 
 type fakeOutbox struct {

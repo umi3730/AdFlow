@@ -1,0 +1,5 @@
+=== RUN   TestMySQLRegistrationSurvivesNewServiceAndConcurrentDuplicates
+--- PASS: TestMySQLRegistrationSurvivesNewServiceAndConcurrentDuplicates (2.10s)
+=== RUN   TestMySQLRegistrationSurvivesNewServiceAndConcurrentDuplicates
+--- PASS: TestMySQLRegistrationSurvivesNewServiceAndConcurrentDuplicates (0.29s)
+PASS

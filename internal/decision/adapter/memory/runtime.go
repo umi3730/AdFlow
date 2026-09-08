@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/zhanghaiyang/adflow/internal/decision/domain"
+	"github.com/umi3730/adflow/internal/decision/domain"
 )
 
 func (r *Runtime) DeleteProfile(_ context.Context, userID string) error {

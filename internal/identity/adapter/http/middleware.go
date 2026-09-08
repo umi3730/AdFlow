@@ -6,8 +6,8 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/zhanghaiyang/adflow/internal/identity/domain"
-	httptransport "github.com/zhanghaiyang/adflow/internal/transport/http"
+	"github.com/umi3730/adflow/internal/identity/domain"
+	httptransport "github.com/umi3730/adflow/internal/transport/http"
 )
 
 const principalKey = "identity_principal"

@@ -3,8 +3,8 @@ package application
 import (
 	"context"
 	"errors"
-	"github.com/zhanghaiyang/adflow/internal/decision/adapter/memory"
-	"github.com/zhanghaiyang/adflow/internal/decision/domain"
+	"github.com/umi3730/adflow/internal/decision/adapter/memory"
+	"github.com/umi3730/adflow/internal/decision/domain"
 	"sync"
 	"sync/atomic"
 	"testing"

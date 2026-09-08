@@ -9,8 +9,8 @@ import (
 	"time"
 
 	"github.com/DATA-DOG/go-sqlmock"
-	campaignmemory "github.com/zhanghaiyang/adflow/internal/campaign/adapter/memory"
-	decisionmemory "github.com/zhanghaiyang/adflow/internal/decision/adapter/memory"
+	campaignmemory "github.com/umi3730/adflow/internal/campaign/adapter/memory"
+	decisionmemory "github.com/umi3730/adflow/internal/decision/adapter/memory"
 )
 
 func mysqlDemo(t *testing.T) (*DemoInitializer, sqlmock.Sqlmock) {

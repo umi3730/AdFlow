@@ -12,8 +12,8 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/zhanghaiyang/adflow/internal/health"
-	"github.com/zhanghaiyang/adflow/internal/observability"
+	"github.com/umi3730/adflow/internal/health"
+	"github.com/umi3730/adflow/internal/observability"
 )
 
 type fakeChecker struct{ err error }

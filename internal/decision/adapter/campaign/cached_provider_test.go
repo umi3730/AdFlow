@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/zhanghaiyang/adflow/internal/decision/domain"
+	"github.com/umi3730/adflow/internal/decision/domain"
 )
 
 type candidateSourceFunc func(context.Context, string, time.Time) ([]domain.Candidate, error)

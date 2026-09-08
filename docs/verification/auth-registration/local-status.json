@@ -1,0 +1,26 @@
+{
+  "at": "2026-09-08T16:50:59.7280616+08:00",
+  "migration": "000013_auth_users",
+  "services": [
+    {
+      "port": 18080,
+      "ready": true,
+      "authOptions": {
+        "demoLoginPrefill": true,
+        "registrationEnabled": true,
+        "registrationRole": "admin"
+      }
+    },
+    {
+      "port": 18081,
+      "ready": true,
+      "authOptions": {
+        "demoLoginPrefill": true,
+        "registrationEnabled": true,
+        "registrationRole": "admin"
+      }
+    }
+  ],
+  "frontendStatus": 200,
+  "temporaryAccountCleaned": true
+}

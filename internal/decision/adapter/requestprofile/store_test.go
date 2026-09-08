@@ -1,8 +1,8 @@
 package requestprofile
 
 import (
-	"github.com/zhanghaiyang/adflow/internal/decision/adapter/memory"
-	"github.com/zhanghaiyang/adflow/internal/decision/domain"
+	"github.com/umi3730/adflow/internal/decision/adapter/memory"
+	"github.com/umi3730/adflow/internal/decision/domain"
 	"testing"
 )
 

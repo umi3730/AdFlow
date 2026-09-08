@@ -1,7 +1,7 @@
 package bootstrap
 
 import (
-	campaign "github.com/zhanghaiyang/adflow/internal/campaign/domain"
+	campaign "github.com/umi3730/adflow/internal/campaign/domain"
 	"testing"
 	"time"
 )

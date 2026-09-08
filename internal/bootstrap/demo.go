@@ -9,9 +9,9 @@ import (
 	"sync"
 	"time"
 
-	campaign "github.com/zhanghaiyang/adflow/internal/campaign/domain"
-	decision "github.com/zhanghaiyang/adflow/internal/decision/domain"
-	"github.com/zhanghaiyang/adflow/internal/profile/schema"
+	campaign "github.com/umi3730/adflow/internal/campaign/domain"
+	decision "github.com/umi3730/adflow/internal/decision/domain"
+	"github.com/umi3730/adflow/internal/profile/schema"
 )
 
 const (

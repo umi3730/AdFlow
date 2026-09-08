@@ -1,7 +1,7 @@
 package application
 
 import (
-	"github.com/zhanghaiyang/adflow/internal/identity/domain"
+	"github.com/umi3730/adflow/internal/identity/domain"
 	"net/http"
 	"testing"
 )

@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
-	"github.com/zhanghaiyang/adflow/internal/event/domain"
+	"github.com/umi3730/adflow/internal/event/domain"
 )
 
 func (o *Outbox) FindImpressionReceipt(ctx context.Context, requestID string) (domain.ImpressionReceipt, bool, error) {

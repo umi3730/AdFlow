@@ -1,0 +1,15 @@
+{
+  "at": "2026-09-08T08:43:32.388Z",
+  "username": "ui_reg_mtsf9xm9",
+  "prefill": true,
+  "emptyRegistrationForm": true,
+  "clientConfirmationValidation": true,
+  "registrationRequests": 1,
+  "registeredRole": "admin",
+  "crossInstanceLogin": true,
+  "adminAuditRead": true,
+  "duplicateStatus": 409,
+  "logoutRestoresDemoCredentials": true,
+  "defaultAdminLogin": true,
+  "newAccountRelogin": true
+}

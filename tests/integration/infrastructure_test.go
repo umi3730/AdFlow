@@ -17,16 +17,16 @@ import (
 	"time"
 
 	"github.com/redis/go-redis/v9"
-	campaignmysql "github.com/zhanghaiyang/adflow/internal/campaign/adapter/mysql"
-	campaigndomain "github.com/zhanghaiyang/adflow/internal/campaign/domain"
-	decisionmysql "github.com/zhanghaiyang/adflow/internal/decision/adapter/mysql"
-	decisionprofilecache "github.com/zhanghaiyang/adflow/internal/decision/adapter/profilecache"
-	decisionredis "github.com/zhanghaiyang/adflow/internal/decision/adapter/redis"
-	decisiondomain "github.com/zhanghaiyang/adflow/internal/decision/domain"
-	eventmysql "github.com/zhanghaiyang/adflow/internal/event/adapter/mysql"
-	eventdomain "github.com/zhanghaiyang/adflow/internal/event/domain"
-	"github.com/zhanghaiyang/adflow/internal/platform/database"
-	"github.com/zhanghaiyang/adflow/internal/platform/migrate"
+	campaignmysql "github.com/umi3730/adflow/internal/campaign/adapter/mysql"
+	campaigndomain "github.com/umi3730/adflow/internal/campaign/domain"
+	decisionmysql "github.com/umi3730/adflow/internal/decision/adapter/mysql"
+	decisionprofilecache "github.com/umi3730/adflow/internal/decision/adapter/profilecache"
+	decisionredis "github.com/umi3730/adflow/internal/decision/adapter/redis"
+	decisiondomain "github.com/umi3730/adflow/internal/decision/domain"
+	eventmysql "github.com/umi3730/adflow/internal/event/adapter/mysql"
+	eventdomain "github.com/umi3730/adflow/internal/event/domain"
+	"github.com/umi3730/adflow/internal/platform/database"
+	"github.com/umi3730/adflow/internal/platform/migrate"
 )
 
 func TestMySQLCampaignOptimisticConcurrency(t *testing.T) {

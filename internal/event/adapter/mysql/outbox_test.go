@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/DATA-DOG/go-sqlmock"
-	"github.com/zhanghaiyang/adflow/internal/event/domain"
+	"github.com/umi3730/adflow/internal/event/domain"
 )
 
 func mockDB(t *testing.T) (*sql.DB, sqlmock.Sqlmock) {

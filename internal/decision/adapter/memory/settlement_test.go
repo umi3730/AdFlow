@@ -2,7 +2,7 @@ package memory
 
 import (
 	"errors"
-	"github.com/zhanghaiyang/adflow/internal/decision/domain"
+	"github.com/umi3730/adflow/internal/decision/domain"
 	"testing"
 	"time"
 )

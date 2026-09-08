@@ -3,7 +3,7 @@ package domain
 import (
 	"strings"
 
-	"github.com/zhanghaiyang/adflow/internal/profile/schema"
+	"github.com/umi3730/adflow/internal/profile/schema"
 )
 
 type Evaluator struct{}

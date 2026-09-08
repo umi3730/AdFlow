@@ -14,7 +14,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/zhanghaiyang/adflow/internal/agentassistant/domain"
+	"github.com/umi3730/adflow/internal/agentassistant/domain"
 )
 
 const (

@@ -11,12 +11,12 @@ import (
 	"testing"
 	"time"
 
-	httpadapter "github.com/zhanghaiyang/adflow/internal/campaign/adapter/http"
-	"github.com/zhanghaiyang/adflow/internal/campaign/adapter/memory"
-	"github.com/zhanghaiyang/adflow/internal/campaign/application"
-	"github.com/zhanghaiyang/adflow/internal/health"
-	"github.com/zhanghaiyang/adflow/internal/observability"
-	httptransport "github.com/zhanghaiyang/adflow/internal/transport/http"
+	httpadapter "github.com/umi3730/adflow/internal/campaign/adapter/http"
+	"github.com/umi3730/adflow/internal/campaign/adapter/memory"
+	"github.com/umi3730/adflow/internal/campaign/application"
+	"github.com/umi3730/adflow/internal/health"
+	"github.com/umi3730/adflow/internal/observability"
+	httptransport "github.com/umi3730/adflow/internal/transport/http"
 )
 
 type okChecker struct{}

@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	eventmysql "github.com/zhanghaiyang/adflow/internal/event/adapter/mysql"
+	eventmysql "github.com/umi3730/adflow/internal/event/adapter/mysql"
 )
 
 func TestBackpressureCountsActiveStatesAndCapsWithMySQL(t *testing.T) {

@@ -6,7 +6,7 @@ import (
 	"encoding/hex"
 	"time"
 
-	"github.com/zhanghaiyang/adflow/internal/campaign/domain"
+	"github.com/umi3730/adflow/internal/campaign/domain"
 )
 
 type EventPublisher interface {

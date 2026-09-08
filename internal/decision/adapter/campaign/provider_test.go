@@ -11,12 +11,12 @@ import (
 
 	"github.com/DATA-DOG/go-sqlmock"
 
-	campaignmemory "github.com/zhanghaiyang/adflow/internal/campaign/adapter/memory"
-	campaignmysql "github.com/zhanghaiyang/adflow/internal/campaign/adapter/mysql"
-	campaigndomain "github.com/zhanghaiyang/adflow/internal/campaign/domain"
-	decisionmemory "github.com/zhanghaiyang/adflow/internal/decision/adapter/memory"
-	decisionapp "github.com/zhanghaiyang/adflow/internal/decision/application"
-	decisiondomain "github.com/zhanghaiyang/adflow/internal/decision/domain"
+	campaignmemory "github.com/umi3730/adflow/internal/campaign/adapter/memory"
+	campaignmysql "github.com/umi3730/adflow/internal/campaign/adapter/mysql"
+	campaigndomain "github.com/umi3730/adflow/internal/campaign/domain"
+	decisionmemory "github.com/umi3730/adflow/internal/decision/adapter/memory"
+	decisionapp "github.com/umi3730/adflow/internal/decision/application"
+	decisiondomain "github.com/umi3730/adflow/internal/decision/domain"
 )
 
 var candidateTestTime = time.Date(2026, 9, 7, 0, 0, 0, 0, time.UTC)

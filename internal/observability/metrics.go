@@ -11,7 +11,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/collectors"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	eventdomain "github.com/zhanghaiyang/adflow/internal/event/domain"
+	eventdomain "github.com/umi3730/adflow/internal/event/domain"
 )
 
 type Metrics struct {

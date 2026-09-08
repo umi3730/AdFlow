@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/zhanghaiyang/adflow/internal/campaign/adapter/memory"
-	"github.com/zhanghaiyang/adflow/internal/campaign/domain"
+	"github.com/umi3730/adflow/internal/campaign/adapter/memory"
+	"github.com/umi3730/adflow/internal/campaign/domain"
 )
 
 func TestCreatePublishPauseResume(t *testing.T) {

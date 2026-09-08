@@ -9,9 +9,9 @@ import (
 
 	"github.com/alicebob/miniredis/v2"
 	"github.com/redis/go-redis/v9"
-	decisionredis "github.com/zhanghaiyang/adflow/internal/decision/adapter/redis"
-	decisiondomain "github.com/zhanghaiyang/adflow/internal/decision/domain"
-	"github.com/zhanghaiyang/adflow/internal/event/domain"
+	decisionredis "github.com/umi3730/adflow/internal/decision/adapter/redis"
+	decisiondomain "github.com/umi3730/adflow/internal/decision/domain"
+	"github.com/umi3730/adflow/internal/event/domain"
 )
 
 type leasedBatchQueue struct {

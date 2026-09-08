@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/zhanghaiyang/adflow/internal/audit/domain"
+	"github.com/umi3730/adflow/internal/audit/domain"
 )
 
 func TestConcurrentAppendAndNewestFirstList(t *testing.T) {

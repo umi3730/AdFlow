@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
-	"github.com/zhanghaiyang/adflow/internal/event/domain"
-	"github.com/zhanghaiyang/adflow/internal/operations/application"
+	"github.com/umi3730/adflow/internal/event/domain"
+	"github.com/umi3730/adflow/internal/operations/application"
 )
 
 type configuredOutbox struct{ domain.OperationsStore }

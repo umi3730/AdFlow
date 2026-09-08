@@ -4,13 +4,15 @@ import (
 	"context"
 	"strings"
 
-	"github.com/zhanghaiyang/adflow/internal/identity/domain"
+	"github.com/umi3730/adflow/internal/identity/domain"
 )
 
 type Service struct {
-	users     domain.UserRepository
-	passwords domain.PasswordVerifier
-	tokens    domain.TokenManager
+	users             domain.UserRepository
+	passwords         domain.PasswordVerifier
+	tokens            domain.TokenManager
+	hasher            domain.PasswordHasher
+	registrationSlots chan struct{}
 }
 
 func NewService(users domain.UserRepository, passwords domain.PasswordVerifier, tokens domain.TokenManager) *Service {

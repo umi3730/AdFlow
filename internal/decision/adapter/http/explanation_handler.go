@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/zhanghaiyang/adflow/internal/decision/application"
-	httptransport "github.com/zhanghaiyang/adflow/internal/transport/http"
+	"github.com/umi3730/adflow/internal/decision/application"
+	httptransport "github.com/umi3730/adflow/internal/transport/http"
 )
 
 type ExplanationHandler struct {

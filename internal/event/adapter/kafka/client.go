@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/twmb/franz-go/pkg/kgo"
-	"github.com/zhanghaiyang/adflow/internal/event/domain"
+	"github.com/umi3730/adflow/internal/event/domain"
 )
 
 const SchemaVersion = 1

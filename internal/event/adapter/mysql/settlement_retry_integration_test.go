@@ -11,7 +11,7 @@ import (
 	"time"
 
 	driver "github.com/go-sql-driver/mysql"
-	"github.com/zhanghaiyang/adflow/internal/platform/database"
+	"github.com/umi3730/adflow/internal/platform/database"
 )
 
 func TestRealMySQLDeadlockRetriesCompleteTransaction(t *testing.T) {

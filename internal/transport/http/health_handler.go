@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/zhanghaiyang/adflow/internal/health"
+	"github.com/umi3730/adflow/internal/health"
 )
 
 type HealthHandler struct {

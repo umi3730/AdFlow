@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/zhanghaiyang/adflow/internal/identity/domain"
+	"github.com/umi3730/adflow/internal/identity/domain"
 )
 
 func TestIssueAndVerify(t *testing.T) {

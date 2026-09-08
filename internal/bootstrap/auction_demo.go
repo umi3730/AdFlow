@@ -4,8 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	campaign "github.com/zhanghaiyang/adflow/internal/campaign/domain"
-	decision "github.com/zhanghaiyang/adflow/internal/decision/domain"
+	campaign "github.com/umi3730/adflow/internal/campaign/domain"
+	decision "github.com/umi3730/adflow/internal/decision/domain"
 	"time"
 )
 

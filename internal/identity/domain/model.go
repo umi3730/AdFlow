@@ -16,9 +16,13 @@ const (
 )
 
 var (
-	ErrInvalidCredentials = errors.New("invalid username or password")
-	ErrInvalidToken       = errors.New("invalid access token")
-	ErrInactiveUser       = errors.New("user is inactive")
+	ErrInvalidCredentials   = errors.New("invalid username or password")
+	ErrInvalidToken         = errors.New("invalid access token")
+	ErrInactiveUser         = errors.New("user is inactive")
+	ErrUsernameTaken        = errors.New("username already exists")
+	ErrInvalidRegistration  = errors.New("invalid registration")
+	ErrRegistrationDisabled = errors.New("registration is disabled")
+	ErrRegistrationBusy     = errors.New("registration is busy")
 )
 
 func ParseRole(value string) (Role, bool) {
@@ -72,6 +76,11 @@ type IssuedToken struct {
 type UserRepository interface {
 	FindByUsername(context.Context, string) (User, error)
 }
+
+type UserCreator interface {
+	Create(context.Context, User) error
+}
+type PasswordHasher interface{ Hash(string) (string, error) }
 
 type PasswordVerifier interface {
 	Compare(hash, password string) error

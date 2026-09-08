@@ -19,11 +19,11 @@ import (
 
 	mysqldriver "github.com/go-sql-driver/mysql"
 	"github.com/redis/go-redis/v9"
-	memoryadapter "github.com/zhanghaiyang/adflow/internal/decision/adapter/memory"
-	mysqladapter "github.com/zhanghaiyang/adflow/internal/decision/adapter/mysql"
-	redisadapter "github.com/zhanghaiyang/adflow/internal/decision/adapter/redis"
-	"github.com/zhanghaiyang/adflow/internal/decision/domain"
-	"github.com/zhanghaiyang/adflow/internal/platform/migrate"
+	memoryadapter "github.com/umi3730/adflow/internal/decision/adapter/memory"
+	mysqladapter "github.com/umi3730/adflow/internal/decision/adapter/mysql"
+	redisadapter "github.com/umi3730/adflow/internal/decision/adapter/redis"
+	"github.com/umi3730/adflow/internal/decision/domain"
+	"github.com/umi3730/adflow/internal/platform/migrate"
 )
 
 func TestExecutionCoordinationWithRealMySQLAndRedis(t *testing.T) {

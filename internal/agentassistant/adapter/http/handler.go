@@ -6,9 +6,9 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"github.com/zhanghaiyang/adflow/internal/agentassistant/application"
-	"github.com/zhanghaiyang/adflow/internal/agentassistant/domain"
-	httptransport "github.com/zhanghaiyang/adflow/internal/transport/http"
+	"github.com/umi3730/adflow/internal/agentassistant/application"
+	"github.com/umi3730/adflow/internal/agentassistant/domain"
+	httptransport "github.com/umi3730/adflow/internal/transport/http"
 )
 
 type Handler struct {

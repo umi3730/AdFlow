@@ -27,6 +27,48 @@ paths:
       security: []
       responses:
         '200': { description: Prometheus text exposition }
+  /v1/auth/options:
+    get:
+      summary: Read registration availability and public demo-prefill policy
+      security: []
+      responses:
+        '200':
+          description: Public authentication UI options; no runtime credentials returned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  registrationEnabled: { type: boolean }
+                  registrationRole: { type: string, enum: [admin] }
+                  demoLoginPrefill: { type: boolean }
+  /v1/auth/register:
+    post:
+      summary: Register a demo administrator and issue a login token
+      description: Enabled by default in local/test. Usernames are canonicalized to lowercase and unique; configured seed usernames remain reserved. The server assigns admin per the demo policy, not from request input. MySQL storage requires migration 000013.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, password]
+              properties:
+                username: { type: string, minLength: 3, maxLength: 32, pattern: '^[A-Za-z0-9][A-Za-z0-9_-]{2,31}$' }
+                password: { type: string, minLength: 8, maxLength: 72, description: At most 72 UTF-8 bytes; stored as a bcrypt hash }
+      responses:
+        '201':
+          description: Account created; short-lived bearer token and admin principal
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/IssuedToken' }
+        '400': { description: Malformed or invalid JSON input }
+        '403': { description: Registration disabled }
+        '409': { description: Username already exists, including case variants and reserved seed accounts }
+        '422': { description: Username or password validation failed }
+        '429': { description: Registration concurrency limit reached; Retry-After=1 }
+        '503': { description: Registration dependency unavailable }
   /v1/auth/login:
     post:
       summary: Exchange credentials for an access token

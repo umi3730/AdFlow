@@ -3,7 +3,7 @@ package application
 import (
 	"net/http"
 
-	"github.com/zhanghaiyang/adflow/internal/identity/domain"
+	"github.com/umi3730/adflow/internal/identity/domain"
 )
 
 func requiredRole(method, route string) (domain.Role, bool) {

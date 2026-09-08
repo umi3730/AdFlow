@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/DATA-DOG/go-sqlmock"
-	"github.com/zhanghaiyang/adflow/internal/campaign/domain"
+	"github.com/umi3730/adflow/internal/campaign/domain"
 )
 
 func testRepository(t *testing.T) (*Repository, sqlmock.Sqlmock) {

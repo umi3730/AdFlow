@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/zhanghaiyang/adflow/internal/agentassistant/adapter/mock"
-	"github.com/zhanghaiyang/adflow/internal/agentassistant/domain"
+	"github.com/umi3730/adflow/internal/agentassistant/adapter/mock"
+	"github.com/umi3730/adflow/internal/agentassistant/domain"
 )
 
 type switchableProvider struct {

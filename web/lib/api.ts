@@ -267,6 +267,18 @@ async function request<T>(
 }
 
 export const api = {
+  authOptions: () =>
+    request<{
+      registrationEnabled: boolean;
+      registrationRole: 'admin';
+      demoLoginPrefill: boolean;
+    }>('/v1/auth/options', {}, false),
+  register: (username: string, password: string) =>
+    request<IssuedToken>(
+      '/v1/auth/register',
+      { method: 'POST', body: JSON.stringify({ username, password }) },
+      false,
+    ),
   authMe: () => request<AuthInfo>('/v1/auth/me'),
   login: (username: string, password: string) =>
     request<IssuedToken>(

@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	eventdomain "github.com/zhanghaiyang/adflow/internal/event/domain"
+	eventdomain "github.com/umi3730/adflow/internal/event/domain"
 )
 
 func TestMetricsExposeHTTPDecisionAndEventSeries(t *testing.T) {

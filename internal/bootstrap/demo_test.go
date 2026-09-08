@@ -6,16 +6,16 @@ import (
 	"testing"
 	"time"
 
-	campaignmemory "github.com/zhanghaiyang/adflow/internal/campaign/adapter/memory"
-	campaignapp "github.com/zhanghaiyang/adflow/internal/campaign/application"
-	campaign "github.com/zhanghaiyang/adflow/internal/campaign/domain"
-	candidates "github.com/zhanghaiyang/adflow/internal/decision/adapter/campaign"
-	decisionmemory "github.com/zhanghaiyang/adflow/internal/decision/adapter/memory"
-	decisionapp "github.com/zhanghaiyang/adflow/internal/decision/application"
-	decision "github.com/zhanghaiyang/adflow/internal/decision/domain"
-	eventmemory "github.com/zhanghaiyang/adflow/internal/event/adapter/memory"
-	eventapp "github.com/zhanghaiyang/adflow/internal/event/application"
-	event "github.com/zhanghaiyang/adflow/internal/event/domain"
+	campaignmemory "github.com/umi3730/adflow/internal/campaign/adapter/memory"
+	campaignapp "github.com/umi3730/adflow/internal/campaign/application"
+	campaign "github.com/umi3730/adflow/internal/campaign/domain"
+	candidates "github.com/umi3730/adflow/internal/decision/adapter/campaign"
+	decisionmemory "github.com/umi3730/adflow/internal/decision/adapter/memory"
+	decisionapp "github.com/umi3730/adflow/internal/decision/application"
+	decision "github.com/umi3730/adflow/internal/decision/domain"
+	eventmemory "github.com/umi3730/adflow/internal/event/adapter/memory"
+	eventapp "github.com/umi3730/adflow/internal/event/application"
+	event "github.com/umi3730/adflow/internal/event/domain"
 )
 
 func memoryDemo(t *testing.T) (*DemoInitializer, *campaignmemory.Repository, *decisionmemory.Runtime) {

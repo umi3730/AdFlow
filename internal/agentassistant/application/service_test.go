@@ -5,8 +5,8 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/zhanghaiyang/adflow/internal/agentassistant/adapter/mock"
-	"github.com/zhanghaiyang/adflow/internal/agentassistant/domain"
+	"github.com/umi3730/adflow/internal/agentassistant/adapter/mock"
+	"github.com/umi3730/adflow/internal/agentassistant/domain"
 )
 
 func TestGenerateValidatesProviderDraft(t *testing.T) {

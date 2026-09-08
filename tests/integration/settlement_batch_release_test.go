@@ -10,11 +10,11 @@ import (
 	"time"
 
 	"github.com/redis/go-redis/v9"
-	decisionredis "github.com/zhanghaiyang/adflow/internal/decision/adapter/redis"
-	decisiondomain "github.com/zhanghaiyang/adflow/internal/decision/domain"
-	eventmysql "github.com/zhanghaiyang/adflow/internal/event/adapter/mysql"
-	eventapp "github.com/zhanghaiyang/adflow/internal/event/application"
-	eventdomain "github.com/zhanghaiyang/adflow/internal/event/domain"
+	decisionredis "github.com/umi3730/adflow/internal/decision/adapter/redis"
+	decisiondomain "github.com/umi3730/adflow/internal/decision/domain"
+	eventmysql "github.com/umi3730/adflow/internal/event/adapter/mysql"
+	eventapp "github.com/umi3730/adflow/internal/event/application"
+	eventdomain "github.com/umi3730/adflow/internal/event/domain"
 )
 
 type failOneCompletion struct {

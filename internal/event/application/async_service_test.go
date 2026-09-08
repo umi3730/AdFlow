@@ -6,10 +6,10 @@ import (
 	"testing"
 	"time"
 
-	decisionmemory "github.com/zhanghaiyang/adflow/internal/decision/adapter/memory"
-	decisiondomain "github.com/zhanghaiyang/adflow/internal/decision/domain"
-	eventmemory "github.com/zhanghaiyang/adflow/internal/event/adapter/memory"
-	"github.com/zhanghaiyang/adflow/internal/event/domain"
+	decisionmemory "github.com/umi3730/adflow/internal/decision/adapter/memory"
+	decisiondomain "github.com/umi3730/adflow/internal/decision/domain"
+	eventmemory "github.com/umi3730/adflow/internal/event/adapter/memory"
+	"github.com/umi3730/adflow/internal/event/domain"
 )
 
 type recordingOutbox struct {

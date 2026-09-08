@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	decisiondomain "github.com/zhanghaiyang/adflow/internal/decision/domain"
+	decisiondomain "github.com/umi3730/adflow/internal/decision/domain"
 )
 
 const maxCandidateSnapshots = 1024

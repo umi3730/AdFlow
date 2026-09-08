@@ -3,8 +3,8 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/zhanghaiyang/adflow/internal/decision/domain"
-	"github.com/zhanghaiyang/adflow/internal/profile/schema"
+	"github.com/umi3730/adflow/internal/decision/domain"
+	"github.com/umi3730/adflow/internal/profile/schema"
 	"os"
 )
 

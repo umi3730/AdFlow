@@ -2,11 +2,11 @@ package application
 
 import (
 	"fmt"
-	"github.com/zhanghaiyang/adflow/internal/decision/adapter/memory"
-	"github.com/zhanghaiyang/adflow/internal/decision/domain"
-	eventmemory "github.com/zhanghaiyang/adflow/internal/event/adapter/memory"
-	eventapp "github.com/zhanghaiyang/adflow/internal/event/application"
-	eventdomain "github.com/zhanghaiyang/adflow/internal/event/domain"
+	"github.com/umi3730/adflow/internal/decision/adapter/memory"
+	"github.com/umi3730/adflow/internal/decision/domain"
+	eventmemory "github.com/umi3730/adflow/internal/event/adapter/memory"
+	eventapp "github.com/umi3730/adflow/internal/event/application"
+	eventdomain "github.com/umi3730/adflow/internal/event/domain"
 	"sync"
 	"testing"
 	"time"

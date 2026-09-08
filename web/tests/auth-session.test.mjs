@@ -75,8 +75,10 @@ test('Login page has no theme artwork or redundant token explanation', () => {
     'utf8',
   );
   assert.doesNotMatch(gate, /MygoArtwork|令牌仅保留|BLUE NOTES/);
-  assert.match(gate, /NEXT_PUBLIC_ADFLOW_DEMO_AUTO_LOGIN/);
-  assert.match(gate, /api.login\('admin', 'adflow-admin'\)/);
+  assert.match(gate, /demoLoginDefaults/);
+  assert.match(gate, /\.authOptions\(\)/);
+  assert.doesNotMatch(gate, /NEXT_PUBLIC_ADFLOW_DEMO_AUTO_LOGIN/);
+  assert.match(gate, /没有账号？注册账号/);
   assert.match(gate, /setSession\(issued\)/);
 });
 import {

@@ -7,9 +7,9 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/zhanghaiyang/adflow/internal/event/domain"
-	"github.com/zhanghaiyang/adflow/internal/operations/application"
-	httptransport "github.com/zhanghaiyang/adflow/internal/transport/http"
+	"github.com/umi3730/adflow/internal/event/domain"
+	"github.com/umi3730/adflow/internal/operations/application"
+	httptransport "github.com/umi3730/adflow/internal/transport/http"
 )
 
 type Handler struct {

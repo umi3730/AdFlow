@@ -5,13 +5,15 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"sync"
 
 	"golang.org/x/crypto/bcrypt"
 
-	"github.com/zhanghaiyang/adflow/internal/identity/domain"
+	"github.com/umi3730/adflow/internal/identity/domain"
 )
 
 type UserStore struct {
+	mu    sync.RWMutex
 	users map[string]domain.User
 }
 
@@ -67,9 +69,25 @@ func newLocalUsers() (*UserStore, error) {
 }
 
 func (s *UserStore) FindByUsername(_ context.Context, username string) (domain.User, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
 	user, ok := s.users[strings.ToLower(strings.TrimSpace(username))]
 	if !ok {
 		return domain.User{}, domain.ErrInvalidCredentials
 	}
 	return user, nil
+}
+
+func (s *UserStore) Create(ctx context.Context, user domain.User) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	key := strings.ToLower(strings.TrimSpace(user.Username))
+	if _, exists := s.users[key]; exists {
+		return domain.ErrUsernameTaken
+	}
+	s.users[key] = user
+	return nil
 }

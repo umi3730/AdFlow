@@ -13,50 +13,52 @@ import (
 	"syscall"
 	"time"
 
-	agenthttp "github.com/zhanghaiyang/adflow/internal/agentassistant/adapter/http"
-	agentmock "github.com/zhanghaiyang/adflow/internal/agentassistant/adapter/mock"
-	agentopenai "github.com/zhanghaiyang/adflow/internal/agentassistant/adapter/openai"
-	agentapp "github.com/zhanghaiyang/adflow/internal/agentassistant/application"
-	agentdomain "github.com/zhanghaiyang/adflow/internal/agentassistant/domain"
-	audithttp "github.com/zhanghaiyang/adflow/internal/audit/adapter/http"
-	auditmemory "github.com/zhanghaiyang/adflow/internal/audit/adapter/memory"
-	auditmysql "github.com/zhanghaiyang/adflow/internal/audit/adapter/mysql"
-	auditapp "github.com/zhanghaiyang/adflow/internal/audit/application"
-	auditdomain "github.com/zhanghaiyang/adflow/internal/audit/domain"
-	"github.com/zhanghaiyang/adflow/internal/bootstrap"
-	campaignhttp "github.com/zhanghaiyang/adflow/internal/campaign/adapter/http"
-	"github.com/zhanghaiyang/adflow/internal/campaign/adapter/memory"
-	campaignmysql "github.com/zhanghaiyang/adflow/internal/campaign/adapter/mysql"
-	"github.com/zhanghaiyang/adflow/internal/campaign/application"
-	"github.com/zhanghaiyang/adflow/internal/campaign/domain"
-	"github.com/zhanghaiyang/adflow/internal/config"
-	decisioncampaign "github.com/zhanghaiyang/adflow/internal/decision/adapter/campaign"
-	decisionhttp "github.com/zhanghaiyang/adflow/internal/decision/adapter/http"
-	decisionmemory "github.com/zhanghaiyang/adflow/internal/decision/adapter/memory"
-	decisionmysql "github.com/zhanghaiyang/adflow/internal/decision/adapter/mysql"
-	decisionprofilecache "github.com/zhanghaiyang/adflow/internal/decision/adapter/profilecache"
-	decisionredis "github.com/zhanghaiyang/adflow/internal/decision/adapter/redis"
-	"github.com/zhanghaiyang/adflow/internal/decision/adapter/requestprofile"
-	decisionapp "github.com/zhanghaiyang/adflow/internal/decision/application"
-	decisiondomain "github.com/zhanghaiyang/adflow/internal/decision/domain"
-	eventhttp "github.com/zhanghaiyang/adflow/internal/event/adapter/http"
-	eventkafka "github.com/zhanghaiyang/adflow/internal/event/adapter/kafka"
-	eventmemory "github.com/zhanghaiyang/adflow/internal/event/adapter/memory"
-	eventmysql "github.com/zhanghaiyang/adflow/internal/event/adapter/mysql"
-	eventapp "github.com/zhanghaiyang/adflow/internal/event/application"
-	eventdomain "github.com/zhanghaiyang/adflow/internal/event/domain"
-	"github.com/zhanghaiyang/adflow/internal/health"
-	identityhttp "github.com/zhanghaiyang/adflow/internal/identity/adapter/http"
-	identityjwt "github.com/zhanghaiyang/adflow/internal/identity/adapter/jwt"
-	identitymemory "github.com/zhanghaiyang/adflow/internal/identity/adapter/memory"
-	identitypassword "github.com/zhanghaiyang/adflow/internal/identity/adapter/password"
-	identityapp "github.com/zhanghaiyang/adflow/internal/identity/application"
-	"github.com/zhanghaiyang/adflow/internal/observability"
-	operationshttp "github.com/zhanghaiyang/adflow/internal/operations/adapter/http"
-	operationsapp "github.com/zhanghaiyang/adflow/internal/operations/application"
-	"github.com/zhanghaiyang/adflow/internal/platform/cache"
-	"github.com/zhanghaiyang/adflow/internal/platform/database"
-	httptransport "github.com/zhanghaiyang/adflow/internal/transport/http"
+	agenthttp "github.com/umi3730/adflow/internal/agentassistant/adapter/http"
+	agentmock "github.com/umi3730/adflow/internal/agentassistant/adapter/mock"
+	agentopenai "github.com/umi3730/adflow/internal/agentassistant/adapter/openai"
+	agentapp "github.com/umi3730/adflow/internal/agentassistant/application"
+	agentdomain "github.com/umi3730/adflow/internal/agentassistant/domain"
+	audithttp "github.com/umi3730/adflow/internal/audit/adapter/http"
+	auditmemory "github.com/umi3730/adflow/internal/audit/adapter/memory"
+	auditmysql "github.com/umi3730/adflow/internal/audit/adapter/mysql"
+	auditapp "github.com/umi3730/adflow/internal/audit/application"
+	auditdomain "github.com/umi3730/adflow/internal/audit/domain"
+	"github.com/umi3730/adflow/internal/bootstrap"
+	campaignhttp "github.com/umi3730/adflow/internal/campaign/adapter/http"
+	"github.com/umi3730/adflow/internal/campaign/adapter/memory"
+	campaignmysql "github.com/umi3730/adflow/internal/campaign/adapter/mysql"
+	"github.com/umi3730/adflow/internal/campaign/application"
+	"github.com/umi3730/adflow/internal/campaign/domain"
+	"github.com/umi3730/adflow/internal/config"
+	decisioncampaign "github.com/umi3730/adflow/internal/decision/adapter/campaign"
+	decisionhttp "github.com/umi3730/adflow/internal/decision/adapter/http"
+	decisionmemory "github.com/umi3730/adflow/internal/decision/adapter/memory"
+	decisionmysql "github.com/umi3730/adflow/internal/decision/adapter/mysql"
+	decisionprofilecache "github.com/umi3730/adflow/internal/decision/adapter/profilecache"
+	decisionredis "github.com/umi3730/adflow/internal/decision/adapter/redis"
+	"github.com/umi3730/adflow/internal/decision/adapter/requestprofile"
+	decisionapp "github.com/umi3730/adflow/internal/decision/application"
+	decisiondomain "github.com/umi3730/adflow/internal/decision/domain"
+	eventhttp "github.com/umi3730/adflow/internal/event/adapter/http"
+	eventkafka "github.com/umi3730/adflow/internal/event/adapter/kafka"
+	eventmemory "github.com/umi3730/adflow/internal/event/adapter/memory"
+	eventmysql "github.com/umi3730/adflow/internal/event/adapter/mysql"
+	eventapp "github.com/umi3730/adflow/internal/event/application"
+	eventdomain "github.com/umi3730/adflow/internal/event/domain"
+	"github.com/umi3730/adflow/internal/health"
+	identityhttp "github.com/umi3730/adflow/internal/identity/adapter/http"
+	identityjwt "github.com/umi3730/adflow/internal/identity/adapter/jwt"
+	identitymemory "github.com/umi3730/adflow/internal/identity/adapter/memory"
+	identitymysql "github.com/umi3730/adflow/internal/identity/adapter/mysql"
+	identitypassword "github.com/umi3730/adflow/internal/identity/adapter/password"
+	identityapp "github.com/umi3730/adflow/internal/identity/application"
+	identitydomain "github.com/umi3730/adflow/internal/identity/domain"
+	"github.com/umi3730/adflow/internal/observability"
+	operationshttp "github.com/umi3730/adflow/internal/operations/adapter/http"
+	operationsapp "github.com/umi3730/adflow/internal/operations/application"
+	"github.com/umi3730/adflow/internal/platform/cache"
+	"github.com/umi3730/adflow/internal/platform/database"
+	httptransport "github.com/umi3730/adflow/internal/transport/http"
 )
 
 func main() {
@@ -96,8 +98,16 @@ func main() {
 		logger.Error("initialize JWT manager", "error", err)
 		os.Exit(1)
 	}
-	identityService := identityapp.NewService(userStore, identitypassword.Bcrypt{}, tokenManager)
+	var identityUsers identitydomain.UserRepository = userStore
+	if cfg.AuthStore == "mysql" {
+		identityUsers = identitymysql.NewUserStore(db, userStore)
+	}
+	identityService := identityapp.NewService(identityUsers, identitypassword.Bcrypt{}, tokenManager)
+	if cfg.RegistrationEnabled {
+		identityService.EnableRegistration(identitypassword.Bcrypt{})
+	}
 	identityHandler := identityhttp.NewHandler(identityService, cfg.AuthEnabled)
+	identityHandler.SetDemoPrefill((cfg.Environment == "local" || cfg.Environment == "test") && strings.TrimSpace(cfg.AuthUsers) == "")
 	logger.Info("authentication configured", "enabled", cfg.AuthEnabled)
 	var auditStore auditdomain.Store
 	if cfg.AuditStore == "mysql" {

@@ -9,12 +9,12 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	jwtadapter "github.com/zhanghaiyang/adflow/internal/identity/adapter/jwt"
-	"github.com/zhanghaiyang/adflow/internal/identity/adapter/memory"
-	"github.com/zhanghaiyang/adflow/internal/identity/adapter/password"
-	"github.com/zhanghaiyang/adflow/internal/identity/application"
-	"github.com/zhanghaiyang/adflow/internal/identity/domain"
-	httptransport "github.com/zhanghaiyang/adflow/internal/transport/http"
+	jwtadapter "github.com/umi3730/adflow/internal/identity/adapter/jwt"
+	"github.com/umi3730/adflow/internal/identity/adapter/memory"
+	"github.com/umi3730/adflow/internal/identity/adapter/password"
+	"github.com/umi3730/adflow/internal/identity/application"
+	"github.com/umi3730/adflow/internal/identity/domain"
+	httptransport "github.com/umi3730/adflow/internal/transport/http"
 )
 
 func TestLoginAndRoleProtectedRoutes(t *testing.T) {
