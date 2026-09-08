@@ -1,8 +1,12 @@
 .env
+.env.*
+!.env.example
+*.tsbuildinfo
 .idea/
 .vscode/
 bin/
 work/
 coverage.out
 *.log
+!docs/verification/**/*.log
 *.exe

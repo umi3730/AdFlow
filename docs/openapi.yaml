@@ -87,6 +87,14 @@ paths:
   /v1/campaigns/{campaignId}:
     parameters:
       - $ref: '#/components/parameters/CampaignId'
+    delete:
+      summary: Soft-delete a non-active campaign
+      description: Admin only. Preserves versions, creatives and delivery history. Deleted campaigns are hidden from ordinary reads; no restore endpoint is provided. Candidate snapshot TTL still applies.
+      responses:
+        '204': { description: Campaign soft-deleted }
+        '403': { description: Admin role required }
+        '404': { description: Campaign missing or already deleted }
+        '409': { description: Pause active campaign first, or retry after a concurrent modification }
     get:
       summary: Get campaign
       responses:
@@ -153,11 +161,60 @@ paths:
       summary: Disable creative
       responses:
         '200': { description: Creative disabled }
+  /v1/campaigns/{campaignId}/creatives/{creativeId}/enable:
+    parameters:
+      - $ref: '#/components/parameters/CampaignId'
+      - { name: creativeId, in: path, required: true, schema: { type: string } }
+    post:
+      summary: Re-enable a disabled creative
+      description: Operator or admin. Checks campaign ownership and visibility; cannot restore deleted resources or change campaign status. Uses optimistic revision protection. Candidate cache TTL still applies.
+      responses:
+        '200': { description: Creative active again with incremented revision }
+        '403': { description: Operator role required }
+        '404': { description: Campaign or creative missing/deleted, or ownership mismatch }
+        '409': { description: Concurrent modification }
+        '422': { description: Creative is not disabled }
+  /v1/campaigns/{campaignId}/creatives/{creativeId}:
+    parameters:
+      - $ref: '#/components/parameters/CampaignId'
+      - { name: creativeId, in: path, required: true, schema: { type: string } }
+    delete:
+      summary: Soft-delete a disabled creative
+      description: Admin only. Preserves historical references and validates campaign ownership. Disable the creative first.
+      responses:
+        '204': { description: Creative soft-deleted }
+        '403': { description: Admin role required }
+        '404': { description: Resource missing, deleted or owned by another campaign }
+        '409': { description: Disable creative first, or retry after a concurrent modification }
+  /v1/profiles:
+    get:
+      summary: List saved profiles with full attributes
+      parameters:
+        - { name: q, in: query, schema: { type: string, maxLength: 128 }, description: User ID substring }
+        - { name: tag, in: query, schema: { type: string }, description: Exact tag }
+        - { name: device, in: query, schema: { type: string }, description: Exact device field }
+        - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 100, default: 20 } }
+        - { name: offset, in: query, schema: { type: integer, minimum: 0, maximum: 1000000, default: 0 } }
+      responses:
+        '200': { description: 'items (userId, tags, fields), total, limit and offset' }
+        '400': { description: Invalid filter or pagination }
   /v1/profiles/{userId}:
     parameters:
-      - { name: userId, in: path, required: true, schema: { type: string, maxLength: 128 } }
+      - { name: userId, in: path, required: true, description: 'Case-sensitive opaque ID; surrounding whitespace is trimmed. Different case or accents identify different profiles.', schema: { type: string, maxLength: 128 } }
+    delete:
+      summary: Delete the current simulated profile
+      description: Admin only; idempotent. Historical decisions and reservations are not removed. Cached adapters invalidate the profile key after source deletion; cache failures may require retry.
+      responses:
+        '204': { description: Profile deleted or already absent }
+        '403': { description: Admin role required }
+    get:
+      summary: Read saved profile and all attributes
+      responses:
+        '200': { description: 'Profile containing userId, tags and fields' }
+        '404': { description: Profile not found }
     put:
       summary: Create or replace simulated profile
+      description: Core fields are device (android/ios/windows/macos/web), score (decimal string 0-100), age (integer string 0-120), member_level (basic/silver/gold/diamond), and channel (organic/paid/referral). Only age and score allow numeric comparisons. Other legacy JSON keys remain string attributes.
       requestBody:
         required: true
         content:
@@ -169,9 +226,28 @@ paths:
                 fields: { type: object, additionalProperties: { type: string } }
       responses:
         '204': { description: Profile stored }
+        '422': { description: Invalid device or score field value }
+  /v1/decisions/explain:
+    post:
+      summary: Inspect current targeting conditions without making a decision
+      description: Reads the current candidate snapshot and saved profile. Does not reserve budget, consume frequency, or store a decision. Not a historical decision audit; excludes budget and frequency checks.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [userId, slotId]
+              properties:
+                userId: { type: string, maxLength: 128 }
+                slotId: { type: string, maxLength: 64 }
+      responses:
+        '200': { description: 'profile, candidates with targetingMatched/hasCreative/failures, checkedAt and scope=current_targeting_only' }
+        '404': { description: Profile not found }
   /v1/decisions:
     post:
       summary: Request an advertising decision
+      description: requestId is bound to the normalized user and slot. Repeated identical requests reuse the stored result. Different parameters return request_id_conflict; concurrent execution may return decision_in_progress with Retry-After. Inline simulation profiles also bind their canonical content.
       requestBody:
         required: true
         content:
@@ -186,16 +262,60 @@ paths:
       responses:
         '200':
           description: Matched decision or fail-closed No-Ad result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  requestId: { type: string }
+                  matched: { type: boolean }
+                  campaignId: { type: string }
+                  creativeId: { type: string }
+                  reason: { type: string }
+                  pricing:
+                    nullable: true
+                    allOf:
+                      - $ref: '#/components/schemas/DecisionPricing'
+        '409':
+          description: request_id_conflict for different parameters, or decision_in_progress while execution is owned by another attempt
         '429':
           description: Global decision arrival rate exceeded; retry after the response Retry-After interval
         '503':
-          description: Decision concurrency slots remained full beyond the queue timeout
+          description: Decision concurrency slots are full, or asynchronous backlog protection rejected a new decision. decision_backpressure and decision_backpressure_unavailable include Retry-After=1; retry with the original request parameters. Existing committed decisions bypass backlog protection, and event ingestion remains available.
         '504':
           description: Accepted decision execution exceeded its processing deadline
+  /v1/simulations/decisions:
+    post:
+      summary: Run a decision using a request-scoped temporary profile
+      description: Local/test environments and loopback clients only; admin role required. Reuses the ordinary admission control and decision engine but never stores the profile. User and request identities are internally scoped by runId; return requestId is authoritative for event reporting. Budget, decision history and event effects still apply to the selected campaign.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [runId, requestId, slotId, profile]
+              properties:
+                runId: { type: string, pattern: '^[\w-]{1,80}$' }
+                requestId: { type: string, maxLength: 128 }
+                slotId: { type: string, maxLength: 64 }
+                profile:
+                  type: object
+                  required: [userId]
+                  properties:
+                    userId: { type: string, description: 'user-0001 through user-0100' }
+                    tags: { type: array, maxItems: 100, items: { type: string } }
+                    fields: { type: object, maxProperties: 100, additionalProperties: { type: string } }
+      responses:
+        '200': { description: Decision with scoped requestId; use this returned ID for subsequent events }
+        '403': { description: Admin role and loopback access required }
+        '404': { description: Endpoint is not registered outside local/test environments }
+        '422': { description: Invalid temporary profile or identity }
+        '429': { description: Shared decision rate limit exceeded }
   /v1/events:
     post:
       summary: Record or enqueue advertising event
-      description: Returns 201 in synchronous mode and 202 in Kafka mode.
+      description: Returns 201 after settlement and metric commit in synchronous mode. Kafka mode returns 202 after durable acceptance; settlement and metric updates run asynchronously. Duplicate IDs retain the first accepted payload and occurrence time. One impression is accepted per decision request. New impressions require an unexpired decision; clicks and conversions require a matching accepted impression and must arrive within seven days of its server acceptance time. Accepted identical retries remain idempotent after that window.
       requestBody:
         required: true
         content:
@@ -204,7 +324,8 @@ paths:
       responses:
         '200': { description: Duplicate event accepted idempotently }
         '201': { description: Event processed synchronously }
-        '202': { description: Event persisted to transactional Outbox }
+        '202': { description: Event durably accepted; waits for settlement before publication }
+        '409': { description: Expired impression decision or attribution window, unprovable settlement, conflicting event identity, second impression, or missing impression dependency }
   /v1/campaigns/{campaignId}/metrics:
     parameters:
       - $ref: '#/components/parameters/CampaignId'
@@ -232,15 +353,78 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/RuleDraft' }
         '422': { description: Prompt or generated draft is invalid }
+  /v1/operations/mode:
+    get:
+      summary: Read configured event transport and Outbox availability
+      description: Reports actual adapter wiring, not Kafka connectivity or consumer health. Requires authentication when enabled.
+      responses:
+        '200':
+          description: Event pipeline mode
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [eventTransport, outboxEnabled]
+                properties:
+                  eventTransport: { type: string, enum: [sync, kafka] }
+                  outboxEnabled: { type: boolean }
+        '401': { description: Valid Bearer token required }
   /v1/operations/outbox:
     get:
       summary: Inspect Outbox records and status totals
       parameters:
-        - { name: status, in: query, schema: { type: string, enum: [PENDING, PROCESSING, PUBLISHED, DEAD_LETTERED] } }
+        - { name: status, in: query, schema: { type: string, enum: [SETTLING, RECONCILE, PENDING, PROCESSING, PUBLISHED, DEAD_LETTERED] } }
         - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 100, default: 50 } }
         - { name: offset, in: query, schema: { type: integer, minimum: 0, default: 0 } }
       responses:
         '200': { description: Outbox page and aggregate status counts }
+  /v1/operations/request-trace:
+    get:
+      summary: Inspect one advertising request without replaying it
+      description: Viewer or higher when authentication is enabled. Reads retained decision, execution, settlement and event records only. No resource reservation, release, publication or retry is triggered. Memory mode only exposes records retained in the current process. At most 100 events are returned; truncated explicitly indicates more records.
+      parameters:
+        - { name: requestId, in: query, required: true, description: 'Business request ID from a decision or simulation result; not the HTTP correlation header.', schema: { type: string, minLength: 1, maxLength: 128 } }
+        - { name: simulationRunId, in: query, description: 'Optional original temporary-simulation run ID; requires simulationUserId. Omit when requestId is already the canonical tmp ID.', schema: { type: string, maxLength: 80 } }
+        - { name: simulationUserId, in: query, description: 'Original temporary user ID, user-0001 through user-0100. The server resolves the same ID as simulation ingress without executing a decision.', schema: { type: string } }
+      responses:
+        '200':
+          description: Retained facts. Missing fields mean no saved evidence, not a computed historical result. Publication and metric commit are independent.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [requestId, eventTransport, observedAt, events, truncated]
+                properties:
+                  requestId: { type: string }
+                  eventTransport: { type: string, enum: [sync, kafka] }
+                  observedAt: { type: string, format: date-time }
+                  decision: { type: object, description: 'Saved userId, slotId, matched, campaignId, creativeId, reason, optional pricing and exposure expiresAt. Reservation tokens and fingerprints are omitted.' }
+                  execution: { type: object, description: 'Persisted execution status and optional leaseUntil; no owner token.' }
+                  settlement: { type: object, description: 'Status, acceptedAt, failedAttempts, optional settledAt, nextAttemptAt, lockedUntil and lastError.' }
+                  events:
+                    type: array
+                    maxItems: 100
+                    items:
+                      type: object
+                      required: [eventId, type, status, occurredAt, acceptedAt, failedAttempts]
+                      properties:
+                        eventId: { type: string }
+                        type: { type: string, enum: [impression, click, conversion] }
+                        status: { type: string }
+                        occurredAt: { type: string, format: date-time }
+                        acceptedAt: { type: string, format: date-time }
+                        failedAttempts: { type: integer }
+                        valueFen: { type: integer, format: int64 }
+                        lastError: { type: string }
+                        nextAttemptAt: { type: string, format: date-time }
+                        publishedAt: { type: string, format: date-time }
+                        processedAt: { type: string, format: date-time, description: 'Only present when matching processed-event evidence exists.' }
+                  truncated: { type: boolean }
+        '400': { description: Invalid request ID or incomplete simulation tuple }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { description: No retained records; the request may not have completed or may no longer be retained }
+        '503': { description: Inspection is not wired in this deployment }
+        '504': { description: Read-only inspection exceeded its two-second deadline }
   /v1/operations/kafka-lag:
     get:
       summary: Read the latest observed Kafka consumer lag per partition
@@ -351,6 +535,8 @@ components:
       type: object
       required: [targeting, dailyBudgetFen, impressionCostFen, frequencyLimit]
       properties:
+        auction:
+          $ref: '#/components/schemas/AuctionTerms'
         targeting:
           type: object
           properties:
@@ -360,6 +546,28 @@ components:
         dailyBudgetFen: { type: integer, minimum: 1 }
         impressionCostFen: { type: integer, minimum: 1 }
         frequencyLimit: { type: integer, minimum: 1, maximum: 100 }
+    AuctionTerms:
+      type: object
+      description: Optional first-price auction configuration. Omit for fixed-cost fallback. The explicit bid is charged per impression in integer fen; impressionCostFen is normalized to bidFen for compatibility.
+      required: [advertiserId, advertiserName, bidFen]
+      properties:
+        advertiserId: { type: string, maxLength: 64, pattern: '^[a-z0-9][a-z0-9_-]{0,63}$' }
+        advertiserName: { type: string, minLength: 2, maxLength: 128 }
+        bidFen: { type: integer, minimum: 1, maximum: 1000000 }
+    DecisionPricing:
+      type: object
+      description: Immutable pricing snapshot on a new matched decision; null for historical records without pricing. Advertiser grouping is platform configuration, not tenant authorization.
+      properties:
+        mode: { type: string, enum: [fixed, first_price] }
+        advertiserId: { type: string }
+        advertiserName: { type: string }
+        bidFen: { type: integer }
+        priceFen: { type: integer }
+        version: { type: integer }
+        advertisers: { type: integer }
+        rank: { type: integer }
+        budgetRejected: { type: integer }
+        frequencyRejected: { type: integer }
     CreateCreative:
       type: object
       required: [title, imageUrl, landingUrl]

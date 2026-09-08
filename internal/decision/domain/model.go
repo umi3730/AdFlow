@@ -1,24 +1,30 @@
 package domain
 
-import "time"
+import (
+	"strings"
+	"time"
+)
 
 type Request struct {
-	RequestID string
-	UserID    string
-	SlotID    string
-	Now       time.Time
+	ProfileDigest string
+	RequestID     string
+	UserID        string
+	SlotID        string
+	Now           time.Time
 }
 
 type Result struct {
-	RequestID        string
-	UserID           string
-	SlotID           string
-	Matched          bool
-	CampaignID       string
-	CreativeID       string
-	ReservationToken string
-	ExpiresAt        time.Time
-	Reason           Reason
+	RequestFingerprint string
+	Pricing            Pricing
+	RequestID          string
+	UserID             string
+	SlotID             string
+	Matched            bool
+	CampaignID         string
+	CreativeID         string
+	ReservationToken   string
+	ExpiresAt          time.Time
+	Reason             Reason
 }
 
 type Reason string
@@ -40,7 +46,7 @@ type Profile struct {
 }
 
 func NewProfile(userID string, tags []string, fields map[string]string) Profile {
-	profile := Profile{UserID: userID, Tags: make(map[string]struct{}, len(tags)), Fields: make(map[string]string, len(fields))}
+	profile := Profile{UserID: strings.TrimSpace(userID), Tags: make(map[string]struct{}, len(tags)), Fields: make(map[string]string, len(fields))}
 	for _, tag := range tags {
 		if tag != "" {
 			profile.Tags[tag] = struct{}{}
@@ -53,10 +59,10 @@ func NewProfile(userID string, tags []string, fields map[string]string) Profile 
 }
 
 type Condition struct {
-	Tag   string
-	Field string
-	Op    string
-	Value string
+	Tag   string `json:"tag,omitempty"`
+	Field string `json:"field,omitempty"`
+	Op    string `json:"op,omitempty"`
+	Value string `json:"value,omitempty"`
 }
 
 type TargetingRule struct {
@@ -66,6 +72,10 @@ type TargetingRule struct {
 }
 
 type Candidate struct {
+	AdvertiserID      string
+	AdvertiserName    string
+	BidFen            int64
+	Version           uint32
 	CampaignID        string
 	CreativeIDs       []string
 	Targeting         TargetingRule
@@ -74,4 +84,18 @@ type Candidate struct {
 	FrequencyLimit    uint32
 	StartAt           time.Time
 	EndAt             time.Time
+}
+
+// Comparable immutable settlement summary, persisted with the decision.
+type Pricing struct {
+	Mode              string `json:"mode"`
+	AdvertiserID      string `json:"advertiserId,omitempty"`
+	AdvertiserName    string `json:"advertiserName,omitempty"`
+	BidFen            int64  `json:"bidFen,omitempty"`
+	PriceFen          int64  `json:"priceFen"`
+	Version           uint32 `json:"version"`
+	Advertisers       int    `json:"advertisers"`
+	Rank              int    `json:"rank"`
+	BudgetRejected    int    `json:"budgetRejected"`
+	FrequencyRejected int    `json:"frequencyRejected"`
 }

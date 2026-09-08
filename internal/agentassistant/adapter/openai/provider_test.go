@@ -38,6 +38,11 @@ func TestResponsesProviderUsesStrictStructuredOutput(t *testing.T) {
 			return
 		}
 		text := request["text"].(map[string]any)
+		for _, expected := range []string{"never platform or os", "Simplified Chinese", "assumed defaults", "age, member_level, channel", "tech_interest", "gaming_interest", "new_user"} {
+			if !strings.Contains(request["instructions"].(string), expected) {
+				t.Errorf("missing rule presentation contract: %s", expected)
+			}
+		}
 		format := text["format"].(map[string]any)
 		if format["type"] != "json_schema" || format["strict"] != true || format["schema"] == nil {
 			t.Errorf("missing strict schema: %+v", format)
@@ -84,6 +89,11 @@ func TestChatCompletionsCompatibilityMode(t *testing.T) {
 		if len(request.Messages) != 2 || request.Messages[1].Content != "生成二次元用户规则" || request.ResponseFormat["type"] != "json_object" || request.Thinking["type"] != ThinkingDisabled {
 			t.Errorf("unexpected compatibility request: %+v", request)
 			return
+		}
+		for _, expected := range []string{"never platform or os", "Simplified Chinese", "assumed defaults"} {
+			if !strings.Contains(request.Messages[0].Content, expected) {
+				t.Errorf("missing rule presentation contract: %s", expected)
+			}
 		}
 		_ = json.NewEncoder(w).Encode(map[string]any{
 			"id": "chat-1", "model": "compatible-model",

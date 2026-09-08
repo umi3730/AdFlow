@@ -1,0 +1,214 @@
+{
+  "at": "2026-09-07T06:38:00.168Z",
+  "port": 18081,
+  "transport": "Node HTTP/1.1 with 6 sockets, shared browser simulator engine; synthetic temporary profiles",
+  "config": {
+    "runId": "sql-compare-after-final-1788763075975",
+    "userIds": [
+      "user-0001",
+      "user-0002",
+      "user-0003"
+    ],
+    "slotId": "game-home-banner",
+    "maxRounds": 300,
+    "concurrency": 100,
+    "seconds": 30,
+    "timeoutMs": 5000,
+    "impressions": true,
+    "behavior": {
+      "clickPercent": 100,
+      "conversionPercent": 100,
+      "minValueFen": 500,
+      "maxValueFen": 500
+    }
+  },
+  "result": {
+    "runId": "sql-compare-after-final-1788763075975",
+    "status": "completed",
+    "stopReason": "round_limit",
+    "elapsedMs": 4191.3703000000005,
+    "started": 300,
+    "successful": 300,
+    "failed": 0,
+    "canceled": 0,
+    "inFlight": 0,
+    "peakInFlight": 100,
+    "matched": 100,
+    "noAd": 200,
+    "httpRequests": 600,
+    "impressionsAccepted": 100,
+    "clicksAccepted": 100,
+    "conversionsAccepted": 100,
+    "valueFenAccepted": 50000,
+    "timeouts": 0,
+    "reasons": {
+      "targeting_miss": 200
+    },
+    "errors": {},
+    "p50Ms": 758.066,
+    "p95Ms": 2795.1065,
+    "p99Ms": 2853.0223,
+    "recent": [
+      {
+        "campaignId": "demo-campaign-v1",
+        "priceFen": 1,
+        "requestId": "tmp:a1675038e483a3b6cde4b986456979c68babd34a6c72ac0efe56f4032428a2cf",
+        "userId": "user-0001",
+        "outcome": "命中",
+        "durationMs": 1242.2497999999996
+      },
+      {
+        "campaignId": "demo-campaign-v1",
+        "priceFen": 1,
+        "requestId": "tmp:31d615064afa591362c812e5c34c2798c3d8c2b7ea0d8ee5e758e8621e915417",
+        "userId": "user-0001",
+        "outcome": "命中",
+        "durationMs": 1281.0644000000002
+      },
+      {
+        "campaignId": "demo-campaign-v1",
+        "priceFen": 1,
+        "requestId": "tmp:171d57916e6babefb1ef3b3848050275e2a705bd2eff1512e0feca608611d14b",
+        "userId": "user-0001",
+        "outcome": "命中",
+        "durationMs": 1320.4532000000004
+      },
+      {
+        "campaignId": "demo-campaign-v1",
+        "priceFen": 1,
+        "requestId": "tmp:3e6463a4aac5d732f5de012c111a0fade29f5b3bf0b3a18e660c9ee3086ff7a5",
+        "userId": "user-0001",
+        "outcome": "命中",
+        "durationMs": 1269.2035000000005
+      },
+      {
+        "campaignId": "demo-campaign-v1",
+        "priceFen": 1,
+        "requestId": "tmp:09a78461ae2153820f4caf54d0eef6928cde88c3a3951cfbff15c220362ec689",
+        "userId": "user-0001",
+        "outcome": "命中",
+        "durationMs": 1354.1266
+      },
+      {
+        "campaignId": "demo-campaign-v1",
+        "priceFen": 1,
+        "requestId": "tmp:dde77052897d6256cdf9d7f67d2342255f0b833eed803767bb344f36a4b496d7",
+        "userId": "user-0001",
+        "outcome": "命中",
+        "durationMs": 1383.2847000000006
+      },
+      {
+        "campaignId": "demo-campaign-v1",
+        "priceFen": 1,
+        "requestId": "tmp:4859e36a57fa6cc655dda591f06f256e6d36bb86ced73eb4c4bbdb1e3ca185a1",
+        "userId": "user-0001",
+        "outcome": "命中",
+        "durationMs": 1416.6720000000005
+      },
+      {
+        "campaignId": "demo-campaign-v1",
+        "priceFen": 1,
+        "requestId": "tmp:013259b5a175f677c3ad2646c4a3b0db92c6ced02734ec287070d567657aaeb5",
+        "userId": "user-0001",
+        "outcome": "命中",
+        "durationMs": 1548.5340999999999
+      },
+      {
+        "campaignId": "demo-campaign-v1",
+        "priceFen": 1,
+        "requestId": "tmp:3ab1d8c40abe170c8c66711a603ad0500dc565009dc25f96e363084cd09e339f",
+        "userId": "user-0001",
+        "outcome": "命中",
+        "durationMs": 1638.6143000000002
+      },
+      {
+        "campaignId": "demo-campaign-v1",
+        "priceFen": 1,
+        "requestId": "tmp:707dd2244a410577a4ecd25ea53e0fc932e8d4ef45dea0e44496cee1e576955f",
+        "userId": "user-0001",
+        "outcome": "命中",
+        "durationMs": 1560.9029
+      },
+      {
+        "campaignId": "demo-campaign-v1",
+        "priceFen": 1,
+        "requestId": "tmp:148d7ab59c3878c2e92a69a4471c5f5a98fd426ad6ffacb7d2ec3578ab92dea5",
+        "userId": "user-0001",
+        "outcome": "命中",
+        "durationMs": 1660.8944000000001
+      },
+      {
+        "campaignId": "demo-campaign-v1",
+        "priceFen": 1,
+        "requestId": "tmp:d0f63b53a901c534f68d679bad6ab15761749cca1023bec5952389c5bc4bb84a",
+        "userId": "user-0001",
+        "outcome": "命中",
+        "durationMs": 1693.2011000000002
+      },
+      {
+        "campaignId": "demo-campaign-v1",
+        "priceFen": 1,
+        "requestId": "tmp:9c029241da97156f8af6abfd5363987e738d4940ba11ad82222dd1801fe0d645",
+        "userId": "user-0001",
+        "outcome": "命中",
+        "durationMs": 1618.4706999999994
+      },
+      {
+        "campaignId": "demo-campaign-v1",
+        "priceFen": 1,
+        "requestId": "tmp:3b36f395f634d1632e6da4271ee71866346a553719ecbf512d2ca76af2701da0",
+        "userId": "user-0001",
+        "outcome": "命中",
+        "durationMs": 1697.0226000000002
+      },
+      {
+        "campaignId": "demo-campaign-v1",
+        "priceFen": 1,
+        "requestId": "tmp:a5568be07944a884f06730100608e916d2f40f82b53fd3d505bf17d5b8e16c19",
+        "userId": "user-0001",
+        "outcome": "命中",
+        "durationMs": 1737.7322000000004
+      },
+      {
+        "campaignId": "demo-campaign-v1",
+        "priceFen": 1,
+        "requestId": "tmp:f6693643c1ee605d6358d9ee09a5c8782ca6cba23e41c858bce04acc414df453",
+        "userId": "user-0001",
+        "outcome": "命中",
+        "durationMs": 1708.9681999999998
+      },
+      {
+        "campaignId": "demo-campaign-v1",
+        "priceFen": 1,
+        "requestId": "tmp:de677f3863241cb28bbc1c765dfef3b206890463fa9416e19fa4b828e5d87ffb",
+        "userId": "user-0001",
+        "outcome": "命中",
+        "durationMs": 1800.5393000000004
+      },
+      {
+        "campaignId": "demo-campaign-v1",
+        "priceFen": 1,
+        "requestId": "tmp:676dbde1342f06ba397752ee7ab039629ba55cb08c147156050af43550a05e35",
+        "userId": "user-0001",
+        "outcome": "命中",
+        "durationMs": 1792.2536999999998
+      },
+      {
+        "campaignId": "demo-campaign-v1",
+        "priceFen": 1,
+        "requestId": "tmp:0ad9abfe2fc2acec89497bbdded0315dad3d4cf248efde9414a44c3529e87c46",
+        "userId": "user-0001",
+        "outcome": "命中",
+        "durationMs": 1832.9812000000002
+      },
+      {
+        "campaignId": "demo-campaign-v1",
+        "priceFen": 1,
+        "requestId": "tmp:4e11973a7062a8a413461309a0f76d67426d80a4a9e4be889bf572284c2168dc",
+        "userId": "user-0001",
+        "outcome": "命中",
+        "durationMs": 1858.1985999999997
+      }
+    ]
+  }
+}

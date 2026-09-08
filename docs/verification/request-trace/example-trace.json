@@ -1,0 +1,69 @@
+{
+  "requestId": "late-event-40e2f8db-b862-4ece-881d-551c7b36656c",
+  "eventTransport": "kafka",
+  "observedAt": "2026-09-07T09:43:47.6847632Z",
+  "decision": {
+    "userId": "core-fix-69429b9a-6fed-4903-91cb-7a09bc607b54",
+    "slotId": "game-home-banner",
+    "matched": true,
+    "campaignId": "demo-auction-2",
+    "creativeId": "demo-auction-2-creative",
+    "reason": "matched",
+    "pricing": {
+      "mode": "first_price",
+      "advertiserId": "studio-2",
+      "advertiserName": "风铃互动",
+      "bidFen": 5,
+      "priceFen": 5,
+      "version": 1,
+      "advertisers": 3,
+      "rank": 1,
+      "budgetRejected": 0,
+      "frequencyRejected": 0
+    },
+    "expiresAt": "2026-09-07T08:37:38.026Z"
+  },
+  "execution": {
+    "status": "RELEASED"
+  },
+  "settlement": {
+    "status": "SETTLED",
+    "failedAttempts": 0,
+    "acceptedAt": "2026-09-07T08:37:08.085Z",
+    "settledAt": "2026-09-07T08:37:09.055Z"
+  },
+  "events": [
+    {
+      "eventId": "e6bfaaa9-1c15-4832-8769-b02ac7c72016",
+      "type": "impression",
+      "occurredAt": "2026-09-07T08:37:08.084Z",
+      "acceptedAt": "2026-09-07T08:37:08.929Z",
+      "status": "PUBLISHED",
+      "failedAttempts": 0,
+      "publishedAt": "2026-09-07T08:37:08.532Z",
+      "processedAt": "2026-09-07T08:37:09.41Z"
+    },
+    {
+      "eventId": "8d104ac1-7077-4d36-a04f-94147eaec236",
+      "type": "click",
+      "occurredAt": "2026-09-07T08:37:39.242Z",
+      "acceptedAt": "2026-09-07T08:37:38.631Z",
+      "status": "PUBLISHED",
+      "failedAttempts": 0,
+      "publishedAt": "2026-09-07T08:37:40.032Z",
+      "processedAt": "2026-09-07T08:37:39.401Z"
+    },
+    {
+      "eventId": "a79c010b-e590-4993-b8c5-c3a1e3e0349c",
+      "type": "conversion",
+      "valueFen": 500,
+      "occurredAt": "2026-09-07T08:37:39.264Z",
+      "acceptedAt": "2026-09-07T08:37:38.652Z",
+      "status": "PUBLISHED",
+      "failedAttempts": 0,
+      "publishedAt": "2026-09-07T08:37:40.032Z",
+      "processedAt": "2026-09-07T08:37:39.401Z"
+    }
+  ],
+  "truncated": false
+}

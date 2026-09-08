@@ -28,12 +28,31 @@ func (h *Handler) RegisterRoutes(group *gin.RouterGroup) {
 	campaigns.GET("", h.list)
 	campaigns.GET("/:id", h.get)
 	campaigns.PUT("/:id", h.update)
+	campaigns.DELETE("/:id", h.deleteCampaign)
 	campaigns.POST("/:id/publish", h.publish)
 	campaigns.POST("/:id/pause", h.pause)
 	campaigns.POST("/:id/resume", h.resume)
 	campaigns.POST("/:id/creatives", h.createCreative)
 	campaigns.GET("/:id/creatives", h.listCreatives)
 	campaigns.POST("/:id/creatives/:creativeId/disable", h.disableCreative)
+	campaigns.POST("/:id/creatives/:creativeId/enable", h.enableCreative)
+	campaigns.DELETE("/:id/creatives/:creativeId", h.deleteCreative)
+}
+
+func (h *Handler) deleteCampaign(c *gin.Context) {
+	if err := h.service.Delete(c.Request.Context(), c.Param("id")); err != nil {
+		handleError(c, err)
+		return
+	}
+	c.Status(http.StatusNoContent)
+}
+
+func (h *Handler) deleteCreative(c *gin.Context) {
+	if err := h.creativeService.Delete(c.Request.Context(), c.Param("id"), c.Param("creativeId")); err != nil {
+		handleError(c, err)
+		return
+	}
+	c.Status(http.StatusNoContent)
 }
 
 func (h *Handler) create(c *gin.Context) {
@@ -112,6 +131,7 @@ func (h *Handler) publish(c *gin.Context) {
 		return
 	}
 	campaign, err := h.service.Publish(c.Request.Context(), application.PublishCommand{
+		Auction:           request.Auction,
 		CampaignID:        c.Param("id"),
 		All:               request.Targeting.All,
 		Any:               request.Targeting.Any,
@@ -168,6 +188,15 @@ func (h *Handler) disableCreative(c *gin.Context) {
 	c.JSON(http.StatusOK, toCreativeResponse(creative))
 }
 
+func (h *Handler) enableCreative(c *gin.Context) {
+	creative, err := h.creativeService.Enable(c.Request.Context(), c.Param("id"), c.Param("creativeId"))
+	if err != nil {
+		handleError(c, err)
+		return
+	}
+	c.JSON(http.StatusOK, toCreativeResponse(creative))
+}
+
 func (h *Handler) transition(c *gin.Context, operation func(context.Context, string) (*domain.Campaign, error)) {
 	campaign, err := operation(c.Request.Context(), c.Param("id"))
 	if err != nil {
@@ -179,6 +208,8 @@ func (h *Handler) transition(c *gin.Context, operation func(context.Context, str
 
 func handleError(c *gin.Context, err error) {
 	switch {
+	case errors.Is(err, domain.ErrDeleteActive):
+		httptransport.RespondError(c, http.StatusConflict, "delete_active_resource", "请先暂停计划或禁用素材，再执行删除", nil)
 	case errors.Is(err, domain.ErrCampaignNotFound):
 		httptransport.RespondError(c, http.StatusNotFound, "campaign_not_found", err.Error(), nil)
 	case errors.Is(err, domain.ErrCreativeNotFound):

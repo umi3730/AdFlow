@@ -1,0 +1,142 @@
+LATEST DETECTED DEADLOCK
+------------------------
+2026-09-08 14:20:37 132262432700096
+*** (1) TRANSACTION:
+TRANSACTION 2709440, ACTIVE 0 sec inserting
+mysql tables in use 1, locked 1
+LOCK WAIT 6 lock struct(s), heap size 1128, 3 row lock(s), undo log entries 2
+MySQL thread id 29458, OS thread handle 132261632489152, query id 6612368 localhost root update
+INSERT INTO event_outbox
+  (event_id, aggregate_key, payload, status, attempts, next_attempt_at)
+  VALUES ('impression-kc-01-confirm-1-50_1788848437641_84', 'kc-01-confirm-1-50_1788848437641_84', '{\"eventId\":\"impression-kc-01-confirm-1-50_1788848437641_84\",\"requestId\":\"kc-01-confirm-1-50_1788848437641_84\",\"campaignId\":\"841e9280255c8e300a85cb788c6a597d\",\"creativeId\":\"cabba42fc7a4d1e9fa796af8df390809\",\"type\":\"impression\",\"occurredAt\":\"2026-09-08T06:20:37.718724139Z\"}', 'SETTLING', 0, '2026-09-08 06:20:37.719036139')
+
+*** (1) HOLDS THE LOCK(S):
+RECORD LOCKS space id 411 page no 9 n bits 120 index PRIMARY of table `adflow_k6lab_20260908_062011`.`event_receipts` trx id 2709440 lock_mode X locks rec but not gap
+Record lock, heap no 44 PHYSICAL RECORD: n_fields 11; compact format; info bits 0
+ 0: len 30; hex 696d7072657373696f6e2d6b632d30312d636f6e6669726d2d312d35305f; asc impression-kc-01-confirm-1-50_; (total 46 bytes);
+ 1: len 6; hex 0000002957c0; asc    )W ;;
+ 2: len 7; hex 82000000bd013c; asc       <;;
+ 3: len 30; hex 6b632d30312d636f6e6669726d2d312d35305f3137383838343834333736; asc kc-01-confirm-1-50_17888484376; (total 35 bytes);
+ 4: len 30; hex 383431653932383032353563386533303061383563623738386336613539; asc 841e9280255c8e300a85cb788c6a59; (total 32 bytes);
+ 5: len 30; hex 636162626134326663376134643165396661373936616638646633393038; asc cabba42fc7a4d1e9fa796af8df3908; (total 32 bytes);
+ 6: len 10; hex 696d7072657373696f6e; asc impression;;
+ 7: len 8; hex 8000000000000000; asc         ;;
+ 8: len 7; hex 99bad065251c16; asc    e%  ;;
+ 9: len 8; hex 4143434550544544; asc ACCEPTED;;
+ 10: len 7; hex 99bad065251c16; asc    e%  ;;
+
+
+*** (1) WAITING FOR THIS LOCK TO BE GRANTED:
+RECORD LOCKS space id 412 page no 21 n bits 104 index PRIMARY of table `adflow_k6lab_20260908_062011`.`event_outbox` trx id 2709440 lock_mode X locks gap before rec insert intention waiting
+Record lock, heap no 28 PHYSICAL RECORD: n_fields 14; compact format; info bits 0
+ 0: len 30; hex 696d7072657373696f6e2d6b772d30312d636f6e6669726d2d312d35302d; asc impression-kw-01-confirm-1-50-; (total 31 bytes);
+ 1: len 6; hex 000000295295; asc    )R ;;
+ 2: len 7; hex 010000093126ac; asc     1& ;;
+ 3: len 20; hex 6b772d30312d636f6e6669726d2d312d35302d30; asc kw-01-confirm-1-50-0;;
+ 4: len 30; hex 00060001012e000400320007003900090042000a004c000a0056000a000c; asc      .   2   9   B   L   V    ; (total 258 bytes);
+ 5: len 9; hex 5055424c4953484544; asc PUBLISHED;;
+ 6: len 4; hex 00000000; asc     ;;
+ 7: len 7; hex 99bad0652210e0; asc    e"  ;;
+ 8: SQL NULL;
+ 9: SQL NULL;
+ 10: len 7; hex 99bad06522186a; asc    e" j;;
+ 11: SQL NULL;
+ 12: SQL NULL;
+ 13: len 7; hex 99bad065220d3e; asc    e" >;;
+
+
+*** (2) TRANSACTION:
+TRANSACTION 2709410, ACTIVE 0 sec fetching rows
+mysql tables in use 1, locked 1
+LOCK WAIT 23 lock struct(s), heap size 3488, 523 row lock(s), undo log entries 170
+MySQL thread id 29463, OS thread handle 132261592516288, query id 6612335 localhost root updating
+UPDATE event_receipts SET status = 'PUBLISHED' WHERE event_id IN ('click-kc-01-confirm-1-50_1788848436261_15','conversion-kc-01-confirm-1-50_1788848436261_15','click-kc-01-confirm-1-50_1788848436281_16','click-kc-01-confirm-1-50_1788848436301_17','conversion-kc-01-confirm-1-50_1788848436281_16','click-kc-01-confirm-1-50_1788848436321_18','conversion-kc-01-confirm-1-50_1788848436301_17','click-kc-01-confirm-1-50_1788848436381_21','click-kc-01-confirm-1-50_1788848436401_22','conversion-kc-01-confirm-1-50_1788848436321_18','click-kc-01-confirm-1-50_1788848436361_20','click-kc-01-confirm-1-50_1788848436441_24','click-kc-01-confirm-1-50_1788848436340_19','click-kc-01-confirm-1-50_1788848436432_23','conversion-kc-01-confirm-1-50_1788848436381_21','click-kc-01-confirm-1-50_1788848436461_25','conversion-kc-01-confirm-1-50_1788848436340_19','conversion-kc-01-confirm-1-50_1788848436401_22','conversion-kc-01-confirm-1-50_1788848436432_23','conversion-kc-01-confirm-1-50_1788848436361_20','conversion-kc-01-confirm-1-50_1788848436441_24','click-kc-01-confirm-1-50_1788848436481_26','conversion-kc-01-confirm-1-50_1788848436461_25','click-kc-01-confirm-1-50_1788848436501_27','click-kc-01-confirm-1-50_1788848436521_28','conversion-kc-01-confirm-1-50_1788848436481_26','conversion-kc-01-confirm-1-50_1788848436501_27','conversion-kc-01-confirm-1-50_1788848436521_28','click-kc-01-confirm-1-50_1788848436541_29','click-kc-01-confirm-1-50_1788848436561_30','click-kc-01-confirm-1-50_1788848436581_31','conversion-kc-01-confirm-1-50_1788848436541_29','click-kc-01-confirm-1-50_1788848436602_32','conversion-kc-01-confirm-1-50_1788848436561_30','conversion-kc-01-confirm-1-50_1788848436581_31','conversion-kc-01-confirm-1-50_1788848436602_32','click-kc-01-confirm-1-50_1788848436621_33','click-kc-01-confirm-1-50_1788848436642_34','conversion-kc-01-confirm-1-50_1788848436642_34','click-kc-01-confirm-1-50_1788848436661_35','conversion-kc-01-confirm-1-50_1788848436621_33','click-kc-01-confirm-1-50_1788848436680_36','conversion-kc-01-confirm-1-50_1788848436661_35','click-kc-01-confirm-1-50_1788848436701_37','click-kc-01-confirm-1-50_1788848436721_38','conversion-kc-01-confirm-1-50_1788848436680_36','conversion-kc-01-confirm-1-50_1788848436701_37','click-kc-01-confirm-1-50_1788848436740_39','conversion-kc-01-confirm-1-50_1788848436721_38','click-kc-01-confirm-1-50_1788848436761_40','click-kc-01-confirm-1-50_1788848436780_41','conversion-kc-01-confirm-1-50_1788848436780_41','click-kc-01-confirm-1-50_1788848436801_42','impression-kc-01-confirm-1-50_1788848436821_43','conversion-kc-01-confirm-1-50_1788848436740_39','conversion-kc-01-confirm-1-50_1788848436761_40','impression-kc-01-confirm-1-50_1788848436841_44','impression-kc-01-confirm-1-50_1788848436861_45','conversion-kc-01-confirm-1-50_1788848436801_42','impression-kc-01-confirm-1-50_1788848436881_46','impression-kc-01-confirm-1-50_1788848436901_47','impression-kc-01-confirm-1-50_1788848436920_48','impression-kc-01-confirm-1-50_17888
+
+*** (2) HOLDS THE LOCK(S):
+RECORD LOCKS space id 412 page no 21 n bits 104 index PRIMARY of table `adflow_k6lab_20260908_062011`.`event_outbox` trx id 2709410 lock_mode X
+Record lock, heap no 1 PHYSICAL RECORD: n_fields 1; compact format; info bits 0
+ 0: len 8; hex 73757072656d756d; asc supremum;;
+
+Record lock, heap no 16 PHYSICAL RECORD: n_fields 14; compact format; info bits 0
+ 0: len 30; hex 696d7072657373696f6e2d6b632d30312d636f6e6669726d2d312d35305f; asc impression-kc-01-confirm-1-50_; (total 46 bytes);
+ 1: len 6; hex 0000002957b0; asc    )W ;;
+ 2: len 7; hex 81000000b90173; asc       s;;
+ 3: len 30; hex 6b632d30312d636f6e6669726d2d312d35305f3137383838343834333736; asc kc-01-confirm-1-50_17888484376; (total 35 bytes);
+ 4: len 30; hex 0006001e012e000400320007003900090042000a004c000a0056000a000c; asc      .   2   9   B   L   V    ; (total 287 bytes);
+ 5: len 8; hex 534554544c494e47; asc SETTLING;;
+ 6: len 4; hex 00000000; asc     ;;
+ 7: len 7; hex 99bad065251aa4; asc    e%  ;;
+ 8: SQL NULL;
+ 9: SQL NULL;
+ 10: SQL NULL;
+ 11: SQL NULL;
+ 12: SQL NULL;
+ 13: len 7; hex 99bad065251aae; asc    e%  ;;
+
+Record lock, heap no 28 PHYSICAL RECORD: n_fields 14; compact format; info bits 0
+ 0: len 30; hex 696d7072657373696f6e2d6b772d30312d636f6e6669726d2d312d35302d; asc impression-kw-01-confirm-1-50-; (total 31 bytes);
+ 1: len 6; hex 000000295295; asc    )R ;;
+ 2: len 7; hex 010000093126ac; asc     1& ;;
+ 3: len 20; hex 6b772d30312d636f6e6669726d2d312d35302d30; asc kw-01-confirm-1-50-0;;
+ 4: len 30; hex 00060001012e000400320007003900090042000a004c000a0056000a000c; asc      .   2   9   B   L   V    ; (total 258 bytes);
+ 5: len 9; hex 5055424c4953484544; asc PUBLISHED;;
+ 6: len 4; hex 00000000; asc     ;;
+ 7: len 7; hex 99bad0652210e0; asc    e"  ;;
+ 8: SQL NULL;
+ 9: SQL NULL;
+ 10: len 7; hex 99bad06522186a; asc    e" j;;
+ 11: SQL NULL;
+ 12: SQL NULL;
+ 13: len 7; hex 99bad065220d3e; asc    e" >;;
+
+Record lock, heap no 29 PHYSICAL RECORD: n_fields 14; compact format; info bits 0
+ 0: len 30; hex 696d7072657373696f6e2d6b772d30312d636f6e6669726d2d312d35302d; asc impression-kw-01-confirm-1-50-; (total 31 bytes);
+ 1: len 6; hex 0000002952a5; asc    )R ;;
+ 2: len 7; hex 010000017028f5; asc     p( ;;
+ 3: len 20; hex 6b772d30312d636f6e6669726d2d312d35302d31; asc kw-01-confirm-1-50-1;;
+ 4: len 30; hex 00060000012e000400320007003900090042000a004c000a0056000a000c; asc      .   2   9   B   L   V    ; (total 257 bytes);
+ 5: len 9; hex 5055424c4953484544; asc PUBLISHED;;
+ 6: len 4; hex 00000000; asc     ;;
+ 7: len 7; hex 99bad065221950; asc    e" P;;
+ 8: SQL NULL;
+ 9: SQL NULL;
+ 10: len 7; hex 99bad0652304d8; asc    e#  ;;
+ 11: SQL NULL;
+ 12: SQL NULL;
+ 13: len 7; hex 99bad065220fd2; asc    e"  ;;
+
+Record lock, heap no 30 PHYSICAL RECORD: n_fields 14; compact format; info bits 0
+ 0: len 30; hex 696d7072657373696f6e2d6b772d30312d636f6e6669726d2d312d35302d; asc impression-kw-01-confirm-1-50-; (total 31 bytes);
+ 1: len 6; hex 0000002952a5; asc    )R ;;
+ 2: len 7; hex 010000017029c5; asc     p) ;;
+ 3: len 20; hex 6b772d30312d636f6e6669726d2d312d35302d32; asc kw-01-confirm-1-50-2;;
+ 4: len 30; hex 00060001012e000400320007003900090042000a004c000a0056000a000c; asc      .   2   9   B   L   V    ; (total 258 bytes);
+ 5: len 9; hex 5055424c4953484544; asc PUBLISHED;;
+ 6: len 4; hex 00000000; asc     ;;
+ 7: len 7; hex 99bad0652219c8; asc    e"  ;;
+ 8: SQL NULL;
+ 9: SQL NULL;
+ 10: len 7; hex 99bad0652304d8; asc    e#  ;;
+ 11: SQL NULL;
+ 12: SQL NULL;
+ 13: len 7; hex 99bad065221298; asc    e"  ;;
+
+
+*** (2) WAITING FOR THIS LOCK TO BE GRANTED:
+RECORD LOCKS space id 411 page no 9 n bits 144 index PRIMARY of table `adflow_k6lab_20260908_062011`.`event_receipts` trx id 2709410 lock_mode X waiting
+Record lock, heap no 44 PHYSICAL RECORD: n_fields 11; compact format; info bits 0
+ 0: len 30; hex 696d7072657373696f6e2d6b632d30312d636f6e6669726d2d312d35305f; asc impression-kc-01-confirm-1-50_; (total 46 bytes);
+ 1: len 6; hex 0000002957c0; asc    )W ;;
+ 2: len 7; hex 82000000bd013c; asc       <;;
+ 3: len 30; hex 6b632d30312d636f6e6669726d2d312d35305f3137383838343834333736; asc kc-01-confirm-1-50_17888484376; (total 35 bytes);
+ 4: len 30; hex 383431653932383032353563386533303061383563623738386336613539; asc 841e9280255c8e300a85cb788c6a59; (total 32 bytes);
+ 5: len 30; hex 636162626134326663376134643165396661373936616638646633393038; asc cabba42fc7a4d1e9fa796af8df3908; (total 32 bytes);
+ 6: len 10; hex 696d7072657373696f6e; asc impression;;
+ 7: len 8; hex 8000000000000000; asc         ;;
+ 8: len 7; hex 99bad065251c16; asc    e%  ;;
+ 9: len 8; hex 4143434550544544; asc ACCEPTED;;
+ 10: len 7; hex 99bad065251c16; asc    e%  ;;
+
+*** WE ROLL BACK TRANSACTION (1)
+------------
+

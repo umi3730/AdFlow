@@ -1,0 +1,9 @@
+[Unit]
+Description=AdFlow MySQL loopback entry (avoids Windows port 3306 conflict)
+
+[Socket]
+ListenStream=127.0.0.1:13306
+NoDelay=true
+
+[Install]
+WantedBy=sockets.target

@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'AdFlow · 实时广告决策控制台',
+  title: 'AdFlow · 广告决策工作台',
   description: '管理广告计划、素材、用户画像与实时广告决策。',
 };
 

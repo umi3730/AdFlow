@@ -5,6 +5,21 @@ import (
 	"time"
 )
 
+func TestKafkaRequiresRecoverableDecisionAndReservationStores(t *testing.T) {
+	for _, stores := range [][2]string{{"memory", "memory"}, {"mysql", "memory"}, {"memory", "redis"}, {"mysql", "redis"}} {
+		t.Run(stores[0]+"-"+stores[1], func(t *testing.T) {
+			t.Setenv("ADFLOW_EVENT_TRANSPORT", "kafka")
+			t.Setenv("ADFLOW_DECISION_STORE", stores[0])
+			t.Setenv("ADFLOW_RESERVATION_ADAPTER", stores[1])
+			_, err := Load()
+			supported := stores[0] == "mysql" && stores[1] == "redis"
+			if supported && err != nil || !supported && err == nil {
+				t.Fatalf("supported=%v err=%v", supported, err)
+			}
+		})
+	}
+}
+
 func TestLoadDefaults(t *testing.T) {
 	keys := []string{"ADFLOW_ENV", "ADFLOW_HTTP_ADDR", "ADFLOW_SHUTDOWN_TIMEOUT", "ADFLOW_DEPENDENCY_TIMEOUT", "ADFLOW_MYSQL_DSN", "ADFLOW_REDIS_ADDR", "ADFLOW_REDIS_PASSWORD", "ADFLOW_REDIS_DB"}
 	for _, key := range keys {
@@ -31,6 +46,28 @@ func TestLoadRejectsInvalidDuration(t *testing.T) {
 	t.Setenv("ADFLOW_SHUTDOWN_TIMEOUT", "never")
 	if _, err := Load(); err == nil {
 		t.Fatal("Load() expected an error")
+	}
+}
+
+func TestLoadDemoDataDefaultsAndExplicitOptOut(t *testing.T) {
+	for _, value := range []string{"", "true", "false"} {
+		t.Run("value="+value, func(t *testing.T) {
+			t.Setenv("ADFLOW_DEMO_DATA", value)
+			cfg, err := Load()
+			if err != nil {
+				t.Fatal(err)
+			}
+			if cfg.DemoData != (value != "false") {
+				t.Fatalf("DemoData=%v for %q", cfg.DemoData, value)
+			}
+		})
+	}
+}
+
+func TestLoadRejectsInvalidDemoDataBoolean(t *testing.T) {
+	t.Setenv("ADFLOW_DEMO_DATA", "sometimes")
+	if _, err := Load(); err == nil {
+		t.Fatal("Load() expected a demo-data configuration error")
 	}
 }
 

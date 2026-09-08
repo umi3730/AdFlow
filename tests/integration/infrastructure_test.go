@@ -76,13 +76,23 @@ func TestMySQLOutboxLeaseAllowsOneRelayOwner(t *testing.T) {
 	t.Cleanup(func() {
 		_, _ = db.Exec(`DELETE FROM event_outbox WHERE event_id = ?`, eventID)
 		_, _ = db.Exec(`DELETE FROM event_receipts WHERE event_id = ?`, eventID)
+		_, _ = db.Exec(`DELETE FROM event_settlements WHERE request_id = ?`, requestID)
 	})
 	event := eventdomain.Event{EventID: eventID, RequestID: requestID, CampaignID: newID(t), CreativeID: newID(t), Type: eventdomain.Impression, OccurredAt: time.Now().UTC()}
 	first := eventmysql.NewOutbox(db, "integration-relay-1")
 	second := eventmysql.NewOutbox(db, "integration-relay-2")
-	created, err := first.Enqueue(t.Context(), event)
+	created, err := first.EnqueueForSettlement(t.Context(), event, decisiondomain.Result{RequestID: requestID}, event.OccurredAt)
 	if err != nil || !created {
 		t.Fatalf("enqueue created=%v err=%v", created, err)
+	}
+	// This test isolates relay leasing. Settle its owned fixture through the
+	// queue contract; reservation settlement itself is covered separately.
+	settlements, err := first.ClaimSettlements(t.Context(), 1, time.Minute)
+	if err != nil || len(settlements) != 1 {
+		t.Fatalf("settlement claims=%v err=%v", settlements, err)
+	}
+	if err := first.CompleteSettlement(t.Context(), settlements[0]); err != nil {
+		t.Fatal(err)
 	}
 	now := time.Now().UTC()
 	type claim struct {
@@ -162,7 +172,11 @@ func TestRedisSlidingWindowAndBudgetReservationAreAtomic(t *testing.T) {
 		t.Fatal(err)
 	}
 	prefix := "adflow:it:" + newID(t)
-	t.Cleanup(func() { deletePrefix(context.Background(), client, prefix) })
+	t.Cleanup(func() {
+		if err := deletePrefix(context.Background(), client, prefix); err != nil {
+			t.Errorf("clean Redis test keys: %v", err)
+		}
+	})
 	// This test isolates atomic admission under concurrency. Expiry behavior has a
 	// deterministic unit test, so use a long window here to avoid host/WSL clock
 	// synchronization changing the time bucket while goroutines are in flight.
@@ -230,7 +244,9 @@ func TestRedisMySQLProfileCacheAsideReturnsWrittenProfile(t *testing.T) {
 	userID := "cache-user-" + newID(t)
 	prefix := "adflow:it:profile:" + newID(t)
 	t.Cleanup(func() {
-		deletePrefix(context.Background(), client, prefix)
+		if err := deletePrefix(context.Background(), client, prefix); err != nil {
+			t.Errorf("clean Redis test keys: %v", err)
+		}
 		_, _ = db.Exec(`DELETE FROM user_profiles WHERE user_id = ?`, userID)
 	})
 	store, err := decisionprofilecache.New(decisionmysql.NewProfileStore(db), client, prefix, time.Minute, 5*time.Second, 20*time.Millisecond, nil)
@@ -296,19 +312,26 @@ func newID(t testing.TB) string {
 	return hex.EncodeToString(value[:])
 }
 
-func deletePrefix(ctx context.Context, client *redis.Client, prefix string) {
+func deletePrefix(ctx context.Context, client *redis.Client, prefix string) error {
+	if prefix == "" {
+		return errors.New("refusing empty Redis cleanup prefix")
+	}
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
 	var cursor uint64
 	for {
 		keys, next, err := client.Scan(ctx, cursor, prefix+"*", 100).Result()
 		if err != nil {
-			return
+			return err
 		}
 		if len(keys) > 0 {
-			_ = client.Del(ctx, keys...).Err()
+			if err := client.Del(ctx, keys...).Err(); err != nil {
+				return err
+			}
 		}
 		cursor = next
 		if cursor == 0 {
-			return
+			return nil
 		}
 	}
 }

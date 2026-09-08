@@ -46,11 +46,20 @@ func (r *Repository) Save(ctx context.Context, campaign *domain.Campaign, expect
 				(campaign_id, version, targeting_rule, daily_budget, impression_cost, frequency_limit, published_at)
 			VALUES (?, ?, ?, ?, ?, ?, ?)
 			ON DUPLICATE KEY UPDATE campaign_id = VALUES(campaign_id)`,
-			campaign.ID(), version.Number(), targeting, version.DailyBudget().Amount(),
+			campaign.ID(), version.Number(), json.RawMessage(targeting), version.DailyBudget().Amount(),
 			version.ImpressionCost().Amount(), version.FrequencyLimit(), version.PublishedAt(),
 		)
 		if err != nil {
 			return err
+		}
+		if terms := version.Auction(); terms != nil {
+			payload, marshalErr := json.Marshal(terms)
+			if marshalErr != nil {
+				return marshalErr
+			}
+			if _, err := tx.ExecContext(ctx, `UPDATE campaign_versions SET auction_terms = ? WHERE campaign_id = ? AND version = ? AND auction_terms IS NULL`, json.RawMessage(payload), campaign.ID(), version.Number()); err != nil {
+				return err
+			}
 		}
 	}
 
@@ -76,12 +85,12 @@ func (r *Repository) Save(ctx context.Context, campaign *domain.Campaign, expect
 
 const campaignSelect = `
 	SELECT c.id, c.name, c.slot_id, c.start_at, c.end_at, c.status, c.revision,
-	       v.version, v.targeting_rule, v.daily_budget, v.impression_cost, v.frequency_limit, v.published_at
+	       v.version, v.targeting_rule, v.daily_budget, v.impression_cost, v.frequency_limit, v.published_at, v.auction_terms
 	FROM campaigns c
 	LEFT JOIN campaign_versions v ON v.campaign_id = c.id AND v.version = c.active_version`
 
 func (r *Repository) FindByID(ctx context.Context, id string) (*domain.Campaign, error) {
-	campaign, err := scanCampaign(r.db.QueryRowContext(ctx, campaignSelect+" WHERE c.id = ?", id))
+	campaign, err := scanCampaign(r.db.QueryRowContext(ctx, campaignSelect+" WHERE c.id = ? AND c.status <> 'DELETED'", id))
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, domain.ErrCampaignNotFound
 	}
@@ -90,7 +99,7 @@ func (r *Repository) FindByID(ctx context.Context, id string) (*domain.Campaign,
 
 func (r *Repository) List(ctx context.Context, filter domain.ListFilter) ([]*domain.Campaign, error) {
 	query := campaignSelect
-	conditions := make([]string, 0, 2)
+	conditions := []string{"c.status <> 'DELETED'"}
 	args := make([]any, 0, 4)
 	if filter.Status != nil {
 		conditions = append(conditions, "c.status = ?")
@@ -100,10 +109,18 @@ func (r *Repository) List(ctx context.Context, filter domain.ListFilter) ([]*dom
 		conditions = append(conditions, "c.slot_id = ?")
 		args = append(args, string(*filter.SlotID))
 	}
+	if filter.AfterID != nil {
+		conditions = append(conditions, "c.id > ?")
+		args = append(args, *filter.AfterID)
+	}
 	if len(conditions) > 0 {
 		query += " WHERE " + strings.Join(conditions, " AND ")
 	}
-	query += " ORDER BY c.created_at DESC, c.id ASC LIMIT ? OFFSET ?"
+	if filter.AfterID != nil {
+		query += " ORDER BY c.id ASC LIMIT ? OFFSET ?"
+	} else {
+		query += " ORDER BY c.created_at DESC, c.id ASC LIMIT ? OFFSET ?"
+	}
 	args = append(args, filter.Limit, filter.Offset)
 	rows, err := r.db.QueryContext(ctx, query, args...)
 	if err != nil {
@@ -133,13 +150,14 @@ func scanCampaign(scanner rowScanner) (*domain.Campaign, error) {
 		revision                              uint64
 		versionNumber                         sql.NullInt64
 		targetingJSON                         []byte
+		auctionJSON                           []byte
 		dailyBudget, impressionCost           sql.NullInt64
 		frequencyLimit                        sql.NullInt64
 		publishedAt                           sql.NullTime
 	)
 	if err := scanner.Scan(
 		&id, &nameValue, &slotValue, &startAt, &endAt, &statusValue, &revision,
-		&versionNumber, &targetingJSON, &dailyBudget, &impressionCost, &frequencyLimit, &publishedAt,
+		&versionNumber, &targetingJSON, &dailyBudget, &impressionCost, &frequencyLimit, &publishedAt, &auctionJSON,
 	); err != nil {
 		return nil, err
 	}
@@ -165,9 +183,15 @@ func scanCampaign(scanner rowScanner) (*domain.Campaign, error) {
 		if err != nil {
 			return nil, fmt.Errorf("rehydrate targeting rule: %w", err)
 		}
-		rehydrated, err := domain.NewVersion(
+		var auction *domain.AuctionTerms
+		if len(auctionJSON) > 0 {
+			if err := json.Unmarshal(auctionJSON, &auction); err != nil {
+				return nil, fmt.Errorf("decode auction: %w", err)
+			}
+		}
+		rehydrated, err := domain.NewAuctionVersion(
 			uint32(versionNumber.Int64), rule, dailyBudget.Int64, impressionCost.Int64,
-			uint32(frequencyLimit.Int64), publishedAt.Time,
+			uint32(frequencyLimit.Int64), publishedAt.Time, auction,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("rehydrate campaign version: %w", err)
@@ -210,7 +234,7 @@ const creativeSelect = `
 	FROM creatives`
 
 func (r *Repository) FindCreativeByID(ctx context.Context, id string) (*domain.Creative, error) {
-	creative, err := scanCreative(r.db.QueryRowContext(ctx, creativeSelect+" WHERE id = ?", id))
+	creative, err := scanCreative(r.db.QueryRowContext(ctx, creativeSelect+" WHERE id = ? AND status <> 'DELETED'", id))
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, domain.ErrCreativeNotFound
 	}
@@ -218,7 +242,7 @@ func (r *Repository) FindCreativeByID(ctx context.Context, id string) (*domain.C
 }
 
 func (r *Repository) ListCreativesByCampaign(ctx context.Context, campaignID string) ([]*domain.Creative, error) {
-	rows, err := r.db.QueryContext(ctx, creativeSelect+" WHERE campaign_id = ? ORDER BY created_at DESC, id ASC", campaignID)
+	rows, err := r.db.QueryContext(ctx, creativeSelect+" WHERE campaign_id = ? AND status <> 'DELETED' ORDER BY created_at DESC, id ASC", campaignID)
 	if err != nil {
 		return nil, err
 	}

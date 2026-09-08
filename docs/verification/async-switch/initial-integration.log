@@ -1,0 +1,10 @@
+=== RUN   TestMySQLOutboxLeaseAllowsOneRelayOwner
+    infrastructure_test.go:92: settlement claims=[] err=<nil>
+--- FAIL: TestMySQLOutboxLeaseAllowsOneRelayOwner (2.69s)
+=== RUN   TestSettlementRestartFencesOldWorkerAndReleasesDependentEvents
+redis: 2026/09/07 14:12:34 redis.go:478: auto mode fallback: maintnotifications disabled due to handshake error: ERR unknown subcommand 'maint_notifications'. Try CLIENT HELP.
+    settlement_recovery_test.go:58: claims=[] err=<nil>
+--- FAIL: TestSettlementRestartFencesOldWorkerAndReleasesDependentEvents (1.26s)
+FAIL
+FAIL	github.com/zhanghaiyang/adflow/tests/integration	4.168s
+FAIL

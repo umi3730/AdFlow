@@ -1,0 +1,56 @@
+{
+  "checkedAt": "2026-09-08T15:49:38.0602824+08:00",
+  "services": [
+    {
+      "port": 18080,
+      "ready": {
+        "ready": true,
+        "dependencies": {
+          "mysql": "up",
+          "redis": "up"
+        }
+      },
+      "processId": 22104,
+      "binary": "D:\\AdFlow\\work\\native-api\\adflow-api-20260908-154808-240.exe",
+      "sha256": "06eba8c153c1ea74ce108670bb2d7238025006680b0dd9707dada3ce9436a220",
+      "gateMetrics": [
+        "adflow_decision_async_backlog{queue=\"outbox\"} 0",
+        "adflow_decision_async_backlog{queue=\"settlements\"} 0",
+        "adflow_decision_backpressure_state{state=\"blocked\"} 0",
+        "adflow_decision_backpressure_state{state=\"open\"} 1",
+        "adflow_decision_backpressure_state{state=\"unavailable\"} 0"
+      ]
+    },
+    {
+      "port": 18081,
+      "ready": {
+        "ready": true,
+        "dependencies": {
+          "mysql": "up",
+          "redis": "up"
+        }
+      },
+      "processId": 36828,
+      "binary": "D:\\AdFlow\\work\\native-api\\adflow-api-20260908-154813-871.exe",
+      "sha256": "06eba8c153c1ea74ce108670bb2d7238025006680b0dd9707dada3ce9436a220",
+      "gateMetrics": [
+        "adflow_decision_async_backlog{queue=\"outbox\"} 0",
+        "adflow_decision_async_backlog{queue=\"settlements\"} 0",
+        "adflow_decision_backpressure_state{state=\"blocked\"} 0",
+        "adflow_decision_backpressure_state{state=\"open\"} 1",
+        "adflow_decision_backpressure_state{state=\"unavailable\"} 0"
+      ]
+    }
+  ],
+  "frontendStatus": 200,
+  "originalQueuePreserved": true,
+  "originalQueue": {
+    "settling": 0,
+    "reconcile": 42,
+    "pending": 0,
+    "processing": 0,
+    "published": 1426,
+    "deadLettered": 0
+  },
+  "migrationRequired": false
+}

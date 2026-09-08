@@ -1,0 +1,11 @@
+=== RUN   TestMySQLCampaignOptimisticConcurrency
+--- PASS: TestMySQLCampaignOptimisticConcurrency (1.27s)
+=== RUN   TestMySQLOutboxLeaseAllowsOneRelayOwner
+--- PASS: TestMySQLOutboxLeaseAllowsOneRelayOwner (0.10s)
+=== RUN   TestKafkaAckBeforeOutboxMarkProducesOneMetric
+--- PASS: TestKafkaAckBeforeOutboxMarkProducesOneMetric (0.28s)
+=== RUN   TestSettlementRestartFencesOldWorkerAndReleasesDependentEvents
+redis: 2026/09/07 14:36:55 redis.go:478: auto mode fallback: maintnotifications disabled due to handshake error: ERR unknown subcommand 'maint_notifications'. Try CLIENT HELP.
+--- PASS: TestSettlementRestartFencesOldWorkerAndReleasesDependentEvents (0.20s)
+PASS
+ok  	github.com/zhanghaiyang/adflow/tests/integration	2.079s

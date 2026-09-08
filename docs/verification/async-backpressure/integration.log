@@ -1,0 +1,8 @@
+=== RUN   TestBackpressureCountsActiveStatesAndCapsWithMySQL
+--- PASS: TestBackpressureCountsActiveStatesAndCapsWithMySQL (2.76s)
+=== RUN   TestBackpressureCountsActiveStatesAndCapsWithMySQL
+--- PASS: TestBackpressureCountsActiveStatesAndCapsWithMySQL (1.63s)
+=== RUN   TestBackpressureCountsActiveStatesAndCapsWithMySQL
+--- PASS: TestBackpressureCountsActiveStatesAndCapsWithMySQL (1.64s)
+PASS
+Removed isolated schema adflow_backpressure_it_20260908_154631

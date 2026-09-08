@@ -1,0 +1,34 @@
+package application
+
+import (
+	"errors"
+	decision "github.com/zhanghaiyang/adflow/internal/decision/domain"
+	eventmemory "github.com/zhanghaiyang/adflow/internal/event/adapter/memory"
+	"github.com/zhanghaiyang/adflow/internal/event/domain"
+	"testing"
+	"time"
+)
+
+func TestReviewUnsettledOutboxMustNotBeCountedAsSettledDelivery(t *testing.T) {
+	now := time.Now().UTC()
+	finder := fixedDecisionFinder{result: decision.Result{RequestID: "auction", Matched: true, CampaignID: "campaign", CreativeID: "creative", ReservationToken: "auction", ExpiresAt: now.Add(time.Minute)}}
+	outbox := &recordingOutbox{}
+	confirmer := &recordingConfirmer{budgetErr: errors.New("Redis confirmation unavailable")}
+	// Mirrors main.go: Kafka consumer processor has no reservation confirmer.
+	consumer := NewService(eventmemory.NewStore(), finder, nil)
+	ingestion := NewAsyncService(consumer, finder, outbox, confirmer)
+	_, err := ingestion.Record(t.Context(), domain.Event{EventID: "impression", RequestID: "auction", CampaignID: "campaign", CreativeID: "creative", Type: domain.Impression, OccurredAt: now})
+	if err == nil || len(outbox.events) != 1 {
+		t.Fatalf("setup: queued=%d err=%v", len(outbox.events), err)
+	}
+	if _, err := consumer.Record(t.Context(), outbox.events[0]); err != nil {
+		t.Fatal(err)
+	}
+	metrics, err := consumer.Metrics(t.Context(), "campaign")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if metrics.Impressions != 0 {
+		t.Fatalf("ingestion failed settlement, budget confirmation succeeded 0 times, but queued event produced impressions=%d without a retry", metrics.Impressions)
+	}
+}

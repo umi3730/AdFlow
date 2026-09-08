@@ -1,0 +1,111 @@
+package application
+
+import (
+	"context"
+	"errors"
+	"github.com/zhanghaiyang/adflow/internal/decision/adapter/memory"
+	"github.com/zhanghaiyang/adflow/internal/decision/domain"
+	"sync/atomic"
+	"testing"
+	"time"
+)
+
+// Review-only overlay tests. They assert desired safety and intentionally fail
+// on the reviewed implementation. They are not included in the normal CI suite.
+func TestReviewRequestIDMustBindUserAndSlot(t *testing.T) {
+	runtime := memory.NewRuntime()
+	_ = runtime.PutProfile(t.Context(), domain.NewProfile("alice", []string{"auction"}, nil))
+	engine := NewService(candidateProvider{[]domain.Candidate{bidCandidate("winner", "studio", 5)}}, runtime, runtime, runtime, runtime)
+	request := domain.Request{RequestID: "same-id", UserID: "alice", SlotID: "slot-a"}
+	first, err := engine.Decide(t.Context(), request)
+	if err != nil || !first.Matched {
+		t.Fatalf("setup: %+v %v", first, err)
+	}
+	for _, changed := range []domain.Request{{RequestID: "same-id", UserID: "bob", SlotID: "slot-a"}, {RequestID: "same-id", UserID: "alice", SlotID: "slot-b"}} {
+		got, err := engine.Decide(t.Context(), changed)
+		if !errors.Is(err, domain.ErrInvalidRequest) {
+			t.Errorf("request user=%s slot=%s returned stored user=%s slot=%s matched=%v error=%v", changed.UserID, changed.SlotID, got.UserID, got.SlotID, got.Matched, err)
+		}
+	}
+}
+
+type reviewBarrierStore struct {
+	*memory.Runtime
+	finds     atomic.Int32
+	saves     atomic.Int32
+	findReady chan struct{}
+	saveReady chan struct{}
+}
+
+func (s *reviewBarrierStore) FindDecision(ctx context.Context, id string) (domain.Result, bool, error) {
+	result, found, err := s.Runtime.FindDecision(ctx, id)
+	if count := s.finds.Add(1); count <= 2 {
+		if count == 2 {
+			close(s.findReady)
+		}
+		select {
+		case <-s.findReady:
+		case <-ctx.Done():
+			return domain.Result{}, false, ctx.Err()
+		}
+	}
+	return result, found, err
+}
+func (s *reviewBarrierStore) SaveDecision(ctx context.Context, result domain.Result) error {
+	if s.saves.Add(1) == 2 {
+		close(s.saveReady)
+	}
+	select {
+	case <-s.saveReady:
+	case <-ctx.Done():
+		return ctx.Err()
+	}
+	return s.Runtime.SaveDecision(ctx, result)
+}
+
+func TestReviewConcurrentDuplicateMustKeepWinnersReservations(t *testing.T) {
+	runtime := memory.NewRuntime()
+	_ = runtime.PutProfile(t.Context(), domain.NewProfile("user", []string{"auction"}, nil))
+	store := &reviewBarrierStore{Runtime: runtime, findReady: make(chan struct{}), saveReady: make(chan struct{})}
+	candidate := bidCandidate("winner", "studio", 5)
+	candidate.DailyBudgetFen = 5
+	candidate.FrequencyLimit = 1
+	engine := NewService(candidateProvider{[]domain.Candidate{candidate}}, runtime, runtime, runtime, store)
+	ctx, cancel := context.WithTimeout(t.Context(), 2*time.Second)
+	defer cancel()
+	now := time.Now().UTC()
+	type outcome struct {
+		result domain.Result
+		err    error
+	}
+	responses := make(chan outcome, 2)
+	for i := 0; i < 2; i++ {
+		go func(i int) {
+			result, err := engine.Decide(ctx, domain.Request{RequestID: "duplicate", UserID: "user", SlotID: "slot", Now: now.Add(time.Duration(i) * time.Millisecond)})
+			responses <- outcome{result, err}
+		}(i)
+	}
+	succeeded, failed := 0, 0
+	for i := 0; i < 2; i++ {
+		r := <-responses
+		if r.err != nil {
+			failed++
+		} else if r.result.Matched {
+			succeeded++
+		}
+	}
+	if succeeded != 1 || failed != 1 {
+		t.Fatalf("unexpected schedule successes=%d failures=%d", succeeded, failed)
+	}
+	_, budgetAvailable, err := runtime.ReserveBudget(t.Context(), "winner", 5, 5, "probe", now, time.Second)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, frequencyAvailable, err := runtime.ReserveFrequency(t.Context(), "user", "winner", "probe", 1, now, time.Second)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if budgetAvailable || frequencyAvailable {
+		t.Fatalf("successes=%d failures=%d; winner still exists but another full-budget request allowed=%v and another frequency slot allowed=%v", succeeded, failed, budgetAvailable, frequencyAvailable)
+	}
+}

@@ -1,0 +1,18 @@
+{
+  "memoryBytes": 34123063296,
+  "apiSHA256": "49c2797d935ceaa29684b4386b143499f8e255b24b049507a3fa3442512b7b63",
+  "capturedAt": "2026-09-08T15:03:43.5415124+08:00",
+  "sourceSHA256": {
+    "internal/event/adapter/mysql/outbox.go": "e2bc5827c9988345b573f1b80480a4d22828f139104952bdc0fecd038b4cd7f5",
+    "internal/event/application/settlement_worker.go": "170a1c79cf548e7667cb72e6da2718e99d1284992122fe40eb8e38021a525163",
+    "internal/config/config.go": "741b69c79784cde353f6fed108905e9b6148b70774b06560782ee417506e549f",
+    "internal/event/application/outbox_relay.go": "836dcc12c401a3be735471ce8548a42dfc296985ddd69cc34a9295c07ba061f1"
+  },
+  "cpu": [
+    {
+      "Name": "Intel(R) Core(TM) i7-8700 CPU @ 3.20GHz",
+      "NumberOfCores": 6,
+      "NumberOfLogicalProcessors": 12
+    }
+  ]
+}

@@ -2,6 +2,7 @@ package application
 
 import (
 	"context"
+	decisiondomain "github.com/zhanghaiyang/adflow/internal/decision/domain"
 	"strings"
 	"time"
 
@@ -11,11 +12,11 @@ import (
 type Service struct {
 	store     domain.Store
 	decisions domain.DecisionFinder
-	confirmer domain.ReservationConfirmer
+	confirmer decisiondomain.ImpressionSettler
 	now       func() time.Time
 }
 
-func NewService(store domain.Store, decisions domain.DecisionFinder, confirmer domain.ReservationConfirmer) *Service {
+func NewService(store domain.Store, decisions domain.DecisionFinder, confirmer decisiondomain.ImpressionSettler) *Service {
 	return &Service{store: store, decisions: decisions, confirmer: confirmer, now: time.Now}
 }
 
@@ -25,6 +26,9 @@ func (s *Service) Record(ctx context.Context, event domain.Event) (bool, error) 
 	if event.EventID == "" || event.RequestID == "" || (event.Type != domain.Impression && event.Type != domain.Click && event.Type != domain.Conversion) || event.ValueFen < 0 {
 		return false, domain.ErrInvalidEvent
 	}
+	if s.confirmer != nil {
+		return s.recordSync(ctx, event)
+	}
 	decision, found, err := s.decisions.FindDecision(ctx, event.RequestID)
 	if err != nil {
 		return false, err
@@ -32,10 +36,12 @@ func (s *Service) Record(ctx context.Context, event domain.Event) (bool, error) 
 	if !found || !decision.Matched || decision.CampaignID != event.CampaignID || decision.CreativeID != event.CreativeID {
 		return false, domain.ErrDecisionNotFound
 	}
+	// This is the trusted consumer path. Ingress validates attribution before
+	// enqueue, and RecordSettledBatch verifies the durable accepted payload.
 	if event.OccurredAt.IsZero() {
 		event.OccurredAt = s.now().UTC()
 	}
-	if !decision.ExpiresAt.IsZero() && event.OccurredAt.After(decision.ExpiresAt) {
+	if event.Type == domain.Impression && !decision.ExpiresAt.IsZero() && event.OccurredAt.After(decision.ExpiresAt) {
 		return false, domain.ErrDecisionExpired
 	}
 	if event.Type != domain.Impression {
@@ -51,19 +57,19 @@ func (s *Service) Record(ctx context.Context, event domain.Event) (bool, error) 
 	if err != nil {
 		return false, err
 	}
-	if event.Type == domain.Impression && s.confirmer != nil {
-		if err := s.confirmer.ConfirmBudget(ctx, decision.ReservationToken, event.OccurredAt); err != nil {
-			return false, err
-		}
-		if err := s.confirmer.ConfirmFrequency(ctx, decision.ReservationToken, event.OccurredAt); err != nil {
-			return false, err
-		}
-	}
 	return created, nil
 }
 
 func (s *Service) RecordBatch(ctx context.Context, events []domain.Event) error {
 	if len(events) == 0 {
+		return nil
+	}
+	if s.confirmer != nil {
+		for _, event := range events {
+			if _, err := s.Record(ctx, event); err != nil {
+				return err
+			}
+		}
 		return nil
 	}
 	batchStore, storeSupportsBatch := s.store.(domain.BatchStore)
@@ -108,7 +114,7 @@ func (s *Service) RecordBatch(ctx context.Context, events []domain.Event) error 
 		if !found || !decision.Matched || decision.CampaignID != event.CampaignID || decision.CreativeID != event.CreativeID {
 			return domain.ErrDecisionNotFound
 		}
-		if !decision.ExpiresAt.IsZero() && event.OccurredAt.After(decision.ExpiresAt) {
+		if event.Type == domain.Impression && !decision.ExpiresAt.IsZero() && event.OccurredAt.After(decision.ExpiresAt) {
 			return domain.ErrDecisionExpired
 		}
 		if event.Type != domain.Impression && !seenImpression[event.RequestID] && !hasImpression[event.RequestID] {
@@ -120,20 +126,6 @@ func (s *Service) RecordBatch(ctx context.Context, events []domain.Event) error 
 	}
 	if _, err := batchStore.RecordBatch(ctx, prepared); err != nil {
 		return err
-	}
-	if s.confirmer != nil {
-		for _, event := range prepared {
-			if event.Type != domain.Impression {
-				continue
-			}
-			decision := decisions[event.RequestID]
-			if err := s.confirmer.ConfirmBudget(ctx, decision.ReservationToken, event.OccurredAt); err != nil {
-				return err
-			}
-			if err := s.confirmer.ConfirmFrequency(ctx, decision.ReservationToken, event.OccurredAt); err != nil {
-				return err
-			}
-		}
 	}
 	return nil
 }

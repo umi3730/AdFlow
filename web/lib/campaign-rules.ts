@@ -1,9 +1,11 @@
 import type { Campaign, Condition } from './api';
+import { validateFieldCondition } from './profile-options.ts';
 
 export const ruleGroups = ['all', 'any', 'none'] as const;
 export type RuleGroup = (typeof ruleGroups)[number];
 export type Targeting = Record<RuleGroup, Condition[]>;
 export interface RuleEditorValue {
+  auction?: { advertiserId: string; advertiserName: string; bidYuan: string };
   targeting: Targeting;
   dailyBudgetYuan: string;
   impressionCostYuan: string;
@@ -13,10 +15,19 @@ export interface RuleEditorValue {
 export function editorFromCampaign(campaign: Campaign): RuleEditorValue {
   const version = campaign.activeVersion;
   return {
+    ...(version?.auction
+      ? {
+          auction: {
+            advertiserId: version.auction.advertiserId,
+            advertiserName: version.auction.advertiserName,
+            bidYuan: (version.auction.bidFen / 100).toFixed(2),
+          },
+        }
+      : {}),
     targeting: {
-      all: (version?.targeting.all ?? (version ? [] : [{ tag: 'anime' }])).map(
-        (item) => ({ ...item }),
-      ),
+      all: (
+        version?.targeting.all ?? (version ? [] : [{ tag: 'tech_interest' }])
+      ).map((item) => ({ ...item })),
       any: (version?.targeting.any ?? []).map((item) => ({ ...item })),
       none: (version?.targeting.none ?? []).map((item) => ({ ...item })),
     },
@@ -62,14 +73,29 @@ export function compileRuleDraft(value: RuleEditorValue) {
       ) {
         throw new Error('字段条件需要完整的字段名、比较方式和值');
       }
-      if ((op === 'gte' || op === 'lte') && !Number.isFinite(Number(actual))) {
-        throw new Error('大于等于 / 小于等于条件需要填写数值');
-      }
+      validateFieldCondition(field, op, actual);
       return { field, op, value: actual };
     });
   }
   const dailyBudgetFen = yuanToFen(value.dailyBudgetYuan, '日预算');
-  const impressionCostFen = yuanToFen(value.impressionCostYuan, '单次曝光成本');
+  let auction;
+  if (value.auction) {
+    const advertiserId = value.auction.advertiserId.trim().toLowerCase();
+    const advertiserName = value.auction.advertiserName.trim();
+    const bidFen = yuanToFen(value.auction.bidYuan, '单次曝光出价');
+    if (!/^[a-z0-9][a-z0-9_-]{0,63}$/.test(advertiserId))
+      throw new Error('广告主标识需为 1～64 位小写字母、数字、下划线或短横线');
+    if (
+      Array.from(advertiserName).length < 2 ||
+      Array.from(advertiserName).length > 128
+    )
+      throw new Error('广告主名称需为 2～128 个字符');
+    if (bidFen > 1000000 || bidFen > dailyBudgetFen)
+      throw new Error('单次出价不能超过日预算或 ¥10000');
+    auction = { advertiserId, advertiserName, bidFen };
+  }
+  const impressionCostFen =
+    auction?.bidFen ?? yuanToFen(value.impressionCostYuan, '单次曝光成本');
   if (dailyBudgetFen < impressionCostFen)
     throw new Error('日预算不能低于单次曝光成本');
   if (!/^\d+$/.test(value.frequencyLimit))
@@ -77,5 +103,30 @@ export function compileRuleDraft(value: RuleEditorValue) {
   const frequencyLimit = Number(value.frequencyLimit);
   if (frequencyLimit < 1 || frequencyLimit > 100)
     throw new Error('每日频控应为 1～100 的整数');
-  return { targeting, dailyBudgetFen, impressionCostFen, frequencyLimit };
+  return {
+    targeting,
+    dailyBudgetFen,
+    impressionCostFen,
+    frequencyLimit,
+    ...(auction ? { auction } : {}),
+  };
+}
+
+export function prepareAgentPlan(value: RuleEditorValue): RuleEditorValue {
+  const validated = compileRuleDraft(value);
+  return {
+    targeting: validated.targeting,
+    ...(validated.auction
+      ? {
+          auction: {
+            advertiserId: validated.auction.advertiserId,
+            advertiserName: validated.auction.advertiserName,
+            bidYuan: (validated.auction.bidFen / 100).toFixed(2),
+          },
+        }
+      : {}),
+    dailyBudgetYuan: (validated.dailyBudgetFen / 100).toFixed(2),
+    impressionCostYuan: (validated.impressionCostFen / 100).toFixed(2),
+    frequencyLimit: String(validated.frequencyLimit),
+  };
 }

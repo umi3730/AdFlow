@@ -1,0 +1,24 @@
+{
+  "sourceHashesMatch": true,
+  "rawSHA256": "d39cb19d48296d2cb961ea7026103d9be5dd54e64f795fdc5c3c0fd6a37d9456",
+  "datasets": [
+    {
+      "rows": 100000,
+      "pairedRequests": true,
+      "rowsVerified": true,
+      "percentilesRecomputed": true,
+      "indexVisibilityVerified": true,
+      "samples": 240,
+      "schemaDropped": true
+    },
+    {
+      "rows": 1000000,
+      "pairedRequests": true,
+      "rowsVerified": true,
+      "percentilesRecomputed": true,
+      "indexVisibilityVerified": true,
+      "samples": 240,
+      "schemaDropped": true
+    }
+  ]
+}

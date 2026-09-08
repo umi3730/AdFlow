@@ -1,0 +1,377 @@
+{
+  "kind": "browser-business-simulation",
+  "schemaVersion": 2,
+  "exportedAt": "2026-09-07T06:40:19.309Z",
+  "startedAt": "2026-09-07T06:38:25.387Z",
+  "config": {
+    "mode": "concurrency",
+    "maxRounds": 3000,
+    "runId": "sim-1788763105387-f59121",
+    "userIds": [
+      "demo-user-match",
+      "demo-user-excluded",
+      "demo-user-miss"
+    ],
+    "slotId": "game-home-banner",
+    "concurrency": 100,
+    "seconds": 30,
+    "timeoutMs": 5000,
+    "impressions": true,
+    "behavior": {
+      "clickPercent": 100,
+      "conversionPercent": 100,
+      "minValueFen": 500,
+      "maxValueFen": 500
+    }
+  },
+  "context": {
+    "poolSource": "saved",
+    "profiles": [
+      {
+        "userId": "demo-user-match",
+        "tags": [
+          "adflow_demo",
+          "gaming_interest"
+        ],
+        "fields": {
+          "device": "android",
+          "score": "85"
+        }
+      },
+      {
+        "userId": "demo-user-excluded",
+        "tags": [
+          "adflow_demo",
+          "demo_excluded"
+        ],
+        "fields": {
+          "device": "ios",
+          "score": "80"
+        }
+      },
+      {
+        "userId": "demo-user-miss",
+        "tags": [
+          "tech_interest"
+        ],
+        "fields": {
+          "device": "android",
+          "score": "60"
+        }
+      }
+    ],
+    "campaigns": [
+      {
+        "auctionSupported": true,
+        "id": "demo-auction-3",
+        "name": "竞价演示 · 北辰科技",
+        "slotId": "game-home-banner",
+        "startAt": "2026-09-07T02:45:24.431Z",
+        "endAt": "2099-12-31T23:59:59Z",
+        "status": "ACTIVE",
+        "revision": 2,
+        "activeVersion": {
+          "auction": {
+            "advertiserId": "studio-3",
+            "advertiserName": "北辰科技",
+            "bidFen": 3
+          },
+          "number": 1,
+          "targeting": {
+            "all": [
+              {
+                "tag": "auction_demo"
+              }
+            ]
+          },
+          "dailyBudgetFen": 10000,
+          "impressionCostFen": 3,
+          "frequencyLimit": 100,
+          "publishedAt": "2026-09-07T03:45:24.431Z"
+        }
+      },
+      {
+        "auctionSupported": true,
+        "id": "demo-auction-2",
+        "name": "竞价演示 · 风铃互动",
+        "slotId": "game-home-banner",
+        "startAt": "2026-09-07T02:45:24.431Z",
+        "endAt": "2099-12-31T23:59:59Z",
+        "status": "ACTIVE",
+        "revision": 4,
+        "activeVersion": {
+          "auction": {
+            "advertiserId": "studio-2",
+            "advertiserName": "风铃互动",
+            "bidFen": 5
+          },
+          "number": 1,
+          "targeting": {
+            "all": [
+              {
+                "tag": "auction_demo"
+              }
+            ]
+          },
+          "dailyBudgetFen": 10000,
+          "impressionCostFen": 5,
+          "frequencyLimit": 100,
+          "publishedAt": "2026-09-07T03:45:24.431Z"
+        }
+      },
+      {
+        "auctionSupported": true,
+        "id": "demo-auction-1",
+        "name": "竞价演示 · 星河游戏",
+        "slotId": "game-home-banner",
+        "startAt": "2026-09-07T02:45:24.431Z",
+        "endAt": "2099-12-31T23:59:59Z",
+        "status": "ACTIVE",
+        "revision": 2,
+        "activeVersion": {
+          "auction": {
+            "advertiserId": "studio-1",
+            "advertiserName": "星河游戏",
+            "bidFen": 2
+          },
+          "number": 1,
+          "targeting": {
+            "all": [
+              {
+                "tag": "auction_demo"
+              }
+            ]
+          },
+          "dailyBudgetFen": 10000,
+          "impressionCostFen": 2,
+          "frequencyLimit": 100,
+          "publishedAt": "2026-09-07T03:45:24.431Z"
+        }
+      },
+      {
+        "auctionSupported": true,
+        "id": "demo-campaign-v1",
+        "name": "演示计划 · 游戏首页",
+        "slotId": "game-home-banner",
+        "startAt": "2026-09-06T03:45:24.43Z",
+        "endAt": "2099-12-31T23:59:59Z",
+        "status": "ACTIVE",
+        "revision": 2,
+        "activeVersion": {
+          "number": 1,
+          "targeting": {
+            "all": [
+              {
+                "tag": "adflow_demo"
+              }
+            ],
+            "none": [
+              {
+                "tag": "demo_excluded"
+              }
+            ]
+          },
+          "dailyBudgetFen": 10000,
+          "impressionCostFen": 1,
+          "frequencyLimit": 100,
+          "publishedAt": "2026-09-07T03:45:24.43Z"
+        }
+      },
+      {
+        "auctionSupported": true,
+        "id": "072ca2f6e91114d4934c37e2d59f4802",
+        "name": "测试计划 001",
+        "slotId": "game-home-banner",
+        "startAt": "2026-09-07T02:51:17.265Z",
+        "endAt": "2026-09-14T02:51:17.265Z",
+        "status": "ACTIVE",
+        "revision": 2,
+        "activeVersion": {
+          "number": 1,
+          "targeting": {
+            "all": [
+              {
+                "field": "device",
+                "op": "eq",
+                "value": "android"
+              },
+              {
+                "field": "age",
+                "op": "gte",
+                "value": "18"
+              },
+              {
+                "field": "age",
+                "op": "lte",
+                "value": "35"
+              }
+            ],
+            "any": [
+              {
+                "tag": "tech_interest"
+              },
+              {
+                "tag": "gaming_interest"
+              }
+            ]
+          },
+          "dailyBudgetFen": 10000000,
+          "impressionCostFen": 100000,
+          "frequencyLimit": 3,
+          "publishedAt": "2026-09-07T02:51:31.184Z"
+        }
+      }
+    ]
+  },
+  "result": {
+    "runId": "sim-1788763105387-f59121",
+    "status": "completed",
+    "stopReason": "round_limit",
+    "elapsedMs": 26695.5,
+    "started": 3000,
+    "successful": 3000,
+    "failed": 0,
+    "canceled": 0,
+    "inFlight": 0,
+    "peakInFlight": 100,
+    "matched": 95,
+    "noAd": 2905,
+    "httpRequests": 3285,
+    "impressionsAccepted": 95,
+    "clicksAccepted": 95,
+    "conversionsAccepted": 95,
+    "valueFenAccepted": 47500,
+    "timeouts": 0,
+    "reasons": {
+      "targeting_miss": 2000,
+      "frequency_capped": 905
+    },
+    "errors": {},
+    "p50Ms": 831.5,
+    "p95Ms": 962.3000000007451,
+    "p99Ms": 2960.800000000745,
+    "recent": [
+      {
+        "requestId": "sim-1788763105387-f59121-002999",
+        "userId": "demo-user-excluded",
+        "outcome": "未命中：targeting_miss",
+        "durationMs": 936.3000000007451
+      },
+      {
+        "requestId": "sim-1788763105387-f59121-003000",
+        "userId": "demo-user-miss",
+        "outcome": "未命中：targeting_miss",
+        "durationMs": 922.1000000014901
+      },
+      {
+        "requestId": "sim-1788763105387-f59121-002998",
+        "userId": "demo-user-match",
+        "outcome": "未命中：frequency_capped",
+        "durationMs": 930
+      },
+      {
+        "requestId": "sim-1788763105387-f59121-002995",
+        "userId": "demo-user-match",
+        "outcome": "未命中：frequency_capped",
+        "durationMs": 933
+      },
+      {
+        "requestId": "sim-1788763105387-f59121-002996",
+        "userId": "demo-user-excluded",
+        "outcome": "未命中：targeting_miss",
+        "durationMs": 906
+      },
+      {
+        "requestId": "sim-1788763105387-f59121-002997",
+        "userId": "demo-user-miss",
+        "outcome": "未命中：targeting_miss",
+        "durationMs": 903.2000000029802
+      },
+      {
+        "requestId": "sim-1788763105387-f59121-002994",
+        "userId": "demo-user-miss",
+        "outcome": "未命中：targeting_miss",
+        "durationMs": 935.3999999985099
+      },
+      {
+        "requestId": "sim-1788763105387-f59121-002993",
+        "userId": "demo-user-excluded",
+        "outcome": "未命中：targeting_miss",
+        "durationMs": 937.8999999985099
+      },
+      {
+        "requestId": "sim-1788763105387-f59121-002990",
+        "userId": "demo-user-excluded",
+        "outcome": "未命中：targeting_miss",
+        "durationMs": 913.3999999985099
+      },
+      {
+        "requestId": "sim-1788763105387-f59121-002992",
+        "userId": "demo-user-match",
+        "outcome": "未命中：frequency_capped",
+        "durationMs": 906.1999999992549
+      },
+      {
+        "requestId": "sim-1788763105387-f59121-002988",
+        "userId": "demo-user-miss",
+        "outcome": "未命中：targeting_miss",
+        "durationMs": 920.5
+      },
+      {
+        "requestId": "sim-1788763105387-f59121-002991",
+        "userId": "demo-user-miss",
+        "outcome": "未命中：targeting_miss",
+        "durationMs": 907.6999999992549
+      },
+      {
+        "requestId": "sim-1788763105387-f59121-002989",
+        "userId": "demo-user-match",
+        "outcome": "未命中：frequency_capped",
+        "durationMs": 916
+      },
+      {
+        "requestId": "sim-1788763105387-f59121-002987",
+        "userId": "demo-user-excluded",
+        "outcome": "未命中：targeting_miss",
+        "durationMs": 911.8999999985099
+      },
+      {
+        "requestId": "sim-1788763105387-f59121-002986",
+        "userId": "demo-user-match",
+        "outcome": "未命中：frequency_capped",
+        "durationMs": 871.5999999977648
+      },
+      {
+        "requestId": "sim-1788763105387-f59121-002985",
+        "userId": "demo-user-miss",
+        "outcome": "未命中：targeting_miss",
+        "durationMs": 871
+      },
+      {
+        "requestId": "sim-1788763105387-f59121-002982",
+        "userId": "demo-user-miss",
+        "outcome": "未命中：targeting_miss",
+        "durationMs": 933.3999999985099
+      },
+      {
+        "requestId": "sim-1788763105387-f59121-002981",
+        "userId": "demo-user-excluded",
+        "outcome": "未命中：targeting_miss",
+        "durationMs": 935.3000000007451
+      },
+      {
+        "requestId": "sim-1788763105387-f59121-002983",
+        "userId": "demo-user-match",
+        "outcome": "未命中：frequency_capped",
+        "durationMs": 931.2999999970198
+      },
+      {
+        "requestId": "sim-1788763105387-f59121-002984",
+        "userId": "demo-user-excluded",
+        "outcome": "未命中：targeting_miss",
+        "durationMs": 865.5
+      }
+    ]
+  },
+  "note": "Browser-side timing includes network and selected impression/click/conversion events. Conversion values are synthetic, not real revenue. Accepted events may still await asynchronous processing. Not a server capacity benchmark. No-Ad is not an HTTP error. Stop does not roll back accepted requests."
+}

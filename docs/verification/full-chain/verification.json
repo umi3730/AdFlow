@@ -1,0 +1,141 @@
+{
+  "verified": true,
+  "rawSHA256": "3df54220e18ad19ba37f4f63ea4d965b5d19438f0b9062b76c930460b9e29ad9",
+  "totals": {
+    "allFlows": 1476,
+    "measuredFlows": 1440,
+    "settledImpressions": 1476,
+    "processedEvents": 4428,
+    "spentFen": 7380
+  },
+  "pooled": [
+    {
+      "scenario": "healthy_history",
+      "indexMode": "invisible",
+      "decisionMs": {
+        "n": 360,
+        "median": 29.239899,
+        "p95": 48.085905,
+        "p99": 64.841295,
+        "max": 198.048221
+      },
+      "allEventsAcceptedMs": {
+        "n": 360,
+        "median": 79.45506549999999,
+        "p95": 134.49849,
+        "p99": 177.226618,
+        "max": 302.221731
+      },
+      "allEventsProcessedMs": {
+        "n": 360,
+        "median": 983.383677,
+        "p95": 1199.389937,
+        "p99": 1214.117256,
+        "max": 1284.983863
+      },
+      "committedObservedMs": {
+        "n": 360,
+        "median": 1036.8220335,
+        "p95": 1280.648253,
+        "p99": 1345.489294,
+        "max": 1365.166341
+      }
+    },
+    {
+      "scenario": "healthy_history",
+      "indexMode": "visible",
+      "decisionMs": {
+        "n": 360,
+        "median": 31.175763500000002,
+        "p95": 50.615515,
+        "p99": 76.613823,
+        "max": 233.243013
+      },
+      "allEventsAcceptedMs": {
+        "n": 360,
+        "median": 83.35227549999999,
+        "p95": 133.45894,
+        "p99": 175.808253,
+        "max": 315.137118
+      },
+      "allEventsProcessedMs": {
+        "n": 360,
+        "median": 933.4337525000001,
+        "p95": 1214.3818,
+        "p99": 1233.343247,
+        "max": 1240.58804
+      },
+      "committedObservedMs": {
+        "n": 360,
+        "median": 1041.5103330000002,
+        "p95": 1300.151477,
+        "p99": 1355.920457,
+        "max": 1465.20168
+      }
+    },
+    {
+      "scenario": "stranded_backlog",
+      "indexMode": "invisible",
+      "decisionMs": {
+        "n": 360,
+        "median": 47.153437499999995,
+        "p95": 104.007708,
+        "p99": 140.300409,
+        "max": 165.598514
+      },
+      "allEventsAcceptedMs": {
+        "n": 360,
+        "median": 134.55620299999998,
+        "p95": 231.937418,
+        "p99": 292.836219,
+        "max": 336.797729
+      },
+      "allEventsProcessedMs": {
+        "n": 360,
+        "median": 11245.593173000001,
+        "p95": 17734.541527,
+        "p99": 18234.623293,
+        "max": 18535.34468
+      },
+      "committedObservedMs": {
+        "n": 360,
+        "median": 11322.9336315,
+        "p95": 17822.431165,
+        "p99": 18264.048054,
+        "max": 18574.857195
+      }
+    },
+    {
+      "scenario": "stranded_backlog",
+      "indexMode": "visible",
+      "decisionMs": {
+        "n": 360,
+        "median": 26.074498499999997,
+        "p95": 45.143923,
+        "p99": 58.339554,
+        "max": 69.399723
+      },
+      "allEventsAcceptedMs": {
+        "n": 360,
+        "median": 76.3838645,
+        "p95": 115.438975,
+        "p99": 138.106533,
+        "max": 167.610038
+      },
+      "allEventsProcessedMs": {
+        "n": 360,
+        "median": 954.779404,
+        "p95": 1197.510276,
+        "p99": 1258.730012,
+        "max": 1259.730732
+      },
+      "committedObservedMs": {
+        "n": 360,
+        "median": 1027.0129590000001,
+        "p95": 1288.19849,
+        "p99": 1360.134944,
+        "max": 1387.375877
+      }
+    }
+  ]
+}

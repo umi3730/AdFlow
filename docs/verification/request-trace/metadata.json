@@ -1,0 +1,46 @@
+{
+  "at": "2026-09-07T10:01:00.1505491Z",
+  "goTopLevelPassed": 239,
+  "frontendPassed": 107,
+  "deployedPorts": [
+    18080,
+    18081
+  ],
+  "newMigrations": false,
+  "mysqlInspectionPassed": true,
+  "browser": {
+    "batchResult": true,
+    "singleResult": true,
+    "viewportRestored": true,
+    "desktopDialogWidth": 768,
+    "narrowViewport": 520,
+    "manualLookup": true,
+    "narrowDialogWidth": 468
+  },
+  "sources": [
+    {
+      "path": "internal/event/adapter/mysql/trace.go",
+      "sha256": "2A716900B8737AA81AC05C4717217019549200F0BD695FB0DC350FB88FAAA488"
+    },
+    {
+      "path": "internal/event/adapter/memory/trace.go",
+      "sha256": "7530CEC0D7B21F5DF2E6C687A4BC08D2B951B9384EA8B8F1CA7FE206C38DF1D2"
+    },
+    {
+      "path": "internal/operations/application/trace.go",
+      "sha256": "1278D109D19BB75AA182ED28ADD683CFBAA1465EE6FB9AAEE8A7228898962CCF"
+    },
+    {
+      "path": "internal/operations/adapter/http/trace.go",
+      "sha256": "F301A6CF39B713CDB524F57AFBBBFD21E672ADDFD13B1FB6264B25B0557E71C7"
+    },
+    {
+      "path": "web/components/request-trace-dialog.tsx",
+      "sha256": "28CD2847790E4C113DF1A8A3EDF3E68DF910DE6CCD3BB67A5FDD62D3FC56FD92"
+    },
+    {
+      "path": "web/lib/request-trace.ts",
+      "sha256": "18E1783B38F04BF1C6026498245E4B91E95917D41DDB3D5C773EEA3F2731669A"
+    }
+  ]
+}

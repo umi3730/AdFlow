@@ -1,0 +1,9 @@
+Decision capacity: unique requests, real matched auction, no event calls
+http_reqs: {"type":"counter","contains":"default","values":{"count":29964,"rate":497.4866009556989}}
+http_req_duration: {"type":"trend","contains":"time","values":{"avg":121.91671850550698,"med":81.13972000000001,"p(95)":381.3841900499997,"p(99)":662.1168633699997,"max":1521.346426},"thresholds":{"p(95)<300":{"ok":false}}}
+decision_errors: {"type":"rate","contains":"default","values":{"rate":0.00236951007876118,"passes":71,"fails":29893},"thresholds":{"rate<0.001":{"ok":false}}}
+decision_http_errors: {"type":"counter","contains":"default","values":{"rate":1.1787995150131698,"count":71}}
+matched_decisions: {"type":"counter","contains":"default","values":{"count":29893,"rate":496.30780144068575},"thresholds":{"count>0":{"ok":true}}}
+dropped_iterations: {"contains":"default","values":{"count":37,"rate":0.614303972612497},"thresholds":{"count==0":{"ok":false}},"type":"counter"}
+vus: {"type":"gauge","contains":"default","values":{"value":154,"min":27,"max":251}}
+time="2026-09-08T12:15:40+08:00" level=error msg="thresholds on metrics 'decision_errors, dropped_iterations, http_req_duration' have been crossed"

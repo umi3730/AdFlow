@@ -1,0 +1,9 @@
+Profile capacity probe
+http_reqs: {"type":"counter","contains":"default","values":{"rate":1499.540342112625,"count":89977}}
+http_req_duration: {"type":"trend","contains":"time","values":{"max":322.1675,"avg":21.495299280760577,"med":1.9757,"p(95)":105.3814606,"p(99)":159.68510400000014},"thresholds":{"p(95)<100":{"ok":false}}}
+http_req_failed: {"contains":"default","values":{"rate":0,"passes":0,"fails":89977},"type":"rate"}
+profile_errors: {"type":"rate","contains":"default","values":{"rate":0,"passes":0,"fails":89977},"thresholds":{"rate<0.001":{"ok":true}}}
+valid_profiles: {"type":"counter","contains":"default","values":{"rate":1499.540342112625,"count":89977},"thresholds":{"count>0":{"ok":true}}}
+dropped_iterations: {"thresholds":{"count==0":{"ok":false}},"type":"counter","contains":"default","values":{"count":24,"rate":0.3999796415828823}}
+vus: {"type":"gauge","contains":"default","values":{"value":2,"min":1,"max":211}}
+time="2026-09-08T11:51:42+08:00" level=error msg="thresholds on metrics 'dropped_iterations, http_req_duration' have been crossed"

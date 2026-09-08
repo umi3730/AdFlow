@@ -1,0 +1,11 @@
+=== RUN   TestBackpressureCountsActiveStatesAndCapsWithMySQL
+    backpressure_test.go:38: Error 1452 (23000): Cannot add or update a child row: a foreign key constraint fails (`adflow_backpressure_it_20260908_154517`.`event_outbox`, CONSTRAINT `fk_event_outbox_receipt` FOREIGN KEY (`event_id`) REFERENCES `event_receipts` (`event_id`))
+--- FAIL: TestBackpressureCountsActiveStatesAndCapsWithMySQL (1.41s)
+=== RUN   TestBackpressureCountsActiveStatesAndCapsWithMySQL
+    backpressure_test.go:38: Error 1452 (23000): Cannot add or update a child row: a foreign key constraint fails (`adflow_backpressure_it_20260908_154517`.`event_outbox`, CONSTRAINT `fk_event_outbox_receipt` FOREIGN KEY (`event_id`) REFERENCES `event_receipts` (`event_id`))
+--- FAIL: TestBackpressureCountsActiveStatesAndCapsWithMySQL (0.08s)
+=== RUN   TestBackpressureCountsActiveStatesAndCapsWithMySQL
+    backpressure_test.go:38: Error 1452 (23000): Cannot add or update a child row: a foreign key constraint fails (`adflow_backpressure_it_20260908_154517`.`event_outbox`, CONSTRAINT `fk_event_outbox_receipt` FOREIGN KEY (`event_id`) REFERENCES `event_receipts` (`event_id`))
+--- FAIL: TestBackpressureCountsActiveStatesAndCapsWithMySQL (0.07s)
+FAIL
+Removed isolated schema adflow_backpressure_it_20260908_154517

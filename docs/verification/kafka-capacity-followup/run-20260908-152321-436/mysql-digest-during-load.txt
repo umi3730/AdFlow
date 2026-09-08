@@ -1,0 +1,18 @@
+captured_at
+2026-09-08 15:24:58.049116
+DIGEST_TEXT	COUNT_STAR	total_seconds	avg_ms	SUM_ROWS_EXAMINED	SUM_ERRORS
+COMMIT	21319	239.230	11.221	0	0
+INSERT INTO `audit_logs` ( `id` , `actor_id` , `actor_name` , `actor_role` , ACTION , `resource_type` , `resource_id` , `request_id` , `outcome` , `metadata` , `created_at` ) VALUES (...)	13942	154.932	11.113	0	0
+SELECT `event_id` , STATUS FROM `event_settlements` WHERE `request_id` = ? FOR UPDATE	9779	14.387	1.471	9774	0
+INSERT INTO `user_profiles` ( `user_id` , `tags` , FIELDS ) VALUES (...) ON DUPLICATE KEY UPDATE `tags` = VALUES ( `tags` ) , FIELDS = VALUES ( FIELDS )	1000	6.219	6.219	0	0
+UPDATE `event_settlements` SET STATUS = ? , `settled_at` = UTC_TIMESTAMP (?) , `locked_by` = ? , `locked_until` = ? , `last_error` = ? WHERE `request_id` = ? AND `event_id` = ? AND STATUS = ? AND `locked_by` = ? AND `locked_until` > UTC_TIMESTAMP (?)	3267	5.538	1.695	3267	0
+INSERT INTO `campaign_metrics` ( `campaign_id` , `impressions` , `clicks` , `conversions` , `value_fen` ) VALUES (...) ON DUPLICATE KEY UPDATE `impressions` = `impressions` + VALUES ( `impressions` ) , `clicks` = `clicks` + VALUES ( `clicks` ) , `conversions` = `conversions` + VALUES ( `conversions` ) , `value_fen` = `value_fen` + VALUES ( `value_fen` )	436	5.530	12.684	0	0
+SELECT `request_id` , MAX ( `processed_at` ) FROM `processed_events` WHERE `request_id` LIKE ? GROUP BY `request_id` HAVING COUNT ( * ) = ?	291	3.546	12.187	1399145	0
+INSERT INTO `event_outbox` ( `event_id` , `aggregate_key` , `payload` , STATUS , `attempts` , `next_attempt_at` ) VALUES (...)	9784	2.376	0.243	0	0
+INSERT IGNORE INTO `event_receipts` ( `event_id` , `request_id` , `campaign_id` , `creative_id` , `event_type` , `value_fen` , `occurred_at` , STATUS ) VALUES (...)	9787	2.336	0.239	0	0
+UPDATE `event_outbox` SET STATUS = ? , `attempts` = ? , `next_attempt_at` = UTC_TIMESTAMP (?) , `last_error` = ? WHERE `aggregate_key` = ? AND STATUS = ?	3267	1.845	0.565	18542	0
+SELECT `request_id` , `user_id` , `slot_id` , `matched` , `campaign_id` , `creative_id` , `reservation_token` , `expires_at` , `reason` , `pricing` , `request_fingerprint` FROM `decisions` WHERE `request_id` = ?	9808	1.789	0.182	3269	0
+SELECT `payload` FROM `event_outbox` WHERE `event_id` = ?	9804	1.668	0.170	0	0
+INSERT IGNORE INTO `processed_events` ( `event_id` , `request_id` , `campaign_id` , `creative_id` , `event_type` , `value_fen` , `occurred_at` , `processing_batch_id` ) VALUES (...) /* , ... */	434	1.632	3.761	0	0
+UPDATE `decision_requests` SET `owner_id` = ? , `lease_until` = ? WHERE `request_id` = ? AND `owner_id` = ?	6538	1.307	0.200	6539	0
+SELECT `o` . `payload` , `s` . `accepted_at` FROM `event_settlements` `s` JOIN `event_outbox` `o` ON `o` . `event_id` = `s` . `event_id` WHERE `s` . `request_id` = ?	6535	1.303	0.199	6536	0

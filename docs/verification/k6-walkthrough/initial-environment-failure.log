@@ -1,0 +1,36 @@
+
+         /\      Grafana   /‾‾/  
+    /\  /  \     |\  __   /  /   
+   /  \/    \    | |/ /  /   ‾‾\ 
+  /          \   |   (  |  (‾)  |
+ / __________ \  |_|\_\  \_____/ 
+
+
+     execution: local
+        script: D:\AdFlow\tests\load\k6-walkthrough.js
+        output: -
+
+     scenarios: (100.00%) 3 scenarios, 80 max VUs, 59s max duration (incl. graceful stop):
+              * smoke: 1.00 iterations/s for 5s (maxVUs: 2-4, gracefulStop: 10s)
+              * baseline: 10.00 iterations/s for 20s (maxVUs: 10-20, startTime: 7s, gracefulStop: 10s)
+              * moderate: 30.00 iterations/s for 20s (maxVUs: 30-60, startTime: 29s, gracefulStop: 10s)
+
+time="2026-09-08T10:58:21+08:00" level=warning msg="Request Failed" error="Post \"http://127.0.0.1:37647/v1/auth/login\": dial tcp 127.0.0.1:37647: connectex: No connection could be made because the target machine actively refused it."
+AdFlow k6 walkthrough (HTTP acceptance only; async proof follows)
+http_reqs: {"type":"counter","contains":"default","values":{"count":1,"rate":20.673715025242608}}
+checks: {"contains":"default","values":{"rate":0,"passes":0,"fails":0},"thresholds":{"rate==1":{"ok":true}},"type":"rate"}
+business_errors: {"thresholds":{"rate==0":{"ok":true}},"type":"rate","contains":"default","values":{"rate":0,"passes":0,"fails":0}}
+dropped_iterations: {"thresholds":{"count==0":{"ok":true}},"type":"counter","contains":"default","values":{"count":0,"rate":0}}
+accepted_rounds{phase:smoke}: {"type":"counter","contains":"default","values":{"count":0,"rate":0},"thresholds":{"count>0":{"ok":false}}}
+accepted_rounds{phase:baseline}: {"type":"counter","contains":"default","values":{"count":0,"rate":0},"thresholds":{"count>0":{"ok":false}}}
+accepted_rounds{phase:moderate}: {"type":"counter","contains":"default","values":{"count":0,"rate":0},"thresholds":{"count>0":{"ok":false}}}
+decision_ms{phase:baseline}: {"values":{"avg":0,"min":0,"med":0,"p(95)":0,"p(99)":0,"max":0},"thresholds":{"p(95)<300":{"ok":true},"p(99)<1000":{"ok":true}},"type":"trend","contains":"time"}
+decision_ms{phase:moderate}: {"type":"trend","contains":"time","values":{"avg":0,"min":0,"med":0,"p(95)":0,"p(99)":0,"max":0},"thresholds":{"p(99)<1000":{"ok":true},"p(95)<300":{"ok":true}}}
+business_accepted_ms{phase:baseline}: {"type":"trend","contains":"time","values":{"p(95)":0,"p(99)":0,"max":0,"avg":0,"min":0,"med":0},"thresholds":{"p(95)<1000":{"ok":true}}}
+business_accepted_ms{phase:moderate}: {"type":"trend","contains":"time","values":{"avg":0,"min":0,"med":0,"p(95)":0,"p(99)":0,"max":0},"thresholds":{"p(95)<1000":{"ok":true}}}
+
+Run        [ 100% ] setup()
+smoke      [   0% ]
+baseline   [   0% ]
+moderate   [   0% ]
+time="2026-09-08T10:58:22+08:00" level=error msg="GoError: login: expected 200, got 0\n\tat go.k6.io/k6/v2/internal/js/modules/k6.(*K6).Fail-fm (native)\n\tat requireCode (file:///D:/AdFlow/tests/load/k6-walkthrough.js:53:37(18))\n\tat setup (file:///D:/AdFlow/tests/load/k6-walkthrough.js:57:14(27))\n" hint="script exception" source=stacktrace

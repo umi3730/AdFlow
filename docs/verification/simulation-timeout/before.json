@@ -1,0 +1,209 @@
+{
+  "at": "2026-09-07T06:30:55.105Z",
+  "port": 18081,
+  "transport": "Node HTTP/1.1 with 6 sockets, shared browser simulator engine; synthetic temporary profiles",
+  "config": {
+    "runId": "sql-compare-before-1788762637612",
+    "userIds": [
+      "user-0001",
+      "user-0002",
+      "user-0003"
+    ],
+    "slotId": "game-home-banner",
+    "maxRounds": 300,
+    "concurrency": 100,
+    "seconds": 30,
+    "timeoutMs": 5000,
+    "impressions": true,
+    "behavior": {
+      "clickPercent": 100,
+      "conversionPercent": 100,
+      "minValueFen": 500,
+      "maxValueFen": 500
+    }
+  },
+  "result": {
+    "runId": "sql-compare-before-1788762637612",
+    "status": "completed",
+    "stopReason": "round_limit",
+    "elapsedMs": 17492.7984,
+    "started": 300,
+    "successful": 114,
+    "failed": 186,
+    "canceled": 0,
+    "inFlight": 0,
+    "peakInFlight": 100,
+    "matched": 61,
+    "noAd": 114,
+    "httpRequests": 361,
+    "impressionsAccepted": 0,
+    "clicksAccepted": 0,
+    "conversionsAccepted": 0,
+    "valueFenAccepted": 0,
+    "timeouts": 186,
+    "reasons": {
+      "targeting_miss": 114
+    },
+    "errors": {
+      "decision:timeout": 125,
+      "impression:timeout": 61
+    },
+    "p50Ms": 5009.655999999999,
+    "p95Ms": 8544.2645,
+    "p99Ms": 9516.757599999999,
+    "recent": [
+      {
+        "campaignId": "demo-campaign-v1",
+        "priceFen": 1,
+        "requestId": "tmp:19f482c2dbd17fe5a14444f86a7bb98a3b92dd3d3a9cac61dbd147ee62b6f653",
+        "userId": "user-0001",
+        "outcome": "impression:timeout",
+        "durationMs": 5001.253700000001
+      },
+      {
+        "requestId": "tmp:66d2ff4d7e76a4609d14dc15b4654a7591e177a179bb23e656b032cbaaf03e61",
+        "userId": "user-0003",
+        "outcome": "未命中：targeting_miss",
+        "durationMs": 4969.5785
+      },
+      {
+        "requestId": "tmp:b90fdbd7a1c9852cb0632f3bf6b2346d84051e6995dad3f565d1a6c2a7773774",
+        "userId": "user-0002",
+        "outcome": "未命中：targeting_miss",
+        "durationMs": 4965.0532
+      },
+      {
+        "requestId": "sql-compare-before-1788762637612-000297",
+        "userId": "user-0003",
+        "outcome": "decision:timeout",
+        "durationMs": 5006.604099999999
+      },
+      {
+        "requestId": "sql-compare-before-1788762637612-000296",
+        "userId": "user-0002",
+        "outcome": "decision:timeout",
+        "durationMs": 5006.351299999998
+      },
+      {
+        "campaignId": "demo-campaign-v1",
+        "priceFen": 1,
+        "requestId": "tmp:2aff59cade74858f4a85ef01ee46f15375b4167b976dacf916e26dca3689ecd2",
+        "userId": "user-0001",
+        "outcome": "impression:timeout",
+        "durationMs": 5006.198899999998
+      },
+      {
+        "campaignId": "demo-campaign-v1",
+        "priceFen": 1,
+        "requestId": "tmp:3237d948a01f2ff101ef9904530621d7b8bb804df080fae4298503061a446bce",
+        "userId": "user-0001",
+        "outcome": "impression:timeout",
+        "durationMs": 5480.545
+      },
+      {
+        "campaignId": "demo-campaign-v1",
+        "priceFen": 1,
+        "requestId": "tmp:7848b3f107d6a7d9dc32a8315c58404cd86f1ed58304f52dd1c48b0fac3aa9f5",
+        "userId": "user-0001",
+        "outcome": "impression:timeout",
+        "durationMs": 5463.290699999998
+      },
+      {
+        "campaignId": "demo-campaign-v1",
+        "priceFen": 1,
+        "requestId": "tmp:f19ba15a6d695955d6c4e7bb6e72ce784734ab9e4ed99bd353345b27ba815e79",
+        "userId": "user-0001",
+        "outcome": "impression:timeout",
+        "durationMs": 5975.6237
+      },
+      {
+        "campaignId": "demo-campaign-v1",
+        "priceFen": 1,
+        "requestId": "tmp:a04afce0ee206c36a5d290ea2626fc2e9ba6a5cb73bf8159e1ee802c152b7cfa",
+        "userId": "user-0001",
+        "outcome": "impression:timeout",
+        "durationMs": 5991.447700000001
+      },
+      {
+        "campaignId": "demo-campaign-v1",
+        "priceFen": 1,
+        "requestId": "tmp:1de34c23ae49ef25980563060a17c4a2c16b998ddf2967ddb4edc06dcbe6188a",
+        "userId": "user-0001",
+        "outcome": "impression:timeout",
+        "durationMs": 6466.6234
+      },
+      {
+        "campaignId": "demo-campaign-v1",
+        "priceFen": 1,
+        "requestId": "tmp:5680b5ee5aabd8016ad576dde018d55b99f5188f20c73c85b24522978d10dab2",
+        "userId": "user-0001",
+        "outcome": "impression:timeout",
+        "durationMs": 6918.555900000001
+      },
+      {
+        "campaignId": "demo-campaign-v1",
+        "priceFen": 1,
+        "requestId": "tmp:e98e184edbcea484dfcf0d98b2da790255be1d58f8089d15a10c725cde83ab99",
+        "userId": "user-0001",
+        "outcome": "impression:timeout",
+        "durationMs": 6918.820200000002
+      },
+      {
+        "campaignId": "demo-campaign-v1",
+        "priceFen": 1,
+        "requestId": "tmp:d7361c1151c7871ddcaed532ad8f982994bf40c7e9e8681e7233d2168e993877",
+        "userId": "user-0001",
+        "outcome": "impression:timeout",
+        "durationMs": 7052.309299999999
+      },
+      {
+        "campaignId": "demo-campaign-v1",
+        "priceFen": 1,
+        "requestId": "tmp:f917ae7605af9eeccf28f68a0c310c64b765ee6a37fda7d62cfc9a674f08e0b0",
+        "userId": "user-0001",
+        "outcome": "impression:timeout",
+        "durationMs": 6919.268099999999
+      },
+      {
+        "campaignId": "demo-campaign-v1",
+        "priceFen": 1,
+        "requestId": "tmp:722598a09c587a9f783fc8e48a81b204cb41310fff76c3c49f156b09f8053f2f",
+        "userId": "user-0001",
+        "outcome": "impression:timeout",
+        "durationMs": 7496.5733
+      },
+      {
+        "campaignId": "demo-campaign-v1",
+        "priceFen": 1,
+        "requestId": "tmp:f2fed51489b358996861da91548330b82a80461cee7658ae5536ca0e503cda98",
+        "userId": "user-0001",
+        "outcome": "impression:timeout",
+        "durationMs": 7988.590500000002
+      },
+      {
+        "campaignId": "demo-campaign-v1",
+        "priceFen": 1,
+        "requestId": "tmp:51621a7022848f6dc8390616df04529bca7e3ef4c8a11e2d4c5f5ec09de937d1",
+        "userId": "user-0001",
+        "outcome": "impression:timeout",
+        "durationMs": 8020.473899999999
+      },
+      {
+        "campaignId": "demo-campaign-v1",
+        "priceFen": 1,
+        "requestId": "tmp:7f2ba39aa950fc55ffef8c3c64197758d7367a854bd38c51f57055940237358a",
+        "userId": "user-0001",
+        "outcome": "impression:timeout",
+        "durationMs": 8519.906
+      },
+      {
+        "campaignId": "demo-campaign-v1",
+        "priceFen": 1,
+        "requestId": "tmp:341b10a1008084d3138ec3fb80952c4bbb9c28440b2bd856f46ee222ecec8e0a",
+        "userId": "user-0001",
+        "outcome": "impression:timeout",
+        "durationMs": 8983.843299999999
+      }
+    ]
+  }
+}

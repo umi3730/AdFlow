@@ -1,0 +1,17 @@
+{
+  "baseCommit": "ca50d137f4fc0eba1df4bab1426512248a8b27c6",
+  "date": "2026-09-07",
+  "livePreviewBackendsRestarted": false,
+  "liveBusinessDatabaseChanged": false,
+  "realMySQL": "skipped: configured account authentication rejected with 1045",
+  "go": "go version go1.27.0 windows/amd64",
+  "verification": "unit regressions plus dedicated local HTTP instance",
+  "sourceSHA256": {
+    "internal/decision/adapter/memory/execution.go": "723B9CA67A53B2AE2365E6A7A10452F18969F17EAAA343DB9AF7EE7FAB56FF5D",
+    "internal/decision/adapter/http/simulation_handler.go": "62C571BCA6F4918EEC890DD5C23EB26A109493DB8D0E391B1A41D5C7EE21BF57",
+    "internal/decision/application/execution.go": "00371B22E69ACC2A37D0643BFB9CE233FB065AA9E9FCD146D3F7985D3B04382F",
+    "internal/decision/domain/request_identity.go": "E9196470D9C5E732F8DA103A3A9EF0D546134B04280BA0CCA81AA879AA5463C3",
+    "internal/decision/adapter/mysql/execution.go": "47AAF5C2A09DAE9B19D5573FEB94A4C23B3190CDBFE669505306BB28148A2C3A",
+    "internal/decision/application/service.go": "032C258B9C80A15CBE4782DE44AD4A39B16CDA9B8A8BE8560D7DF591A5A4C9FA"
+  }
+}

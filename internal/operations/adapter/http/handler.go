@@ -12,11 +12,22 @@ import (
 	httptransport "github.com/zhanghaiyang/adflow/internal/transport/http"
 )
 
-type Handler struct{ service *application.Service }
+type Handler struct {
+	service *application.Service
+	trace   *application.TraceService
+}
 
-func NewHandler(service *application.Service) *Handler { return &Handler{service: service} }
+func NewHandler(service *application.Service, trace ...*application.TraceService) *Handler {
+	h := &Handler{service: service}
+	if len(trace) > 0 {
+		h.trace = trace[0]
+	}
+	return h
+}
 
 func (h *Handler) RegisterRoutes(group *gin.RouterGroup) {
+	group.GET("/operations/mode", func(c *gin.Context) { c.JSON(http.StatusOK, h.service.Mode()) })
+	group.GET("/operations/request-trace", h.requestTrace)
 	group.GET("/operations/outbox", h.outbox)
 	group.GET("/operations/kafka-lag", h.kafkaLag)
 	group.POST("/operations/dead-letters/:eventId/replay", h.replay)
@@ -24,7 +35,7 @@ func (h *Handler) RegisterRoutes(group *gin.RouterGroup) {
 
 func (h *Handler) outbox(c *gin.Context) {
 	status := strings.ToUpper(strings.TrimSpace(c.Query("status")))
-	if status != "" && status != "PENDING" && status != "PROCESSING" && status != "PUBLISHED" && status != "DEAD_LETTERED" {
+	if status != "" && status != "PENDING" && status != "PROCESSING" && status != "PUBLISHED" && status != "DEAD_LETTERED" && status != "SETTLING" && status != "RECONCILE" {
 		httptransport.RespondError(c, http.StatusBadRequest, "invalid_outbox_status", "outbox status is invalid", nil)
 		return
 	}

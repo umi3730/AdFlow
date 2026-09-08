@@ -9,6 +9,7 @@ type Version struct {
 	impressionCost Money
 	frequencyLimit uint32
 	publishedAt    time.Time
+	auction        *AuctionTerms
 }
 
 func NewVersion(number uint32, targeting TargetingRule, dailyBudgetFen, impressionCostFen int64, frequencyLimit uint32, publishedAt time.Time) (Version, error) {
@@ -66,6 +67,9 @@ func Rehydrate(id string, name Name, slotID SlotID, period DeliveryPeriod, statu
 }
 
 func (c *Campaign) Publish(rule TargetingRule, dailyBudgetFen, impressionCostFen int64, frequencyLimit uint32, now time.Time) error {
+	if err := rule.ValidateForPublication(); err != nil {
+		return err
+	}
 	if c.status != StatusDraft && c.status != StatusPaused {
 		return ErrInvalidTransition
 	}
@@ -109,6 +113,9 @@ func (c *Campaign) Resume(now time.Time) error {
 	if c.status != StatusPaused || c.activeVersion == nil {
 		return ErrInvalidTransition
 	}
+	if err := c.activeVersion.targeting.ValidateForPublication(); err != nil {
+		return err
+	}
 	c.status = StatusActive
 	c.revision++
 	c.events = append(c.events, CampaignResumed{CampaignID: c.id, At: now.UTC()})
@@ -121,6 +128,18 @@ func (c *Campaign) PullEvents() []Event {
 	return events
 }
 
+func (c *Campaign) Delete() error {
+	if c.status == StatusActive {
+		return ErrDeleteActive
+	}
+	if c.status == StatusDeleted {
+		return ErrCampaignNotFound
+	}
+	c.status = StatusDeleted
+	c.revision++
+	return nil
+}
+
 func (c *Campaign) Clone() *Campaign {
 	return Rehydrate(c.id, c.name, c.slotID, c.period, c.status, c.activeVersion, c.revision)
 }
@@ -131,6 +150,7 @@ func cloneVersion(version *Version) *Version {
 	}
 	copy := *version
 	copy.targeting = version.targeting.Clone()
+	copy.auction = version.Auction()
 	return &copy
 }
 

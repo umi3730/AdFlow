@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import { api } from '@/lib/api';
+import { useAccess } from '@/components/auth-gate';
 
 type ModelTool = {
   name: string;
@@ -28,6 +29,7 @@ export function useAdFlowTools(
   navigate: (view: 'campaigns' | 'profiles') => void,
   notify: (message: string) => void,
 ) {
+  const { canOperate } = useAccess();
   useEffect(() => {
     const context = document.modelContext;
     if (!context?.registerTool) return;
@@ -65,44 +67,45 @@ export function useAdFlowTools(
       },
     });
 
-    register({
-      name: 'create_campaign_draft',
-      title: 'Create campaign draft',
-      description:
-        'Create a seven-day draft campaign in AdFlow, then show it in the campaign workspace.',
-      inputSchema: {
-        type: 'object',
-        properties: {
-          name: { type: 'string', minLength: 2, maxLength: 128 },
-          slotId: { type: 'string', minLength: 2, maxLength: 64 },
+    if (canOperate)
+      register({
+        name: 'create_campaign_draft',
+        title: 'Create campaign draft',
+        description:
+          'Create a seven-day draft campaign in AdFlow, then show it in the campaign workspace.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            name: { type: 'string', minLength: 2, maxLength: 128 },
+            slotId: { type: 'string', minLength: 2, maxLength: 64 },
+          },
+          required: ['name', 'slotId'],
+          additionalProperties: false,
         },
-        required: ['name', 'slotId'],
-        additionalProperties: false,
-      },
-      annotations: { readOnlyHint: false, untrustedContentHint: false },
-      async execute(input) {
-        const value = input as { name?: string; slotId?: string };
-        if (!value.name || !value.slotId)
-          throw new Error('name and slotId are required');
-        const start = new Date();
-        const campaign = await api.createCampaign({
-          name: value.name,
-          slotId: value.slotId,
-          startAt: start.toISOString(),
-          endAt: new Date(start.getTime() + 7 * 86400000).toISOString(),
-        });
-        navigate('campaigns');
-        notify('智能体已创建广告计划草稿');
-        await onChanged();
-        return {
-          id: campaign.id,
-          status: campaign.status,
-          name: campaign.name,
-          slotId: campaign.slotId,
-        };
-      },
-    });
+        annotations: { readOnlyHint: false, untrustedContentHint: false },
+        async execute(input) {
+          const value = input as { name?: string; slotId?: string };
+          if (!value.name || !value.slotId)
+            throw new Error('name and slotId are required');
+          const start = new Date();
+          const campaign = await api.createCampaign({
+            name: value.name,
+            slotId: value.slotId,
+            startAt: start.toISOString(),
+            endAt: new Date(start.getTime() + 7 * 86400000).toISOString(),
+          });
+          navigate('campaigns');
+          notify('智能体已创建广告计划草稿');
+          await onChanged();
+          return {
+            id: campaign.id,
+            status: campaign.status,
+            name: campaign.name,
+            slotId: campaign.slotId,
+          };
+        },
+      });
 
     return () => lifecycle.abort();
-  }, [navigate, notify, onChanged]);
+  }, [navigate, notify, onChanged, canOperate]);
 }

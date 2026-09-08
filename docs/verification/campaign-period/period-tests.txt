@@ -1,0 +1,15 @@
+✔ Published campaign uses an inclusive start and exclusive end without changing its lifecycle (1.5618ms)
+✔ Draft and paused states stay distinct from a live published campaign (0.1621ms)
+✔ Invalid dates and an uninitialized browser clock are never displayed as delivering (0.1838ms)
+✔ Status filters and Chinese status search use the same current delivery state (0.4688ms)
+✔ Clock wakes at the next boundary and remains bounded when no boundary is near (0.2182ms)
+✔ Period display uses explicit Beijing time including midnight (0.1561ms)
+✔ Shared campaign clock advances automatically, refreshes on return, and cleans up (58.0783ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 503.3329

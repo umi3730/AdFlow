@@ -1,0 +1,188 @@
+{
+  "verified": true,
+  "confirmedOfferedQPS": 1000,
+  "totalHTTPRequests": 459500,
+  "rawSHA256": "8bdac85b2b843724a72341a639232224147e8c0038bd90b642d4bf15b8677910",
+  "stages": [
+    {
+      "id": "01-ramp-500",
+      "offeredQPS": 500,
+      "actualHTTPQPS": 499.9671958773621,
+      "requests": 10000,
+      "p95Ms": 1.8194050499999999,
+      "p99Ms": 5.843325010000001,
+      "errorRate": 0,
+      "dropped": 0,
+      "passed": true,
+      "cpuAverageOneCorePercent": {
+        "api": 29.99861934057152,
+        "injector": 33.64528987729148,
+        "redis": 3.249919941803288
+      },
+      "sampledPeakGoroutines": 270,
+      "sampledPeakHostCPUPercent": 13.56209150326797,
+      "tableFetches": 0,
+      "k6SHA256": "2867840537d362815799d749c9bae1bd2ca01fbeb910cbc67ea761175ad22672"
+    },
+    {
+      "id": "02-ramp-1000",
+      "offeredQPS": 1000,
+      "actualHTTPQPS": 999.8990923292783,
+      "requests": 20001,
+      "p95Ms": 1.8141,
+      "p99Ms": 5.658801,
+      "errorRate": 0,
+      "dropped": 0,
+      "passed": true,
+      "cpuAverageOneCorePercent": {
+        "api": 46.64837148383804,
+        "injector": 45.64653116377638,
+        "redis": 4.99978776705426
+      },
+      "sampledPeakGoroutines": 270,
+      "sampledPeakHostCPUPercent": 15.434606011372864,
+      "tableFetches": 0,
+      "k6SHA256": "1369ddd94d74aeb2401cf2f16cb2ace0a55cc58e45adefd5df83eb84de1b16a9"
+    },
+    {
+      "id": "03-ramp-2000",
+      "offeredQPS": 2000,
+      "actualHTTPQPS": 1958.5604363159832,
+      "requests": 39518,
+      "p95Ms": 265.20181385,
+      "p99Ms": 280.06153800000004,
+      "errorRate": 0,
+      "dropped": 483,
+      "passed": false,
+      "cpuAverageOneCorePercent": {
+        "api": 79.4972902916263,
+        "injector": 92.14696342279704,
+        "redis": 10.249678981781809
+      },
+      "sampledPeakGoroutines": 1034,
+      "sampledPeakHostCPUPercent": 24.382207578253713,
+      "tableFetches": 0,
+      "k6SHA256": "d3132bca3c7f700116fbf209227404d8a015c5c84f4f9d6d51f403c145329c64"
+    },
+    {
+      "id": "04-refine-1500",
+      "offeredQPS": 1500,
+      "actualHTTPQPS": 1499.9066217511622,
+      "requests": 30001,
+      "p95Ms": 16.607901,
+      "p99Ms": 67.093501,
+      "errorRate": 0,
+      "dropped": 0,
+      "passed": true,
+      "cpuAverageOneCorePercent": {
+        "api": 59.99885786567434,
+        "injector": 67.79858215087951,
+        "redis": 7.4998133599278605
+      },
+      "sampledPeakGoroutines": 372,
+      "sampledPeakHostCPUPercent": 17.689822294022616,
+      "tableFetches": 0,
+      "k6SHA256": "59d9eb1ff98aa91931945bca6f4c64778a5fb437bd9a9327f4f9c297ff5a27f6"
+    },
+    {
+      "id": "05-confirm-1-1500",
+      "offeredQPS": 1500,
+      "actualHTTPQPS": 1499.751313891994,
+      "requests": 90001,
+      "p95Ms": 9.453501,
+      "p99Ms": 81.504806,
+      "errorRate": 0,
+      "dropped": 0,
+      "passed": true,
+      "cpuAverageOneCorePercent": {
+        "api": 60.566389609181535,
+        "injector": 67.16631617531836,
+        "redis": 7.6499676800256475
+      },
+      "sampledPeakGoroutines": 337,
+      "sampledPeakHostCPUPercent": 19.19354838709677,
+      "tableFetches": 0,
+      "k6SHA256": "616a8cb74cef84ffb47785af7bf89d253e8af600a93e0a602d3ba426a7bee836"
+    },
+    {
+      "id": "06-confirm-2-1500",
+      "offeredQPS": 1500,
+      "actualHTTPQPS": 1499.540342112625,
+      "requests": 89977,
+      "p95Ms": 105.3814606,
+      "p99Ms": 159.68510400000014,
+      "errorRate": 0,
+      "dropped": 24,
+      "passed": false,
+      "cpuAverageOneCorePercent": {
+        "api": 71.39891234378469,
+        "injector": 78.68212239833515,
+        "redis": 9.016594242835355
+      },
+      "sampledPeakGoroutines": 512,
+      "sampledPeakHostCPUPercent": 20.59064807219032,
+      "tableFetches": 0,
+      "k6SHA256": "3d714b878b2ccc12f6dd54c2fa891be0e656f1751def6849bae5b1d3a7bf1c9e"
+    },
+    {
+      "id": "07-confirm-1-1000",
+      "offeredQPS": 1000,
+      "actualHTTPQPS": 999.9906562930356,
+      "requests": 60001,
+      "p95Ms": 5.827388,
+      "p99Ms": 68.796365,
+      "errorRate": 0,
+      "dropped": 0,
+      "passed": true,
+      "cpuAverageOneCorePercent": {
+        "api": 51.71587949779041,
+        "injector": 49.76557514640608,
+        "redis": 5.749911478983754
+      },
+      "sampledPeakGoroutines": 295,
+      "sampledPeakHostCPUPercent": 17.784963621665316,
+      "tableFetches": 0,
+      "k6SHA256": "bb24f504a24bc9924644b91a6e90ec303aeb59c88b2ae597e609c24d55f92d14"
+    },
+    {
+      "id": "08-confirm-2-1000",
+      "offeredQPS": 1000,
+      "actualHTTPQPS": 999.9494431061287,
+      "requests": 60000,
+      "p95Ms": 2.0067172999999983,
+      "p99Ms": 35.16300899000006,
+      "errorRate": 0,
+      "dropped": 0,
+      "passed": true,
+      "cpuAverageOneCorePercent": {
+        "api": 46.932889930484336,
+        "injector": 44.88273653140805,
+        "redis": 4.9665654841094415
+      },
+      "sampledPeakGoroutines": 335,
+      "sampledPeakHostCPUPercent": 13.464696223316908,
+      "tableFetches": 0,
+      "k6SHA256": "c199ab200cc36c1029de8321994878e479996b5f6b5ccd1663a3e465a5662459"
+    },
+    {
+      "id": "09-confirm-3-1000",
+      "offeredQPS": 1000,
+      "actualHTTPQPS": 999.9744903092667,
+      "requests": 60001,
+      "p95Ms": 1.670099,
+      "p99Ms": 10.15511,
+      "errorRate": 0,
+      "dropped": 0,
+      "passed": true,
+      "cpuAverageOneCorePercent": {
+        "api": 44.982687399799566,
+        "injector": 42.665707296466714,
+        "redis": 4.699936514582576
+      },
+      "sampledPeakGoroutines": 270,
+      "sampledPeakHostCPUPercent": 12.614870509607357,
+      "tableFetches": 0,
+      "k6SHA256": "7d5f7ea069c15f907d8230176d3823efcd8087f408d96459841f6e3d19d3f4a6"
+    }
+  ]
+}

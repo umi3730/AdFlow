@@ -17,6 +17,19 @@ func NewService(store domain.OperationsStore, lag domain.KafkaLagReader) *Servic
 	return &Service{store: store, lag: lag, now: time.Now}
 }
 
+type RuntimeMode struct {
+	EventTransport string `json:"eventTransport"`
+	OutboxEnabled  bool   `json:"outboxEnabled"`
+}
+
+// This reports wiring, not Kafka connectivity or consumer health.
+func (s *Service) Mode() RuntimeMode {
+	if s.store != nil {
+		return RuntimeMode{EventTransport: "kafka", OutboxEnabled: true}
+	}
+	return RuntimeMode{EventTransport: "sync", OutboxEnabled: false}
+}
+
 func (s *Service) Outbox(ctx context.Context, filter domain.OutboxFilter) ([]domain.OutboxRecord, domain.OutboxStats, error) {
 	if s.store == nil {
 		return []domain.OutboxRecord{}, domain.OutboxStats{}, nil

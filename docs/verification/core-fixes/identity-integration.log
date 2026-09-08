@@ -1,0 +1,18 @@
+=== RUN   TestProfileGenerationRejectsCrossInstanceStaleRefill
+=== RUN   TestProfileGenerationRejectsCrossInstanceStaleRefill/update
+=== RUN   TestProfileGenerationRejectsCrossInstanceStaleRefill/delete
+=== RUN   TestProfileGenerationRejectsCrossInstanceStaleRefill/recreate
+--- PASS: TestProfileGenerationRejectsCrossInstanceStaleRefill (1.60s)
+    --- PASS: TestProfileGenerationRejectsCrossInstanceStaleRefill/update (0.03s)
+    --- PASS: TestProfileGenerationRejectsCrossInstanceStaleRefill/delete (0.02s)
+    --- PASS: TestProfileGenerationRejectsCrossInstanceStaleRefill/recreate (0.04s)
+=== RUN   TestOpaqueProfileIDsAgreeAcrossMySQLCacheAndFrequency
+--- PASS: TestOpaqueProfileIDsAgreeAcrossMySQLCacheAndFrequency (0.07s)
+=== RUN   TestProfileIDsPreserveAccentsAndNormalizeSurroundingWhitespace
+--- PASS: TestProfileIDsPreserveAccentsAndNormalizeSurroundingWhitespace (0.04s)
+=== RUN   TestRedisFixtureCleanupFinishesBeforeClientClose
+=== RUN   TestRedisFixtureCleanupFinishesBeforeClientClose/owned-fixture
+--- PASS: TestRedisFixtureCleanupFinishesBeforeClientClose (0.01s)
+    --- PASS: TestRedisFixtureCleanupFinishesBeforeClientClose/owned-fixture (0.01s)
+PASS
+ok  	github.com/zhanghaiyang/adflow/tests/integration	2.046s

@@ -1,0 +1,18 @@
+{
+  "go": "go version go1.27.0 windows/amd64",
+  "baseCommit": "ca50d137f4fc0eba1df4bab1426512248a8b27c6",
+  "date": "2026-09-07",
+  "productionCodeChanged": false,
+  "sourceSHA256": {
+    "internal/decision/adapter/mysql/store.go": "D112657EC47BBD391B7EF86F1AE60B67D6E5F795FB6142E2EC22F0BA568A61EF",
+    "internal/decision/adapter/redis/reservations.go": "475A3B29E695E2F063045AF29DE1251E80765B4519F0EAFAAEE67CA6473C4C61",
+    "cmd/api/main.go": "0931AA2869769D53DCB8B681C579818D41E5FECB6A10ADC516CCA409B4EA1B16",
+    "internal/event/application/service.go": "645FC97EBF0594ED3A4EE8FD7D875C689B23E8A1CBC24AA5C49C3CDAD6731C7D",
+    "internal/event/application/async_service.go": "1AACFB92EF14D1D5CADA51E274AA14E0811F7AD0DFF9A41646DF5140A77E83B2",
+    "internal/decision/adapter/memory/runtime.go": "F8BE0920E7DA9ED7F506B6E70B7AC3D7DFC9694CEB6B2BA8F67E73BB0A8BF0BE",
+    "internal/decision/application/service.go": "DE3CE4CC348F5ECB9BC4CFF6976F9B82772DCD50CBE4E9B2E209A648C2DC2BF3"
+  },
+  "liveDataTouched": false,
+  "testMode": "Go overlay, isolated memory and controllable dependencies",
+  "expectedExitCode": 1
+}

@@ -14,6 +14,9 @@ type ListFilter struct {
 	SlotID *SlotID
 	Limit  int
 	Offset int
+	// AfterID selects stable ascending-ID pagination for internal full scans.
+	// A non-nil empty string starts the scan; normal list ordering is unchanged.
+	AfterID *string
 }
 
 type CreativeRepository interface {

@@ -10,6 +10,13 @@ import {
 } from 'lucide-react';
 import { api, type Campaign, type Condition } from '@/lib/api';
 import {
+  campaignDisplayStatus,
+  campaignDisplayLabels,
+  formatCampaignDate,
+} from '@/lib/campaign-delivery';
+import { adSlotLabel } from '@/lib/ad-slots';
+import { useAccess } from '@/components/auth-gate';
+import {
   compileRuleDraft,
   editorFromCampaign,
   ruleGroups,
@@ -18,6 +25,9 @@ import {
 } from '@/lib/campaign-rules';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { TargetingSummary } from '@/components/targeting-summary';
+import { RuleConditionInput } from '@/components/rule-condition-input';
+import { FormSelect } from '@/components/form-select';
 import { Badge } from '@/components/ui/badge';
 import {
   Dialog,
@@ -32,21 +42,26 @@ const groups: Record<RuleGroup, { title: string; help: string }> = {
   any: { title: '至少满足一条', help: '留空不限制；填写后至少命中其中一条。' },
   none: { title: '排除人群', help: '命中其中任何一条，就不投放。' },
 };
-const selectClass =
-  'h-9 min-w-0 rounded-lg border border-input bg-background px-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring';
 
 export function CampaignRuleDialog({
+  now,
   campaign,
   onClose,
   onChanged,
+  initialValue,
+  onPublished,
 }: {
+  now: number | null;
   campaign: Campaign;
   onClose: () => void;
   onChanged: () => Promise<void>;
+  initialValue?: RuleEditorValue;
+  onPublished?: (campaign: Campaign) => void;
 }) {
+  const { canAdmin, canOperate } = useAccess();
   const [current, setCurrent] = useState(campaign);
   const [value, setValue] = useState<RuleEditorValue>(() =>
-    editorFromCampaign(campaign),
+    initialValue ? structuredClone(initialValue) : editorFromCampaign(campaign),
   );
   const [preview, setPreview] = useState<ReturnType<
     typeof compileRuleDraft
@@ -55,7 +70,8 @@ export function CampaignRuleDialog({
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const contentRef = useRef<HTMLDivElement>(null);
-  const editable = current.status === 'DRAFT' || current.status === 'PAUSED';
+  const editable =
+    canAdmin && (current.status === 'DRAFT' || current.status === 'PAUSED');
   const version = current.activeVersion?.number ?? 0;
   const hasLegacyPlatform = ruleGroups.some((group) =>
     value.targeting[group].some((row) => row.field === 'platform'),
@@ -110,6 +126,7 @@ export function CampaignRuleDialog({
     setError('');
     try {
       const published = await api.publishCampaign(current.id, preview);
+      onPublished?.(published);
       setCurrent(published);
       setValue(editorFromCampaign(published));
       setPreview(null);
@@ -149,9 +166,25 @@ export function CampaignRuleDialog({
             </Badge>
           </div>
           <DialogDescription>
-            {current.name} · {current.slotId}
+            {current.name} · {adSlotLabel(current.slotId)}
           </DialogDescription>
         </DialogHeader>
+        <div className="border-b pb-3 text-sm leading-6 text-muted-foreground">
+          <p>
+            {campaignDisplayLabels[campaignDisplayStatus(current, now)]} ·
+            投放时间（北京时间）
+          </p>
+          <p>
+            {formatCampaignDate(current.startAt)} 至{' '}
+            {formatCampaignDate(current.endAt)}
+          </p>
+          {campaignDisplayStatus({ ...current, status: 'ACTIVE' }, now) ===
+            'ENDED' && (
+            <p className="text-amber-800">
+              投放期已结束，重新发布规则不会延长期限。
+            </p>
+          )}
+        </div>
         {success && (
           <output className="flex gap-2 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">
             <CheckCircle2 className="mt-0.5 size-4 shrink-0" />
@@ -170,11 +203,13 @@ export function CampaignRuleDialog({
           <div className="flex flex-col gap-3 rounded-lg border bg-muted/40 p-3 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-sm text-muted-foreground">
               当前版本只读。
-              {current.status === 'ACTIVE'
-                ? '暂停后可编辑，发布时生成新版本。'
-                : '当前状态不能发布。'}
+              {!canAdmin
+                ? '发布规则需要管理员权限。'
+                : current.status === 'ACTIVE'
+                  ? '暂停后可编辑，发布时生成新版本。'
+                  : '当前状态不能发布。'}
             </p>
-            {current.status === 'ACTIVE' && (
+            {current.status === 'ACTIVE' && canOperate && (
               <Button
                 type="button"
                 variant="outline"
@@ -221,6 +256,93 @@ export function CampaignRuleDialog({
             disabled={!editable || busy || preview !== null}
             className="space-y-5 disabled:opacity-85"
           >
+            <label htmlFor="rule-pricing" className="block space-y-1.5 text-sm">
+              投放方式
+              <FormSelect
+                id="rule-pricing"
+                label="投放方式"
+                value={value.auction ? 'first_price' : 'fixed'}
+                disabled={
+                  !editable ||
+                  busy ||
+                  preview !== null ||
+                  !current.auctionSupported
+                }
+                options={[
+                  { value: 'fixed', label: '固定成本（兜底）' },
+                  { value: 'first_price', label: '一价竞价（单次曝光）' },
+                ]}
+                onChange={(mode) =>
+                  change({
+                    ...value,
+                    auction:
+                      mode === 'first_price'
+                        ? {
+                            advertiserId: '',
+                            advertiserName: '',
+                            bidYuan: '0.05',
+                          }
+                        : undefined,
+                  })
+                }
+              />
+            </label>
+            {!current.auctionSupported && (
+              <p className="text-xs text-muted-foreground">
+                当前后端尚未支持竞价，更新后可配置。
+              </p>
+            )}
+            {value.auction && (
+              <div className="grid gap-3 sm:grid-cols-2">
+                <label
+                  htmlFor="rule-advertiser-id"
+                  className="space-y-1.5 text-sm"
+                >
+                  广告主标识
+                  <Input
+                    id="rule-advertiser-id"
+                    value={value.auction.advertiserId}
+                    maxLength={64}
+                    placeholder="例如 studio-a"
+                    required
+                    onChange={(event) =>
+                      change({
+                        ...value,
+                        auction: {
+                          ...value.auction!,
+                          advertiserId: event.target.value,
+                        },
+                      })
+                    }
+                  />
+                </label>
+                <label
+                  htmlFor="rule-advertiser-name"
+                  className="space-y-1.5 text-sm"
+                >
+                  广告主名称
+                  <Input
+                    id="rule-advertiser-name"
+                    value={value.auction.advertiserName}
+                    maxLength={128}
+                    placeholder="例如 星河游戏"
+                    required
+                    onChange={(event) =>
+                      change({
+                        ...value,
+                        auction: {
+                          ...value.auction!,
+                          advertiserName: event.target.value,
+                        },
+                      })
+                    }
+                  />
+                </label>
+                <p className="text-xs leading-5 text-muted-foreground sm:col-span-2">
+                  同一广告主标识只提交一条代表计划；中标后按自己的出价计费。
+                </p>
+              </div>
+            )}
             <div className="grid gap-3 sm:grid-cols-3">
               <label
                 htmlFor="rule-daily-budget"
@@ -242,14 +364,26 @@ export function CampaignRuleDialog({
                 htmlFor="rule-impression-cost"
                 className="space-y-1.5 text-sm"
               >
-                单次曝光成本（元）
+                {value.auction ? '单次曝光出价（元）' : '单次曝光成本（元）'}
                 <Input
                   id="rule-impression-cost"
-                  aria-label="单次曝光成本（元）"
+                  aria-label={
+                    value.auction ? '单次曝光出价（元）' : '单次曝光成本（元）'
+                  }
                   inputMode="decimal"
-                  value={value.impressionCostYuan}
+                  value={value.auction?.bidYuan ?? value.impressionCostYuan}
                   onChange={(event) =>
-                    change({ ...value, impressionCostYuan: event.target.value })
+                    change(
+                      value.auction
+                        ? {
+                            ...value,
+                            auction: {
+                              ...value.auction,
+                              bidYuan: event.target.value,
+                            },
+                          }
+                        : { ...value, impressionCostYuan: event.target.value },
+                    )
                   }
                   required
                 />
@@ -307,77 +441,12 @@ export function CampaignRuleDialog({
                       key={index}
                       className="flex flex-wrap gap-2 rounded-lg bg-muted/35 p-2"
                     >
-                      <select
-                        aria-label={`${groups[group].title}第${index + 1}条类型`}
-                        className={selectClass}
-                        value={row.tag !== undefined ? 'tag' : 'field'}
-                        onChange={(event) =>
-                          updateRow(
-                            group,
-                            index,
-                            event.target.value === 'tag'
-                              ? { tag: '' }
-                              : { field: 'device', op: 'eq', value: 'android' },
-                          )
-                        }
-                      >
-                        <option value="tag">用户标签</option>
-                        <option value="field">画像字段</option>
-                      </select>
-                      {row.tag !== undefined ? (
-                        <Input
-                          className="min-w-0 flex-1 basis-36"
-                          aria-label={`${groups[group].title}第${index + 1}条标签`}
-                          placeholder="例如 anime"
-                          list="campaign-rule-tags"
-                          value={row.tag}
-                          onChange={(event) =>
-                            updateRow(group, index, { tag: event.target.value })
-                          }
-                        />
-                      ) : (
-                        <>
-                          <Input
-                            className="min-w-0 flex-1 basis-28"
-                            aria-label={`${groups[group].title}第${index + 1}条字段名`}
-                            list="campaign-rule-fields"
-                            value={row.field ?? ''}
-                            onChange={(event) =>
-                              updateRow(group, index, {
-                                ...row,
-                                field: event.target.value,
-                              })
-                            }
-                          />
-                          <select
-                            aria-label={`${groups[group].title}第${index + 1}条比较方式`}
-                            className={selectClass}
-                            value={row.op ?? 'eq'}
-                            onChange={(event) =>
-                              updateRow(group, index, {
-                                ...row,
-                                op: event.target.value as Condition['op'],
-                              })
-                            }
-                          >
-                            <option value="eq">等于</option>
-                            <option value="in">属于（逗号分隔）</option>
-                            <option value="gte">大于等于</option>
-                            <option value="lte">小于等于</option>
-                          </select>
-                          <Input
-                            className="min-w-0 flex-1 basis-28"
-                            aria-label={`${groups[group].title}第${index + 1}条字段值`}
-                            value={row.value ?? ''}
-                            onChange={(event) =>
-                              updateRow(group, index, {
-                                ...row,
-                                value: event.target.value,
-                              })
-                            }
-                          />
-                        </>
-                      )}
+                      <RuleConditionInput
+                        row={row}
+                        label={`${groups[group].title}第${index + 1}条`}
+                        disabled={!editable || busy || preview !== null}
+                        onChange={(next) => updateRow(group, index, next)}
+                      />
                       {editable && (
                         <Button
                           type="button"
@@ -402,16 +471,6 @@ export function CampaignRuleDialog({
               </section>
             ))}
           </fieldset>
-          <datalist id="campaign-rule-tags" aria-label="常用用户标签">
-            <option value="anime">二次元兴趣</option>
-            <option value="strategy_game">策略游戏兴趣</option>
-            <option value="active_7d">近期活跃</option>
-            <option value="installed_target_game">已安装目标游戏</option>
-          </datalist>
-          <datalist id="campaign-rule-fields" aria-label="画像字段">
-            <option value="device">设备</option>
-            <option value="score">活跃分数</option>
-          </datalist>
           {preview && (
             <section
               className="space-y-3 rounded-xl border border-primary/20 bg-primary/5 p-4"
@@ -419,13 +478,17 @@ export function CampaignRuleDialog({
             >
               <h3 className="font-semibold">确认发布 v{version + 1}</h3>
               <p className="text-sm">
+                {preview.auction
+                  ? `一价竞价 · ${preview.auction.advertiserName}（${preview.auction.advertiserId}）`
+                  : '固定成本 · 无可成交竞价计划时兜底'}
+              </p>
+              <p className="text-sm">
                 日预算 ¥{(preview.dailyBudgetFen / 100).toFixed(2)}，单次成本 ¥
                 {(preview.impressionCostFen / 100).toFixed(2)}，每日频控{' '}
-                {preview.frequencyLimit} 次。发布后计划立即进入投放中。
+                {preview.frequencyLimit}{' '}
+                次。发布后按上述投放时间生效，不修改起止时间。
               </p>
-              <pre className="max-h-52 overflow-auto rounded-lg bg-sidebar p-3 text-xs text-sidebar-foreground">
-                {JSON.stringify(preview.targeting, null, 2)}
-              </pre>
+              <TargetingSummary targeting={preview.targeting} />
             </section>
           )}
           {!editable && current.activeVersion && (

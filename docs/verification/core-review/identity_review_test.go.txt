@@ -1,0 +1,40 @@
+//go:build integration
+
+package integration
+
+import (
+ "context"
+ "strings"
+ "testing"
+ "time"
+ "github.com/redis/go-redis/v9"
+ decisionapp "github.com/zhanghaiyang/adflow/internal/decision/application"
+ memory "github.com/zhanghaiyang/adflow/internal/decision/adapter/memory"
+ profilemysql "github.com/zhanghaiyang/adflow/internal/decision/adapter/mysql"
+ profilecache "github.com/zhanghaiyang/adflow/internal/decision/adapter/profilecache"
+ reservationredis "github.com/zhanghaiyang/adflow/internal/decision/adapter/redis"
+ "github.com/zhanghaiyang/adflow/internal/decision/domain"
+)
+type reviewCaseCandidates struct{}
+func(reviewCaseCandidates)ActiveCandidates(context.Context,string,time.Time)([]domain.Candidate,error){return []domain.Candidate{{CampaignID:"review-campaign",CreativeIDs:[]string{"creative"},FrequencyLimit:1,DailyBudgetFen:100,ImpressionCostFen:1}},nil}
+func TestReviewIdentityAliasesMustShareCacheAndFrequency(t *testing.T){
+ db:=integrationMySQL(t);source:=profilemysql.NewProfileStore(db)
+ client:=redis.NewClient(&redis.Options{Addr:integrationEnv(t,"ADFLOW_IT_REDIS_ADDR"),Protocol:2,DisableIdentity:true});t.Cleanup(func(){_ = client.Close()})
+ prefix:="adflow:review:identity:"+newID(t);t.Cleanup(func(){deletePrefix(context.Background(),client,prefix)})
+ id:="review-user-"+newID(t);alias:=strings.ToUpper(id)
+ t.Cleanup(func(){_ = source.DeleteProfile(context.Background(),id)})
+ cache,err:=profilecache.New(source,client,prefix,time.Minute,time.Second,time.Second,nil);if err!=nil{t.Fatal(err)}
+ if err:=cache.PutProfile(t.Context(),domain.NewProfile(id,nil,map[string]string{"score":"10"}));err!=nil{t.Fatal(err)}
+ if _,err:=cache.FindProfile(t.Context(),id);err!=nil{t.Fatal(err)}
+ if err:=cache.PutProfile(t.Context(),domain.NewProfile(alias,nil,map[string]string{"score":"99"}));err!=nil{t.Fatal(err)}
+ stored,err:=source.FindProfile(t.Context(),id);if err!=nil{t.Fatal(err)}
+ cached,err:=cache.FindProfile(t.Context(),id);if err!=nil{t.Fatal(err)}
+ var count int;if err:=db.QueryRowContext(t.Context(),"SELECT COUNT(*) FROM user_profiles WHERE user_id IN (?, ?)",id,alias).Scan(&count);err!=nil{t.Fatal(err)}
+ if count!=1{t.Fatalf("fixture is not one case-insensitive identity: rows=%d",count)}
+ if stored.Fields["score"]!=cached.Fields["score"]{t.Errorf("same MySQL user, alias write: database score=%s but cached score=%s",stored.Fields["score"],cached.Fields["score"])}
+ reservations:=reservationredis.NewReservations(client,prefix+":reservations")
+ service:=decisionapp.NewService(reviewCaseCandidates{},cache,reservations,reservations,memory.NewRuntime())
+ first,err:=service.Decide(t.Context(),domain.Request{RequestID:"first",UserID:id,SlotID:"slot"});if err!=nil||!first.Matched{t.Fatalf("first=%+v err=%v",first,err)}
+ second,err:=service.Decide(t.Context(),domain.Request{RequestID:"second",UserID:alias,SlotID:"slot"});if err!=nil{t.Fatal(err)}
+ if second.Matched{t.Errorf("same MySQL user obtained two matched decisions via case aliases despite frequencyLimit=1")}
+}

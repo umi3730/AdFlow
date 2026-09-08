@@ -1,0 +1,4 @@
+=== RUN   TestKafkaAckBeforeOutboxMarkProducesOneMetric
+--- PASS: TestKafkaAckBeforeOutboxMarkProducesOneMetric (2.61s)
+PASS
+ok  	github.com/zhanghaiyang/adflow/tests/integration	2.716s

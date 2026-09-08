@@ -1,0 +1,7 @@
+=== RUN   TestRealMySQLDeadlockRetriesCompleteTransaction
+--- PASS: TestRealMySQLDeadlockRetriesCompleteTransaction (0.17s)
+=== RUN   TestRealMySQLDeadlockRetriesCompleteTransaction
+--- PASS: TestRealMySQLDeadlockRetriesCompleteTransaction (0.16s)
+=== RUN   TestRealMySQLDeadlockRetriesCompleteTransaction
+--- PASS: TestRealMySQLDeadlockRetriesCompleteTransaction (0.16s)
+PASS

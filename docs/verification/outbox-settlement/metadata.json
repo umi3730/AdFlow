@@ -1,0 +1,74 @@
+{
+  "generatedAt": "2026-09-07T05:39:30.0099178Z",
+  "revision": "ca50d137f4fc0eba1df4bab1426512248a8b27c6",
+  "fullGoTests": {
+    "topLevelPassed": 221,
+    "passedIncludingSubtests": 279,
+    "failed": 0
+  },
+  "frontendTests": {
+    "passed": 98,
+    "failed": 0
+  },
+  "checks": [
+    "go vet ./...",
+    "go build -o work/outbox-settlement/adflow-api-verified.exe ./cmd/api",
+    "tsc --noEmit",
+    "oxlint components/adflow-console.tsx lib/api.ts",
+    "npm run build"
+  ],
+  "integration": {
+    "reason": "ADFLOW_IT_MYSQL_DSN not configured; no live MySQL/Kafka settlement acceptance claimed",
+    "executed": 0,
+    "skipped": 3
+  },
+  "simulation": "Lua executed by miniredis; MySQL unit assertions use sqlmock; worker restart uses a retained fake queue",
+  "migrationsAppliedToUserDatabase": false,
+  "previewAPIsRestarted": false,
+  "sources": [
+    {
+      "path": "internal/event/application/async_service.go",
+      "sha256": "e53e3a7ba7483d9e44900e24598cb9971f26e00dccece1349c5eafa01189f19f"
+    },
+    {
+      "path": "internal/event/application/settlement_worker.go",
+      "sha256": "87dccfb6dddb0c42fb61f05331afacae23e4d653e5b97af93ef0704f99057fd5"
+    },
+    {
+      "path": "internal/event/adapter/mysql/settlement.go",
+      "sha256": "13c84451cd96039bb01b7e7f6ede28c6db4c09a42118c18a13432135addaabcf"
+    },
+    {
+      "path": "internal/event/adapter/mysql/outbox.go",
+      "sha256": "e09b6f7ac8775a7e094ffdbee72f12ee834af9b163516aba19895f765f70c434"
+    },
+    {
+      "path": "internal/decision/adapter/redis/settlement.go",
+      "sha256": "b2e51ba7ae53eb710f1bd2c79a12bebb77ae244e5eda1a747e4f35edc476fbe4"
+    },
+    {
+      "path": "internal/decision/adapter/memory/settlement.go",
+      "sha256": "48149c11f6d01a86593e341963d7b6fafe86fbbaaaa9cc8c2890b5e23289f6d6"
+    },
+    {
+      "path": "internal/event/domain/settlement.go",
+      "sha256": "f0a75fa1f75d09df59433cac45cc03e9040b4dd1b1187b599b8e98b039db402e"
+    },
+    {
+      "path": "internal/decision/domain/settlement.go",
+      "sha256": "a136241c03e8a003718f34ae7f4910017887f7e62e174bc639bc8920198ae479"
+    },
+    {
+      "path": "migrations/000010_event_settlements.up.sql",
+      "sha256": "26fbeba6b1affcaf955530dd6160079ff1a9a9b8965c74bbc5c244663024214c"
+    },
+    {
+      "path": "cmd/api/main.go",
+      "sha256": "cafa9d34026d67711ae6b54dd267e17722de4df97715d16e09761ab043a1f5a0"
+    },
+    {
+      "path": "tests/integration/settlement_recovery_test.go",
+      "sha256": "ef4d90448a1617a91aaab0cba40310190d1f7d3f6a91e2de9b74750dc9d67469"
+    }
+  ]
+}

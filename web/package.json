@@ -12,7 +12,13 @@
     "lint": "oxlint",
     "test:forms": "node --test tests/forms.test.mjs",
     "test:rules": "node --test tests/campaign-rules.test.mjs",
-    "format": "oxfmt"
+    "test:agent": "node --test tests/agent-workspace.test.mjs",
+    "test:profiles": "node --test tests/profile-options.test.mjs",
+    "test:creatives": "node --test tests/creative-defaults.test.mjs",
+    "test:simulation": "node --test tests/user-pool-simulator.test.mjs",
+    "test:auth": "node --test tests/auth-session.test.mjs",
+    "format": "oxfmt",
+    "test": "node --test tests/*.test.mjs ../tests/k6-summary-safety.test.mjs"
   },
   "dependencies": {
     "react": "19.2.6",

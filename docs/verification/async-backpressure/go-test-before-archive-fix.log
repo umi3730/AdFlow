@@ -1,0 +1,71 @@
+# github.com/zhanghaiyang/adflow/docs/verification/kafka-capacity-followup/source/internal/event/domain
+docs\verification\kafka-capacity-followup\source\internal\event\domain\settlement.go:16:29: undefined: Event
+docs\verification\kafka-capacity-followup\source\internal\event\domain\settlement.go:21:46: undefined: Event
+docs\verification\kafka-capacity-followup\source\internal\event\domain\settlement.go:22:40: undefined: Event
+docs\verification\kafka-capacity-followup\source\internal\event\domain\settlement.go:41:41: undefined: Event
+# github.com/zhanghaiyang/adflow/docs/verification/kafka-capacity-followup/source/internal/event/application
+docs\verification\kafka-capacity-followup\source\internal\event\application\settlement_worker.go:110:66: undefined: Service
+?   	github.com/zhanghaiyang/adflow/cmd/api	[no test files]
+?   	github.com/zhanghaiyang/adflow/cmd/migrate	[no test files]
+?   	github.com/zhanghaiyang/adflow/docs/verification/kafka-capacity-followup/source/internal/audit/adapter/http	[no test files]
+?   	github.com/zhanghaiyang/adflow/docs/verification/kafka-capacity-followup/source/internal/audit/adapter/mysql	[no test files]
+?   	github.com/zhanghaiyang/adflow/docs/verification/kafka-capacity-followup/source/internal/event/adapter/kafka	[no test files]
+?   	github.com/zhanghaiyang/adflow/docs/verification/kafka-capacity-followup/source/internal/event/adapter/mysql	[no test files]
+FAIL	github.com/zhanghaiyang/adflow/docs/verification/kafka-capacity-followup/source/internal/event/application [build failed]
+FAIL	github.com/zhanghaiyang/adflow/docs/verification/kafka-capacity-followup/source/internal/event/domain [build failed]
+?   	github.com/zhanghaiyang/adflow/docs/verification/kafka-capacity-followup/source/tests/bench/k6-lab	[no test files]
+?   	github.com/zhanghaiyang/adflow/internal/agentassistant/adapter/http	[no test files]
+ok  	github.com/zhanghaiyang/adflow/internal/agentassistant/adapter/mock	0.234s
+ok  	github.com/zhanghaiyang/adflow/internal/agentassistant/adapter/openai	0.967s
+ok  	github.com/zhanghaiyang/adflow/internal/agentassistant/application	0.234s
+?   	github.com/zhanghaiyang/adflow/internal/agentassistant/domain	[no test files]
+ok  	github.com/zhanghaiyang/adflow/internal/audit/adapter/http	2.426s
+ok  	github.com/zhanghaiyang/adflow/internal/audit/adapter/memory	0.599s
+ok  	github.com/zhanghaiyang/adflow/internal/audit/adapter/mysql	0.495s
+ok  	github.com/zhanghaiyang/adflow/internal/audit/application	0.475s
+?   	github.com/zhanghaiyang/adflow/internal/audit/domain	[no test files]
+ok  	github.com/zhanghaiyang/adflow/internal/bootstrap	0.986s
+ok  	github.com/zhanghaiyang/adflow/internal/campaign/adapter/http	2.770s
+ok  	github.com/zhanghaiyang/adflow/internal/campaign/adapter/memory	0.184s
+ok  	github.com/zhanghaiyang/adflow/internal/campaign/adapter/mysql	0.162s
+ok  	github.com/zhanghaiyang/adflow/internal/campaign/application	0.133s
+ok  	github.com/zhanghaiyang/adflow/internal/campaign/domain	0.673s
+ok  	github.com/zhanghaiyang/adflow/internal/config	0.038s
+ok  	github.com/zhanghaiyang/adflow/internal/decision/adapter/campaign	1.790s
+ok  	github.com/zhanghaiyang/adflow/internal/decision/adapter/http	3.069s
+ok  	github.com/zhanghaiyang/adflow/internal/decision/adapter/memory	1.185s
+ok  	github.com/zhanghaiyang/adflow/internal/decision/adapter/mysql	1.795s
+ok  	github.com/zhanghaiyang/adflow/internal/decision/adapter/profilecache	2.634s
+ok  	github.com/zhanghaiyang/adflow/internal/decision/adapter/redis	2.629s
+ok  	github.com/zhanghaiyang/adflow/internal/decision/adapter/requestprofile	0.024s
+ok  	github.com/zhanghaiyang/adflow/internal/decision/application	0.068s
+ok  	github.com/zhanghaiyang/adflow/internal/decision/domain	0.024s
+?   	github.com/zhanghaiyang/adflow/internal/event/adapter/http	[no test files]
+ok  	github.com/zhanghaiyang/adflow/internal/event/adapter/kafka	0.087s
+?   	github.com/zhanghaiyang/adflow/internal/event/adapter/memory	[no test files]
+ok  	github.com/zhanghaiyang/adflow/internal/event/adapter/mysql	0.126s
+ok  	github.com/zhanghaiyang/adflow/internal/event/application	0.403s
+ok  	github.com/zhanghaiyang/adflow/internal/event/domain	1.754s
+ok  	github.com/zhanghaiyang/adflow/internal/health	1.231s
+ok  	github.com/zhanghaiyang/adflow/internal/identity/adapter/http	0.965s
+ok  	github.com/zhanghaiyang/adflow/internal/identity/adapter/jwt	0.402s
+ok  	github.com/zhanghaiyang/adflow/internal/identity/adapter/memory	0.501s
+?   	github.com/zhanghaiyang/adflow/internal/identity/adapter/password	[no test files]
+ok  	github.com/zhanghaiyang/adflow/internal/identity/application	0.487s
+ok  	github.com/zhanghaiyang/adflow/internal/identity/domain	0.461s
+ok  	github.com/zhanghaiyang/adflow/internal/observability	0.591s
+ok  	github.com/zhanghaiyang/adflow/internal/operations/adapter/http	0.660s
+ok  	github.com/zhanghaiyang/adflow/internal/operations/application	0.145s
+?   	github.com/zhanghaiyang/adflow/internal/platform/cache	[no test files]
+?   	github.com/zhanghaiyang/adflow/internal/platform/database	[no test files]
+ok  	github.com/zhanghaiyang/adflow/internal/platform/migrate	0.147s
+ok  	github.com/zhanghaiyang/adflow/internal/profile/schema	0.052s
+ok  	github.com/zhanghaiyang/adflow/internal/transport/http	0.739s
+?   	github.com/zhanghaiyang/adflow/tests/bench/full-chain	[no test files]
+?   	github.com/zhanghaiyang/adflow/tests/bench/jmeter-profile	[no test files]
+ok  	github.com/zhanghaiyang/adflow/tests/bench/k6-lab	0.182s
+?   	github.com/zhanghaiyang/adflow/tests/bench/outbox-index	[no test files]
+?   	github.com/zhanghaiyang/adflow/tests/plan-sample-contract	[no test files]
+?   	github.com/zhanghaiyang/adflow/work	[no test files]
+?   	github.com/zhanghaiyang/adflow/work/simulation-timeout	[no test files]
+FAIL

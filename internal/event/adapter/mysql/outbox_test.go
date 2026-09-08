@@ -73,12 +73,11 @@ func TestOutboxClaimBatchUsesLease(t *testing.T) {
 	databaseNow := now.Truncate(time.Millisecond)
 	lockedUntil := databaseNow.Add(30 * time.Second)
 	mock.ExpectBegin()
-	mock.ExpectExec("UPDATE event_outbox").
-		WithArgs("worker-1", lockedUntil, databaseNow, databaseNow, 10).
-		WillReturnResult(sqlmock.NewResult(0, 1))
-	mock.ExpectQuery("SELECT payload, attempts").
-		WithArgs("worker-1", lockedUntil).
-		WillReturnRows(sqlmock.NewRows([]string{"payload", "attempts"}).AddRow(payload, 2))
+	mock.ExpectQuery("SELECT UTC_TIMESTAMP").WillReturnRows(sqlmock.NewRows([]string{"now"}).AddRow(databaseNow))
+	mock.ExpectQuery("SELECT event_id, payload, attempts.*FOR UPDATE SKIP LOCKED").
+		WithArgs(databaseNow, databaseNow, 10).
+		WillReturnRows(sqlmock.NewRows([]string{"event_id", "payload", "attempts"}).AddRow(event.EventID, payload, 2))
+	mock.ExpectExec("UPDATE event_outbox.*WHERE event_id IN").WithArgs("worker-1", lockedUntil, event.EventID).WillReturnResult(sqlmock.NewResult(0, 1))
 	mock.ExpectCommit()
 	entries, err := outbox.ClaimBatch(context.Background(), 10, now, 30*time.Second)
 	if err != nil || len(entries) != 1 || entries[0].Attempts != 2 || entries[0].Event.EventID != event.EventID {
@@ -86,14 +85,20 @@ func TestOutboxClaimBatchUsesLease(t *testing.T) {
 	}
 }
 
-func TestOutboxMarksPublishedBatchInOneStatement(t *testing.T) {
+func TestOutboxMarksPublishedBatchAndDependencyReceiptsAtomically(t *testing.T) {
 	db, mock := mockDB(t)
 	outbox := NewOutbox(db, "worker-1")
 	publishedAt := time.Date(2026, 9, 3, 1, 0, 0, 0, time.UTC)
+	mock.ExpectBegin()
 	mock.ExpectExec("UPDATE event_outbox").
 		WithArgs(publishedAt, "event-1", "event-2", "worker-1").
 		WillReturnResult(sqlmock.NewResult(0, 2))
+	mock.ExpectExec("UPDATE event_receipts SET status = 'PUBLISHED'").WithArgs("event-1", "event-2").WillReturnResult(sqlmock.NewResult(0, 2))
+	mock.ExpectCommit()
 	if err := outbox.MarkPublishedBatch(context.Background(), []string{"event-1", "event-2"}, publishedAt); err != nil {
+		t.Fatal(err)
+	}
+	if err := mock.ExpectationsWereMet(); err != nil {
 		t.Fatal(err)
 	}
 }

@@ -1,0 +1,545 @@
+LATEST DETECTED DEADLOCK
+------------------------
+2026-09-08 13:25:22 132262432700096
+*** (1) TRANSACTION:
+TRANSACTION 2639844, ACTIVE 0 sec updating or deleting
+mysql tables in use 1, locked 1
+LOCK WAIT 9 lock struct(s), heap size 1128, 9 row lock(s), undo log entries 2
+MySQL thread id 29326, OS thread handle 132261594629824, query id 6333836 localhost root updating
+UPDATE event_outbox SET status = 'PENDING', attempts = 0,
+  next_attempt_at = UTC_TIMESTAMP(3), last_error = NULL
+  WHERE aggregate_key = 'kc-01-confirm-1-50_1788845122169_1754' AND status = 'SETTLING'
+
+*** (1) HOLDS THE LOCK(S):
+RECORD LOCKS space id 371 page no 465 n bits 176 index idx_outbox_request_status of table `adflow_k6lab_20260908_052423`.`event_outbox` trx id 2639844 lock_mode X
+Record lock, heap no 64 PHYSICAL RECORD: n_fields 3; compact format; info bits 0
+ 0: len 30; hex 6b632d30312d636f6e6669726d2d312d35305f3137383838343531323231; asc kc-01-confirm-1-50_17888451221; (total 37 bytes);
+ 1: len 8; hex 534554544c494e47; asc SETTLING;;
+ 2: len 30; hex 636c69636b2d6b632d30312d636f6e6669726d2d312d35305f3137383838; asc click-kc-01-confirm-1-50_17888; (total 43 bytes);
+
+Record lock, heap no 65 PHYSICAL RECORD: n_fields 3; compact format; info bits 0
+ 0: len 30; hex 6b632d30312d636f6e6669726d2d312d35305f3137383838343531323231; asc kc-01-confirm-1-50_17888451221; (total 37 bytes);
+ 1: len 8; hex 534554544c494e47; asc SETTLING;;
+ 2: len 30; hex 636f6e76657273696f6e2d6b632d30312d636f6e6669726d2d312d35305f; asc conversion-kc-01-confirm-1-50_; (total 48 bytes);
+
+Record lock, heap no 66 PHYSICAL RECORD: n_fields 3; compact format; info bits 0
+ 0: len 30; hex 6b632d30312d636f6e6669726d2d312d35305f3137383838343531323231; asc kc-01-confirm-1-50_17888451221; (total 37 bytes);
+ 1: len 8; hex 534554544c494e47; asc SETTLING;;
+ 2: len 30; hex 696d7072657373696f6e2d6b632d30312d636f6e6669726d2d312d35305f; asc impression-kc-01-confirm-1-50_; (total 48 bytes);
+
+
+*** (1) WAITING FOR THIS LOCK TO BE GRANTED:
+RECORD LOCKS space id 371 page no 355 n bits 264 index idx_event_outbox_claim of table `adflow_k6lab_20260908_052423`.`event_outbox` trx id 2639844 lock_mode X locks gap before rec insert intention waiting
+Record lock, heap no 125 PHYSICAL RECORD: n_fields 5; compact format; info bits 32
+ 0: len 10; hex 50524f43455353494e47; asc PROCESSING;;
+ 1: len 7; hex 99bad056550c26; asc    VU &;;
+ 2: len 7; hex 99bad056740c30; asc    Vt 0;;
+ 3: len 7; hex 99bad0565508b6; asc    VU  ;;
+ 4: len 30; hex 636c69636b2d6b632d30312d636f6e6669726d2d312d35305f3137383838; asc click-kc-01-confirm-1-50_17888; (total 43 bytes);
+
+
+*** (2) TRANSACTION:
+TRANSACTION 2639834, ACTIVE 0 sec updating or deleting
+mysql tables in use 1, locked 1
+LOCK WAIT 11 lock struct(s), heap size 1128, 141 row lock(s), undo log entries 69
+MySQL thread id 29320, OS thread handle 132261612594880, query id 6333812 localhost root updating
+UPDATE event_outbox
+		SET status = 'PUBLISHED', published_at = '2026-09-08 05:25:22.31182474', locked_by = NULL, locked_until = NULL, last_error = NULL
+		WHERE event_id IN ('click-kc-01-confirm-1-50_1788845121169_1704','conversion-kc-01-confirm-1-50_1788845121169_1704','click-kc-01-confirm-1-50_1788845121209_1706','click-kc-01-confirm-1-50_1788845121229_1707','conversion-kc-01-confirm-1-50_1788845121209_1706','conversion-kc-01-confirm-1-50_1788845121229_1707','click-kc-01-confirm-1-50_1788845121248_1708','click-kc-01-confirm-1-50_1788845121269_1709','conversion-kc-01-confirm-1-50_1788845121269_1709','conversion-kc-01-confirm-1-50_1788845121248_1708','click-kc-01-confirm-1-50_1788845121288_1710','click-kc-01-confirm-1-50_1788845121309_1711','conversion-kc-01-confirm-1-50_1788845121288_1710','click-kc-01-confirm-1-50_1788845121329_1712','conversion-kc-01-confirm-1-50_1788845121309_1711','click-kc-01-confirm-1-50_1788845121349_1713','click-kc-01-confirm-1-50_1788845121369_1714','conversion-kc-01-confirm-1-50_1788845121329_1712','conversion-kc-01-confirm-1-50_1788845121369_1714','click-kc-01-confirm-1-50_1788845121389_1715','conversion-kc-01-confirm-1-50_1788845121349_1713','click-kc-01-confirm-1-50_1788845121408_1716','conversion-kc-01-confirm-1-50_1788845121408_1716','click-kc-01-confirm-1-50_1788845121428_1717','conversion-kc-01-confirm-1-50_1788845121389_1715','click-kc-01-confirm-1-50_1788845121449_1718','conversion-kc-01-confirm-1-50_1788845121428_1717','conversion-kc-01-confirm-1-50_1788845121449_1718','click-kc-01-confirm-1-50_1788845121469_1719','click-kc-01-confirm-1-50_1788845121488_1720','conversion-kc-01-confirm-1-50_1788845121469_1719','click-kc-01-confirm-1-50_1788845121509_1721','conversion-kc-01-confirm-1-50_1788845121488_1720','conversion-kc-01-confirm-1-50_1788845121509_1721','click-kc-01-confirm-1-50_1788845121528_1722','conversion-kc-01-confirm-1-50_1788845121528_1722','click-kc-01-confirm-1-50_1788845121549_1723','click-kc-01-confirm-1-50_1788845121568_1724','conversion-kc-01-confirm-1-50_1788845121549_1723','impression-kc-01-confirm-1-50_1788845121609_1726','conversion-kc-01-confirm-1-50_1788845121568_1724','click-kc-01-confirm-1-50_1788845121588_1725','impression-kc-01-confirm-1-50_1788845121629_1727','impression-kc-01-confirm-1-50_1788845121648_1728','conversion-kc-01-confirm-1-50_1788845121588_1725','impression-kc-01-confirm-1-50_1788845121668_1729','impression-kc-01-confirm-1-50_1788845121688_1730','impression-kc-01-confirm-1-50_1788845121708_1731','impression-kc-01-confirm-1-50_1788845121729_1732','impression-kc-01-confirm-1-50_1788845121749_1733','impression-kc-01-confirm-1-50_1788845121769_1734','impression-kc-01-confirm-1-50_1788845121788_1735','impression-kc-01-confirm-1-50_1788845121808_1736','impression-kc-01-confirm-1-50_1788845121829_1737','impression-kc-01-confirm-1-50_1788845121848_1738','impression-kc-01-confirm-1-50_1788845121868_1739','impression-kc-01-confirm-1-50_1788845121889_1740','impression-kc-01-confirm
+
+*** (2) HOLDS THE LOCK(S):
+RECORD LOCKS space id 371 page no 355 n bits 264 index idx_event_outbox_claim of table `adflow_k6lab_20260908_052423`.`event_outbox` trx id 2639834 lock_mode X
+Record lock, heap no 125 PHYSICAL RECORD: n_fields 5; compact format; info bits 32
+ 0: len 10; hex 50524f43455353494e47; asc PROCESSING;;
+ 1: len 7; hex 99bad056550c26; asc    VU &;;
+ 2: len 7; hex 99bad056740c30; asc    Vt 0;;
+ 3: len 7; hex 99bad0565508b6; asc    VU  ;;
+ 4: len 30; hex 636c69636b2d6b632d30312d636f6e6669726d2d312d35305f3137383838; asc click-kc-01-confirm-1-50_17888; (total 43 bytes);
+
+Record lock, heap no 126 PHYSICAL RECORD: n_fields 5; compact format; info bits 32
+ 0: len 10; hex 50524f43455353494e47; asc PROCESSING;;
+ 1: len 7; hex 99bad056550c26; asc    VU &;;
+ 2: len 7; hex 99bad056740c30; asc    Vt 0;;
+ 3: len 7; hex 99bad056550988; asc    VU  ;;
+ 4: len 30; hex 636f6e76657273696f6e2d6b632d30312d636f6e6669726d2d312d35305f; asc conversion-kc-01-confirm-1-50_; (total 48 bytes);
+
+Record lock, heap no 127 PHYSICAL RECORD: n_fields 5; compact format; info bits 32
+ 0: len 10; hex 50524f43455353494e47; asc PROCESSING;;
+ 1: len 7; hex 99bad056550c80; asc    VU  ;;
+ 2: len 7; hex 99bad056740c30; asc    Vt 0;;
+ 3: len 7; hex 99bad056550b36; asc    VU 6;;
+ 4: len 30; hex 636c69636b2d6b632d30312d636f6e6669726d2d312d35305f3137383838; asc click-kc-01-confirm-1-50_17888; (total 43 bytes);
+
+Record lock, heap no 128 PHYSICAL RECORD: n_fields 5; compact format; info bits 32
+ 0: len 10; hex 50524f43455353494e47; asc PROCESSING;;
+ 1: len 7; hex 99bad056550c80; asc    VU  ;;
+ 2: len 7; hex 99bad056740c30; asc    Vt 0;;
+ 3: len 7; hex 99bad056550c1c; asc    VU  ;;
+ 4: len 30; hex 636f6e76657273696f6e2d6b632d30312d636f6e6669726d2d312d35305f; asc conversion-kc-01-confirm-1-50_; (total 48 bytes);
+
+Record lock, heap no 129 PHYSICAL RECORD: n_fields 5; compact format; info bits 32
+ 0: len 10; hex 50524f43455353494e47; asc PROCESSING;;
+ 1: len 7; hex 99bad056550cf8; asc    VU  ;;
+ 2: len 7; hex 99bad056740c30; asc    Vt 0;;
+ 3: len 7; hex 99bad056550c1c; asc    VU  ;;
+ 4: len 30; hex 636c69636b2d6b632d30312d636f6e6669726d2d312d35305f3137383838; asc click-kc-01-confirm-1-50_17888; (total 43 bytes);
+
+Record lock, heap no 130 PHYSICAL RECORD: n_fields 5; compact format; info bits 32
+ 0: len 10; hex 50524f43455353494e47; asc PROCESSING;;
+ 1: len 7; hex 99bad056550d0c; asc    VU  ;;
+ 2: len 7; hex 99bad056740c30; asc    Vt 0;;
+ 3: len 7; hex 99bad056550d98; asc    VU  ;;
+ 4: len 30; hex 636f6e76657273696f6e2d6b632d30312d636f6e6669726d2d312d35305f; asc conversion-kc-01-confirm-1-50_; (total 48 bytes);
+
+Record lock, heap no 131 PHYSICAL RECORD: n_fields 5; compact format; info bits 32
+ 0: len 10; hex 50524f43455353494e47; asc PROCESSING;;
+ 1: len 7; hex 99bad056550e2e; asc    VU .;;
+ 2: len 7; hex 99bad056740c30; asc    Vt 0;;
+ 3: len 7; hex 99bad056550a96; asc    VU  ;;
+ 4: len 30; hex 636c69636b2d6b632d30312d636f6e6669726d2d312d35305f3137383838; asc click-kc-01-confirm-1-50_17888; (total 43 bytes);
+
+Record lock, heap no 132 PHYSICAL RECORD: n_fields 5; compact format; info bits 32
+ 0: len 10; hex 50524f43455353494e47; asc PROCESSING;;
+ 1: len 7; hex 99bad056550e2e; asc    VU .;;
+ 2: len 7; hex 99bad056740c30; asc    Vt 0;;
+ 3: len 7; hex 99bad056550b5e; asc    VU ^;;
+ 4: len 30; hex 636f6e76657273696f6e2d6b632d30312d636f6e6669726d2d312d35305f; asc conversion-kc-01-confirm-1-50_; (total 48 bytes);
+
+Record lock, heap no 133 PHYSICAL RECORD: n_fields 5; compact format; info bits 32
+ 0: len 10; hex 50524f43455353494e47; asc PROCESSING;;
+ 1: len 7; hex 99bad056550eba; asc    VU  ;;
+ 2: len 7; hex 99bad056740c30; asc    Vt 0;;
+ 3: len 7; hex 99bad056550e24; asc    VU $;;
+ 4: len 30; hex 636c69636b2d6b632d30312d636f6e6669726d2d312d35305f3137383838; asc click-kc-01-confirm-1-50_17888; (total 43 bytes);
+
+Record lock, heap no 134 PHYSICAL RECORD: n_fields 5; compact format; info bits 32
+ 0: len 10; hex 50524f43455353494e47; asc PROCESSING;;
+ 1: len 7; hex 99bad056550f32; asc    VU 2;;
+ 2: len 7; hex 99bad056740c30; asc    Vt 0;;
+ 3: len 7; hex 99bad056550f3c; asc    VU <;;
+ 4: len 30; hex 636f6e76657273696f6e2d6b632d30312d636f6e6669726d2d312d35305f; asc conversion-kc-01-confirm-1-50_; (total 48 bytes);
+
+Record lock, heap no 135 PHYSICAL RECORD: n_fields 5; compact format; info bits 32
+ 0: len 10; hex 50524f43455353494e47; asc PROCESSING;;
+ 1: len 7; hex 99bad056550fb4; asc    VU  ;;
+ 2: len 7; hex 99bad056740c30; asc    Vt 0;;
+ 3: len 7; hex 99bad056550c6c; asc    VU l;;
+ 4: len 30; hex 636c69636b2d6b632d30312d636f6e6669726d2d312d35305f3137383838; asc click-kc-01-confirm-1-50_17888; (total 43 bytes);
+
+Record lock, heap no 136 PHYSICAL RECORD: n_fields 5; compact format; info bits 32
+ 0: len 10; hex 50524f43455353494e47; asc PROCESSING;;
+ 1: len 7; hex 99bad056550fb4; asc    VU  ;;
+ 2: len 7; hex 99bad056740c30; asc    Vt 0;;
+ 3: len 7; hex 99bad056550d2a; asc    VU *;;
+ 4: len 30; hex 636f6e76657273696f6e2d6b632d30312d636f6e6669726d2d312d35305f; asc conversion-kc-01-confirm-1-50_; (total 48 bytes);
+
+Record lock, heap no 137 PHYSICAL RECORD: n_fields 5; compact format; info bits 32
+ 0: len 10; hex 50524f43455353494e47; asc PROCESSING;;
+ 1: len 7; hex 99bad056551036; asc    VU 6;;
+ 2: len 7; hex 99bad056740c30; asc    Vt 0;;
+ 3: len 7; hex 99bad056550faa; asc    VU  ;;
+ 4: len 30; hex 636c69636b2d6b632d30312d636f6e6669726d2d312d35305f3137383838; asc click-kc-01-confirm-1-50_17888; (total 43 bytes);
+
+Record lock, heap no 138 PHYSICAL RECORD: n_fields 5; compact format; info bits 32
+ 0: len 10; hex 50524f43455353494e47; asc PROCESSING;;
+ 1: len 7; hex 99bad0565510b8; asc    VU  ;;
+ 2: len 7; hex 99bad056740c30; asc    Vt 0;;
+ 3: len 7; hex 99bad0565510d6; asc    VU  ;;
+ 4: len 30; hex 636f6e76657273696f6e2d6b632d30312d636f6e6669726d2d312d35305f; asc conversion-kc-01-confirm-1-50_; (total 48 bytes);
+
+Record lock, heap no 139 PHYSICAL RECORD: n_fields 5; compact format; info bits 32
+ 0: len 10; hex 50524f43455353494e47; asc PROCESSING;;
+ 1: len 7; hex 99bad056551158; asc    VU X;;
+ 2: len 7; hex 99bad056740c30; asc    Vt 0;;
+ 3: len 7; hex 99bad056550ece; asc    VU  ;;
+ 4: len 30; hex 636c69636b2d6b632d30312d636f6e6669726d2d312d35305f3137383838; asc click-kc-01-confirm-1-50_17888; (total 43 bytes);
+
+Record lock, heap no 140 PHYSICAL RECORD: n_fields 5; compact format; info bits 32
+ 0: len 10; hex 50524f43455353494e47; asc PROCESSING;;
+ 1: len 7; hex 99bad056551158; asc    VU X;;
+ 2: len 7; hex 99bad056740c30; asc    Vt 0;;
+ 3: len 7; hex 99bad056550fe6; asc    VU  ;;
+ 4: len 30; hex 636f6e76657273696f6e2d6b632d30312d636f6e6669726d2d312d35305f; asc conversion-kc-01-confirm-1-50_; (total 48 bytes);
+
+Record lock, heap no 141 PHYSICAL RECORD: n_fields 5; compact format; info bits 32
+ 0: len 10; hex 50524f43455353494e47; asc PROCESSING;;
+ 1: len 7; hex 99bad0565512b6; asc    VU  ;;
+ 2: len 7; hex 99bad056740c30; asc    Vt 0;;
+ 3: len 7; hex 99bad056551086; asc    VU  ;;
+ 4: len 30; hex 636c69636b2d6b632d30312d636f6e6669726d2d312d35305f3137383838; asc click-kc-01-confirm-1-50_17888; (total 43 bytes);
+
+Record lock, heap no 142 PHYSICAL RECORD: n_fields 5; compact format; info bits 32
+ 0: len 10; hex 50524f43455353494e47; asc PROCESSING;;
+ 1: len 7; hex 99bad0565512b6; asc    VU  ;;
+ 2: len 7; hex 99bad056740c30; asc    Vt 0;;
+ 3: len 7; hex 99bad056551248; asc    VU H;;
+ 4: len 30; hex 636f6e76657273696f6e2d6b632d30312d636f6e6669726d2d312d35305f; asc conversion-kc-01-confirm-1-50_; (total 48 bytes);
+
+Record lock, heap no 143 PHYSICAL RECORD: n_fields 5; compact format; info bits 32
+ 0: len 10; hex 50524f43455353494e47; asc PROCESSING;;
+ 1: len 7; hex 99bad056551342; asc    VU B;;
+ 2: len 7; hex 99bad056740c30; asc    Vt 0;;
+ 3: len 7; hex 99bad056551248; asc    VU H;;
+ 4: len 30; hex 636c69636b2d6b632d30312d636f6e6669726d2d312d35305f3137383838; asc click-kc-01-confirm-1-50_17888; (total 43 bytes);
+
+Record lock, heap no 144 PHYSICAL RECORD: n_fields 5; compact format; info bits 32
+ 0: len 10; hex 50524f43455353494e47; asc PROCESSING;;
+ 1: len 7; hex 99bad056551356; asc    VU V;;
+ 2: len 7; hex 99bad056740c30; asc    Vt 0;;
+ 3: len 7; hex 99bad05655139c; asc    VU  ;;
+ 4: len 30; hex 636f6e76657273696f6e2d6b632d30312d636f6e6669726d2d312d35305f; asc conversion-kc-01-confirm-1-50_; (total 48 bytes);
+
+Record lock, heap no 145 PHYSICAL RECORD: n_fields 5; compact format; info bits 32
+ 0: len 10; hex 50524f43455353494e47; asc PROCESSING;;
+ 1: len 7; hex 99bad0565513a6; asc    VU  ;;
+ 2: len 7; hex 99bad056740c30; asc    Vt 0;;
+ 3: len 7; hex 99bad05655125c; asc    VU \;;
+ 4: len 30; hex 636c69636b2d6b632d30312d636f6e6669726d2d312d35305f3137383838; asc click-kc-01-confirm-1-50_17888; (total 43 bytes);
+
+Record lock, heap no 146 PHYSICAL RECORD: n_fields 5; compact format; info bits 32
+ 0: len 10; hex 50524f43455353494e47; asc PROCESSING;;
+ 1: len 7; hex 99bad0565513a6; asc    VU  ;;
+ 2: len 7; hex 99bad056740c30; asc    Vt 0;;
+ 3: len 7; hex 99bad05655134c; asc    VU L;;
+ 4: len 30; hex 636f6e76657273696f6e2d6b632d30312d636f6e6669726d2d312d35305f; asc conversion-kc-01-confirm-1-50_; (total 48 bytes);
+
+Record lock, heap no 147 PHYSICAL RECORD: n_fields 5; compact format; info bits 32
+ 0: len 10; hex 50524f43455353494e47; asc PROCESSING;;
+ 1: len 7; hex 99bad0565514b4; asc    VU  ;;
+ 2: len 7; hex 99bad056740c30; asc    Vt 0;;
+ 3: len 7; hex 99bad0565510c2; asc    VU  ;;
+ 4: len 30; hex 636c69636b2d6b632d30312d636f6e6669726d2d312d35305f3137383838; asc click-kc-01-confirm-1-50_17888; (total 43 bytes);
+
+Record lock, heap no 148 PHYSICAL RECORD: n_fields 5; compact format; info bits 32
+ 0: len 10; hex 50524f43455353494e47; asc PROCESSING;;
+ 1: len 7; hex 99bad0565514b4; asc    VU  ;;
+ 2: len 7; hex 99bad056740c30; asc    Vt 0;;
+ 3: len 7; hex 99bad0565511b2; asc    VU  ;;
+ 4: len 30; hex 636f6e76657273696f6e2d6b632d30312d636f6e6669726d2d312d35305f; asc conversion-kc-01-confirm-1-50_; (total 48 bytes);
+
+Record lock, heap no 149 PHYSICAL RECORD: n_fields 5; compact format; info bits 32
+ 0: len 10; hex 50524f43455353494e47; asc PROCESSING;;
+ 1: len 7; hex 99bad056551518; asc    VU  ;;
+ 2: len 7; hex 99bad056740c30; asc    Vt 0;;
+ 3: len 7; hex 99bad05655134c; asc    VU L;;
+ 4: len 30; hex 636c69636b2d6b632d30312d636f6e6669726d2d312d35305f3137383838; asc click-kc-01-confirm-1-50_17888; (total 43 bytes);
+
+Record lock, heap no 150 PHYSICAL RECORD: n_fields 5; compact format; info bits 32
+ 0: len 10; hex 50524f43455353494e47; asc PROCESSING;;
+ 1: len 7; hex 99bad056551518; asc    VU  ;;
+ 2: len 7; hex 99bad056740c30; asc    Vt 0;;
+ 3: len 7; hex 99bad0565514aa; asc    VU  ;;
+ 4: len 30; hex 636f6e76657273696f6e2d6b632d30312d636f6e6669726d2d312d35305f; asc conversion-kc-01-confirm-1-50_; (total 48 bytes);
+
+Record lock, heap no 151 PHYSICAL RECORD: n_fields 5; compact format; info bits 32
+ 0: len 10; hex 50524f43455353494e47; asc PROCESSING;;
+ 1: len 7; hex 99bad056551586; asc    VU  ;;
+ 2: len 7; hex 99bad056740c30; asc    Vt 0;;
+ 3: len 7; hex 99bad0565513ba; asc    VU  ;;
+ 4: len 30; hex 636c69636b2d6b632d30312d636f6e6669726d2d312d35305f3137383838; asc click-kc-01-confirm-1-50_17888; (total 43 bytes);
+
+Record lock, heap no 152 PHYSICAL RECORD: n_fields 5; compact format; info bits 32
+ 0: len 10; hex 50524f43455353494e47; asc PROCESSING;;
+ 1: len 7; hex 99bad056551586; asc    VU  ;;
+ 2: len 7; hex 99bad056740c30; asc    Vt 0;;
+ 3: len 7; hex 99bad0565514aa; asc    VU  ;;
+ 4: len 30; hex 636f6e76657273696f6e2d6b632d30312d636f6e6669726d2d312d35305f; asc conversion-kc-01-confirm-1-50_; (total 48 bytes);
+
+Record lock, heap no 153 PHYSICAL RECORD: n_fields 5; compact format; info bits 32
+ 0: len 10; hex 50524f43455353494e47; asc PROCESSING;;
+ 1: len 7; hex 99bad05655168a; asc    VU  ;;
+ 2: len 7; hex 99bad056740c30; asc    Vt 0;;
+ 3: len 7; hex 99bad0565514be; asc    VU  ;;
+ 4: len 30; hex 636c69636b2d6b632d30312d636f6e6669726d2d312d35305f3137383838; asc click-kc-01-confirm-1-50_17888; (total 43 bytes);
+
+Record lock, heap no 154 PHYSICAL RECORD: n_fields 5; compact format; info bits 32
+ 0: len 10; hex 50524f43455353494e47; asc PROCESSING;;
+ 1: len 7; hex 99bad05655168a; asc    VU  ;;
+ 2: len 7; hex 99bad056740c30; asc    Vt 0;;
+ 3: len 7; hex 99bad05655159a; asc    VU  ;;
+ 4: len 30; hex 636f6e76657273696f6e2d6b632d30312d636f6e6669726d2d312d35305f; asc conversion-kc-01-confirm-1-50_; (total 48 bytes);
+
+Record lock, heap no 155 PHYSICAL RECORD: n_fields 5; compact format; info bits 32
+ 0: len 10; hex 50524f43455353494e47; asc PROCESSING;;
+ 1: len 7; hex 99bad056551716; asc    VU  ;;
+ 2: len 7; hex 99bad056740c30; asc    Vt 0;;
+ 3: len 7; hex 99bad0565515b8; asc    VU  ;;
+ 4: len 30; hex 636c69636b2d6b632d30312d636f6e6669726d2d312d35305f3137383838; asc click-kc-01-confirm-1-50_17888; (total 43 bytes);
+
+Record lock, heap no 156 PHYSICAL RECORD: n_fields 5; compact format; info bits 32
+ 0: len 10; hex 50524f43455353494e47; asc PROCESSING;;
+ 1: len 7; hex 99bad056551716; asc    VU  ;;
+ 2: len 7; hex 99bad056740c30; asc    Vt 0;;
+ 3: len 7; hex 99bad05655169e; asc    VU  ;;
+ 4: len 30; hex 636f6e76657273696f6e2d6b632d30312d636f6e6669726d2d312d35305f; asc conversion-kc-01-confirm-1-50_; (total 48 bytes);
+
+Record lock, heap no 157 PHYSICAL RECORD: n_fields 5; compact format; info bits 32
+ 0: len 10; hex 50524f43455353494e47; asc PROCESSING;;
+ 1: len 7; hex 99bad0565517f2; asc    VU  ;;
+ 2: len 7; hex 99bad056740c30; asc    Vt 0;;
+ 3: len 7; hex 99bad056551522; asc    VU ";;
+ 4: len 30; hex 636c69636b2d6b632d30312d636f6e6669726d2d312d35305f3137383838; asc click-kc-01-confirm-1-50_17888; (total 43 bytes);
+
+Record lock, heap no 158 PHYSICAL RECORD: n_fields 5; compact format; info bits 32
+ 0: len 10; hex 50524f43455353494e47; asc PROCESSING;;
+ 1: len 7; hex 99bad0565517f2; asc    VU  ;;
+ 2: len 7; hex 99bad056740c30; asc    Vt 0;;
+ 3: len 7; hex 99bad056551608; asc    VU  ;;
+ 4: len 30; hex 636f6e76657273696f6e2d6b632d30312d636f6e6669726d2d312d35305f; asc conversion-kc-01-confirm-1-50_; (total 48 bytes);
+
+Record lock, heap no 159 PHYSICAL RECORD: n_fields 5; compact format; info bits 32
+ 0: len 10; hex 50524f43455353494e47; asc PROCESSING;;
+ 1: len 7; hex 99bad05655186a; asc    VU j;;
+ 2: len 7; hex 99bad056740c30; asc    Vt 0;;
+ 3: len 7; hex 99bad05655170c; asc    VU  ;;
+ 4: len 30; hex 636c69636b2d6b632d30312d636f6e6669726d2d312d35305f3137383838; asc click-kc-01-confirm-1-50_17888; (total 43 bytes);
+
+Record lock, heap no 160 PHYSICAL RECORD: n_fields 5; compact format; info bits 32
+ 0: len 10; hex 50524f43455353494e47; asc PROCESSING;;
+ 1: len 7; hex 99bad05655186a; asc    VU j;;
+ 2: len 7; hex 99bad056740c30; asc    Vt 0;;
+ 3: len 7; hex 99bad0565517e8; asc    VU  ;;
+ 4: len 30; hex 636f6e76657273696f6e2d6b632d30312d636f6e6669726d2d312d35305f; asc conversion-kc-01-confirm-1-50_; (total 48 bytes);
+
+Record lock, heap no 161 PHYSICAL RECORD: n_fields 5; compact format; info bits 32
+ 0: len 10; hex 50524f43455353494e47; asc PROCESSING;;
+ 1: len 7; hex 99bad0565518ec; asc    VU  ;;
+ 2: len 7; hex 99bad056740c30; asc    Vt 0;;
+ 3: len 7; hex 99bad056551806; asc    VU  ;;
+ 4: len 30; hex 636c69636b2d6b632d30312d636f6e6669726d2d312d35305f3137383838; asc click-kc-01-confirm-1-50_17888; (total 43 bytes);
+
+Record lock, heap no 162 PHYSICAL RECORD: n_fields 5; compact format; info bits 32
+ 0: len 10; hex 50524f43455353494e47; asc PROCESSING;;
+ 1: len 7; hex 99bad0565518f6; asc    VU  ;;
+ 2: len 7; hex 99bad056740c30; asc    Vt 0;;
+ 3: len 7; hex 99bad056551946; asc    VU F;;
+ 4: len 30; hex 636f6e76657273696f6e2d6b632d30312d636f6e6669726d2d312d35305f; asc conversion-kc-01-confirm-1-50_; (total 48 bytes);
+
+Record lock, heap no 163 PHYSICAL RECORD: n_fields 5; compact format; info bits 32
+ 0: len 10; hex 50524f43455353494e47; asc PROCESSING;;
+ 1: len 7; hex 99bad056551a2c; asc    VU ,;;
+ 2: len 7; hex 99bad056740c30; asc    Vt 0;;
+ 3: len 7; hex 99bad056551888; asc    VU  ;;
+ 4: len 30; hex 636c69636b2d6b632d30312d636f6e6669726d2d312d35305f3137383838; asc click-kc-01-confirm-1-50_17888; (total 43 bytes);
+
+Record lock, heap no 164 PHYSICAL RECORD: n_fields 5; compact format; info bits 32
+ 0: len 10; hex 50524f43455353494e47; asc PROCESSING;;
+ 1: len 7; hex 99bad056551a2c; asc    VU ,;;
+ 2: len 7; hex 99bad056740c30; asc    Vt 0;;
+ 3: len 7; hex 99bad0565519be; asc    VU  ;;
+ 4: len 30; hex 636f6e76657273696f6e2d6b632d30312d636f6e6669726d2d312d35305f; asc conversion-kc-01-confirm-1-50_; (total 48 bytes);
+
+Record lock, heap no 165 PHYSICAL RECORD: n_fields 5; compact format; info bits 32
+ 0: len 10; hex 50524f43455353494e47; asc PROCESSING;;
+ 1: len 7; hex 99bad056551a90; asc    VU  ;;
+ 2: len 7; hex 99bad056740c30; asc    Vt 0;;
+ 3: len 7; hex 99bad0565519be; asc    VU  ;;
+ 4: len 30; hex 636c69636b2d6b632d30312d636f6e6669726d2d312d35305f3137383838; asc click-kc-01-confirm-1-50_17888; (total 43 bytes);
+
+Record lock, heap no 166 PHYSICAL RECORD: n_fields 5; compact format; info bits 32
+ 0: len 10; hex 50524f43455353494e47; asc PROCESSING;;
+ 1: len 7; hex 99bad056551aae; asc    VU  ;;
+ 2: len 7; hex 99bad056740c30; asc    Vt 0;;
+ 3: len 7; hex 99bad056551afe; asc    VU  ;;
+ 4: len 30; hex 636f6e76657273696f6e2d6b632d30312d636f6e6669726d2d312d35305f; asc conversion-kc-01-confirm-1-50_; (total 48 bytes);
+
+Record lock, heap no 167 PHYSICAL RECORD: n_fields 5; compact format; info bits 32
+ 0: len 10; hex 50524f43455353494e47; asc PROCESSING;;
+ 1: len 7; hex 99bad056552030; asc    VU 0;;
+ 2: len 7; hex 99bad056740c30; asc    Vt 0;;
+ 3: len 7; hex 99bad056551946; asc    VU F;;
+ 4: len 30; hex 696d7072657373696f6e2d6b632d30312d636f6e6669726d2d312d35305f; asc impression-kc-01-confirm-1-50_; (total 48 bytes);
+
+Record lock, heap no 168 PHYSICAL RECORD: n_fields 5; compact format; info bits 32
+ 0: len 10; hex 50524f43455353494e47; asc PROCESSING;;
+ 1: len 7; hex 99bad05655209e; asc    VU  ;;
+ 2: len 7; hex 99bad056740c30; asc    Vt 0;;
+ 3: len 7; hex 99bad0565519be; asc    VU  ;;
+ 4: len 30; hex 696d7072657373696f6e2d6b632d30312d636f6e6669726d2d312d35305f; asc impression-kc-01-confirm-1-50_; (total 48 bytes);
+
+Record lock, heap no 169 PHYSICAL RECORD: n_fields 5; compact format; info bits 32
+ 0: len 10; hex 50524f43455353494e47; asc PROCESSING;;
+ 1: len 7; hex 99bad056552120; asc    VU! ;;
+ 2: len 7; hex 99bad056740c30; asc    Vt 0;;
+ 3: len 7; hex 99bad056551aae; asc    VU  ;;
+ 4: len 30; hex 696d7072657373696f6e2d6b632d30312d636f6e6669726d2d312d35305f; asc impression-kc-01-confirm-1-50_; (total 48 bytes);
+
+Record lock, heap no 171 PHYSICAL RECORD: n_fields 5; compact format; info bits 32
+ 0: len 10; hex 50524f43455353494e47; asc PROCESSING;;
+ 1: len 7; hex 99bad056552198; asc    VU! ;;
+ 2: len 7; hex 99bad056740c30; asc    Vt 0;;
+ 3: len 7; hex 99bad056551b62; asc    VU b;;
+ 4: len 30; hex 696d7072657373696f6e2d6b632d30312d636f6e6669726d2d312d35305f; asc impression-kc-01-confirm-1-50_; (total 48 bytes);
+
+Record lock, heap no 172 PHYSICAL RECORD: n_fields 5; compact format; info bits 32
+ 0: len 10; hex 50524f43455353494e47; asc PROCESSING;;
+ 1: len 7; hex 99bad05655221a; asc    VU" ;;
+ 2: len 7; hex 99bad056740c30; asc    Vt 0;;
+ 3: len 7; hex 99bad056551c52; asc    VU R;;
+ 4: len 30; hex 696d7072657373696f6e2d6b632d30312d636f6e6669726d2d312d35305f; asc impression-kc-01-confirm-1-50_; (total 48 bytes);
+
+Record lock, heap no 173 PHYSICAL RECORD: n_fields 5; compact format; info bits 32
+ 0: len 10; hex 50524f43455353494e47; asc PROCESSING;;
+ 1: len 7; hex 99bad0565522ba; asc    VU" ;;
+ 2: len 7; hex 99bad056740c30; asc    Vt 0;;
+ 3: len 7; hex 99bad056551d06; asc    VU  ;;
+ 4: len 30; hex 696d7072657373696f6e2d6b632d30312d636f6e6669726d2d312d35305f; asc impression-kc-01-confirm-1-50_; (total 48 bytes);
+
+Record lock, heap no 174 PHYSICAL RECORD: n_fields 5; compact format; info bits 32
+ 0: len 10; hex 50524f43455353494e47; asc PROCESSING;;
+ 1: len 7; hex 99bad056552332; asc    VU#2;;
+ 2: len 7; hex 99bad056740c30; asc    Vt 0;;
+ 3: len 7; hex 99bad056551d88; asc    VU  ;;
+ 4: len 30; hex 696d7072657373696f6e2d6b632d30312d636f6e6669726d2d312d35305f; asc impression-kc-01-confirm-1-50_; (total 48 bytes);
+
+Record lock, heap no 175 PHYSICAL RECORD: n_fields 5; compact format; info bits 32
+ 0: len 10; hex 50524f43455353494e47; asc PROCESSING;;
+ 1: len 7; hex 99bad056552422; asc    VU$";;
+ 2: len 7; hex 99bad056740c30; asc    Vt 0;;
+ 3: len 7; hex 99bad056551ea0; asc    VU  ;;
+ 4: len 30; hex 696d7072657373696f6e2d6b632d30312d636f6e6669726d2d312d35305f; asc impression-kc-01-confirm-1-50_; (total 48 bytes);
+
+Record lock, heap no 176 PHYSICAL RECORD: n_fields 5; compact format; info bits 32
+ 0: len 10; hex 50524f43455353494e47; asc PROCESSING;;
+ 1: len 7; hex 99bad0565524d6; asc    VU$ ;;
+ 2: len 7; hex 99bad056740c30; asc    Vt 0;;
+ 3: len 7; hex 99bad056551f36; asc    VU 6;;
+ 4: len 30; hex 696d7072657373696f6e2d6b632d30312d636f6e6669726d2d312d35305f; asc impression-kc-01-confirm-1-50_; (total 48 bytes);
+
+Record lock, heap no 177 PHYSICAL RECORD: n_fields 5; compact format; info bits 32
+ 0: len 10; hex 50524f43455353494e47; asc PROCESSING;;
+ 1: len 7; hex 99bad056552634; asc    VU&4;;
+ 2: len 7; hex 99bad056740c30; asc    Vt 0;;
+ 3: len 7; hex 99bad05655201c; asc    VU  ;;
+ 4: len 30; hex 696d7072657373696f6e2d6b632d30312d636f6e6669726d2d312d35305f; asc impression-kc-01-confirm-1-50_; (total 48 bytes);
+
+Record lock, heap no 178 PHYSICAL RECORD: n_fields 5; compact format; info bits 32
+ 0: len 10; hex 50524f43455353494e47; asc PROCESSING;;
+ 1: len 7; hex 99bad0565526e8; asc    VU& ;;
+ 2: len 7; hex 99bad056740c30; asc    Vt 0;;
+ 3: len 7; hex 99bad056552148; asc    VU!H;;
+ 4: len 30; hex 696d7072657373696f6e2d6b632d30312d636f6e6669726d2d312d35305f; asc impression-kc-01-confirm-1-50_; (total 48 bytes);
+
+Record lock, heap no 179 PHYSICAL RECORD: n_fields 5; compact format; info bits 32
+ 0: len 10; hex 50524f43455353494e47; asc PROCESSING;;
+ 1: len 7; hex 99bad056560096; asc    VV  ;;
+ 2: len 7; hex 99bad056740c30; asc    Vt 0;;
+ 3: len 7; hex 99bad0565521f2; asc    VU! ;;
+ 4: len 30; hex 696d7072657373696f6e2d6b632d30312d636f6e6669726d2d312d35305f; asc impression-kc-01-confirm-1-50_; (total 48 bytes);
+
+Record lock, heap no 180 PHYSICAL RECORD: n_fields 5; compact format; info bits 32
+ 0: len 10; hex 50524f43455353494e47; asc PROCESSING;;
+ 1: len 7; hex 99bad056560140; asc    VV @;;
+ 2: len 7; hex 99bad056740c30; asc    Vt 0;;
+ 3: len 7; hex 99bad0565522f6; asc    VU" ;;
+ 4: len 30; hex 696d7072657373696f6e2d6b632d30312d636f6e6669726d2d312d35305f; asc impression-kc-01-confirm-1-50_; (total 48 bytes);
+
+Record lock, heap no 181 PHYSICAL RECORD: n_fields 5; compact format; info bits 32
+ 0: len 10; hex 50524f43455353494e47; asc PROCESSING;;
+ 1: len 7; hex 99bad05656023a; asc    VV :;;
+ 2: len 7; hex 99bad056740c30; asc    Vt 0;;
+ 3: len 7; hex 99bad056552436; asc    VU$6;;
+ 4: len 30; hex 696d7072657373696f6e2d6b632d30312d636f6e6669726d2d312d35305f; asc impression-kc-01-confirm-1-50_; (total 48 bytes);
+
+Record lock, heap no 182 PHYSICAL RECORD: n_fields 5; compact format; info bits 32
+ 0: len 10; hex 50524f43455353494e47; asc PROCESSING;;
+ 1: len 7; hex 99bad056560348; asc    VV H;;
+ 2: len 7; hex 99bad056740c30; asc    Vt 0;;
+ 3: len 7; hex 99bad0565524f4; asc    VU$ ;;
+ 4: len 30; hex 696d7072657373696f6e2d6b632d30312d636f6e6669726d2d312d35305f; asc impression-kc-01-confirm-1-50_; (total 48 bytes);
+
+Record lock, heap no 183 PHYSICAL RECORD: n_fields 5; compact format; info bits 32
+ 0: len 10; hex 50524f43455353494e47; asc PROCESSING;;
+ 1: len 7; hex 99bad0565604d8; asc    VV  ;;
+ 2: len 7; hex 99bad056740c30; asc    Vt 0;;
+ 3: len 7; hex 99bad056552594; asc    VU% ;;
+ 4: len 30; hex 696d7072657373696f6e2d6b632d30312d636f6e6669726d2d312d35305f; asc impression-kc-01-confirm-1-50_; (total 48 bytes);
+
+Record lock, heap no 184 PHYSICAL RECORD: n_fields 5; compact format; info bits 32
+ 0: len 10; hex 50524f43455353494e47; asc PROCESSING;;
+ 1: len 7; hex 99bad056560564; asc    VV d;;
+ 2: len 7; hex 99bad056740c30; asc    Vt 0;;
+ 3: len 7; hex 99bad056552648; asc    VU&H;;
+ 4: len 30; hex 696d7072657373696f6e2d6b632d30312d636f6e6669726d2d312d35305f; asc impression-kc-01-confirm-1-50_; (total 48 bytes);
+
+Record lock, heap no 185 PHYSICAL RECORD: n_fields 5; compact format; info bits 32
+ 0: len 10; hex 50524f43455353494e47; asc PROCESSING;;
+ 1: len 7; hex 99bad0565605e6; asc    VV  ;;
+ 2: len 7; hex 99bad056740c30; asc    Vt 0;;
+ 3: len 7; hex 99bad0565526fc; asc    VU& ;;
+ 4: len 30; hex 696d7072657373696f6e2d6b632d30312d636f6e6669726d2d312d35305f; asc impression-kc-01-confirm-1-50_; (total 48 bytes);
+
+Record lock, heap no 186 PHYSICAL RECORD: n_fields 5; compact format; info bits 32
+ 0: len 10; hex 50524f43455353494e47; asc PROCESSING;;
+ 1: len 7; hex 99bad05656087a; asc    VV z;;
+ 2: len 7; hex 99bad056740c30; asc    Vt 0;;
+ 3: len 7; hex 99bad0565600dc; asc    VV  ;;
+ 4: len 30; hex 696d7072657373696f6e2d6b632d30312d636f6e6669726d2d312d35305f; asc impression-kc-01-confirm-1-50_; (total 48 bytes);
+
+Record lock, heap no 187 PHYSICAL RECORD: n_fields 5; compact format; info bits 32
+ 0: len 10; hex 50524f43455353494e47; asc PROCESSING;;
+ 1: len 7; hex 99bad056560668; asc    VV h;;
+ 2: len 7; hex 99bad056740c30; asc    Vt 0;;
+ 3: len 7; hex 99bad056560118; asc    VV  ;;
+ 4: len 30; hex 696d7072657373696f6e2d6b632d30312d636f6e6669726d2d312d35305f; asc impression-kc-01-confirm-1-50_; (total 48 bytes);
+
+Record lock, heap no 188 PHYSICAL RECORD: n_fields 5; compact format; info bits 32
+ 0: len 10; hex 50524f43455353494e47; asc PROCESSING;;
+ 1: len 7; hex 99bad0565606f4; asc    VV  ;;
+ 2: len 7; hex 99bad056740c30; asc    Vt 0;;
+ 3: len 7; hex 99bad05656024e; asc    VV N;;
+ 4: len 30; hex 696d7072657373696f6e2d6b632d30312d636f6e6669726d2d312d35305f; asc impression-kc-01-confirm-1-50_; (total 48 bytes);
+
+Record lock, heap no 189 PHYSICAL RECORD: n_fields 5; compact format; info bits 32
+ 0: len 10; hex 50524f43455353494e47; asc PROCESSING;;
+ 1: len 7; hex 99bad056560776; asc    VV v;;
+ 2: len 7; hex 99bad056740c30; asc    Vt 0;;
+ 3: len 7; hex 99bad0565602e4; asc    VV  ;;
+ 4: len 30; hex 696d7072657373696f6e2d6b632d30312d636f6e6669726d2d312d35305f; asc impression-kc-01-confirm-1-50_; (total 48 bytes);
+
+Record lock, heap no 190 PHYSICAL RECORD: n_fields 5; compact format; info bits 32
+ 0: len 10; hex 50524f43455353494e47; asc PROCESSING;;
+ 1: len 7; hex 99bad056560906; asc    VV  ;;
+ 2: len 7; hex 99bad056740c30; asc    Vt 0;;
+ 3: len 7; hex 99bad056560424; asc    VV $;;
+ 4: len 30; hex 696d7072657373696f6e2d6b632d30312d636f6e6669726d2d312d35305f; asc impression-kc-01-confirm-1-50_; (total 48 bytes);
+
+Record lock, heap no 191 PHYSICAL RECORD: n_fields 5; compact format; info bits 32
+ 0: len 10; hex 50524f43455353494e47; asc PROCESSING;;
+ 1: len 7; hex 99bad05656097e; asc    VV ~;;
+ 2: len 7; hex 99bad056740c30; asc    Vt 0;;
+ 3: len 7; hex 99bad0565604a6; asc    VV  ;;
+ 4: len 30; hex 696d7072657373696f6e2d6b632d30312d636f6e6669726d2d312d35305f; asc impression-kc-01-confirm-1-50_; (total 48 bytes);
+
+Record lock, heap no 192 PHYSICAL RECORD: n_fields 5; compact format; info bits 32
+ 0: len 10; hex 50524f43455353494e47; asc PROCESSING;;
+ 1: len 7; hex 99bad056560a6e; asc    VV n;;
+ 2: len 7; hex 99bad056740c30; asc    Vt 0;;
+ 3: len 7; hex 99bad056560578; asc    VV x;;
+ 4: len 30; hex 696d7072657373696f6e2d6b632d30312d636f6e6669726d2d312d35305f; asc impression-kc-01-confirm-1-50_; (total 48 bytes);
+
+Record lock, heap no 193 PHYSICAL RECORD: n_fields 5; compact format; info bits 32
+ 0: len 10; hex 50524f43455353494e47; asc PROCESSING;;
+ 1: len 7; hex 99bad056560b04; asc    VV  ;;
+ 2: len 7; hex 99bad056740c30; asc    Vt 0;;
+ 3: len 7; hex 99bad05656067c; asc    VV |;;
+ 4: len 30; hex 696d7072657373696f6e2d6b632d30312d636f6e6669726d2d312d35305f; asc impression-kc-01-confirm-1-50_; (total 48 bytes);
+
+Record lock, heap no 194 PHYSICAL RECORD: n_fields 5; compact format; info bits 32
+ 0: len 10; hex 50524f43455353494e47; asc PROCESSING;;
+ 1: len 7; hex 99bad056560b90; asc    VV  ;;
+ 2: len 7; hex 99bad056740c30; asc    Vt 0;;
+ 3: len 7; hex 99bad05656079e; asc    VV  ;;
+ 4: len 30; hex 696d7072657373696f6e2d6b632d30312d636f6e6669726d2d312d35305f; asc impression-kc-01-confirm-1-50_; (total 48 bytes);
+
+
+*** (2) WAITING FOR THIS LOCK TO BE GRANTED:
+RECORD LOCKS space id 371 page no 465 n bits 200 index idx_outbox_request_status of table `adflow_k6lab_20260908_052423`.`event_outbox` trx id 2639834 lock_mode X locks gap before rec insert intention waiting
+Record lock, heap no 64 PHYSICAL RECORD: n_fields 3; compact format; info bits 0
+ 0: len 30; hex 6b632d30312d636f6e6669726d2d312d35305f3137383838343531323231; asc kc-01-confirm-1-50_17888451221; (total 37 bytes);
+ 1: len 8; hex 534554544c494e47; asc SETTLING;;
+ 2: len 30; hex 636c69636b2d6b632d30312d636f6e6669726d2d312d35305f3137383838; asc click-kc-01-confirm-1-50_17888; (total 43 bytes);
+
+*** WE ROLL BACK TRANSACTION (1)
+------------
+

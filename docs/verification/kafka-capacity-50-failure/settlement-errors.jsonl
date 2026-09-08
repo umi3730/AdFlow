@@ -1,0 +1,4 @@
+{"time":"2026-09-08T13:25:22.348069545+08:00","level":"ERROR","msg":"settlement worker iteration failed","error":"Error 1213 (40001): Deadlock found when trying to get lock; try restarting transaction"}
+{"time":"2026-09-08T13:25:52.44019436+08:00","level":"WARN","msg":"impression requires settlement reconciliation","request_id":"kc-01-confirm-1-50_1788845122188_1755","error":"reservation settlement cannot be proven; reconciliation required"}
+{"time":"2026-09-08T13:25:52.448294261+08:00","level":"WARN","msg":"impression requires settlement reconciliation","request_id":"kc-01-confirm-1-50_1788845122229_1757","error":"reservation settlement cannot be proven; reconciliation required"}
+{"time":"2026-09-08T13:25:52.456423062+08:00","level":"WARN","msg":"impression requires settlement reconciliation","request_id":"kc-01-confirm-1-50_1788845122249_1758","error":"reservation settlement cannot be proven; reconciliation required"}

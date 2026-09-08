@@ -46,7 +46,7 @@ func (r *Repository) FindByID(_ context.Context, id string) (*domain.Campaign, e
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	campaign, exists := r.campaigns[id]
-	if !exists {
+	if !exists || campaign.Status() == domain.StatusDeleted {
 		return nil, domain.ErrCampaignNotFound
 	}
 	return campaign.Clone(), nil
@@ -57,10 +57,16 @@ func (r *Repository) List(_ context.Context, filter domain.ListFilter) ([]*domai
 	defer r.mu.RUnlock()
 	result := make([]*domain.Campaign, 0, len(r.campaigns))
 	for _, campaign := range r.campaigns {
+		if campaign.Status() == domain.StatusDeleted {
+			continue
+		}
 		if filter.Status != nil && campaign.Status() != *filter.Status {
 			continue
 		}
 		if filter.SlotID != nil && campaign.SlotID() != *filter.SlotID {
+			continue
+		}
+		if filter.AfterID != nil && campaign.ID() <= *filter.AfterID {
 			continue
 		}
 		result = append(result, campaign.Clone())
@@ -99,7 +105,7 @@ func (r *Repository) FindCreativeByID(_ context.Context, id string) (*domain.Cre
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	creative, exists := r.creatives[id]
-	if !exists {
+	if !exists || creative.Status() == domain.CreativeDeleted {
 		return nil, domain.ErrCreativeNotFound
 	}
 	return creative.Clone(), nil
@@ -110,7 +116,7 @@ func (r *Repository) ListCreativesByCampaign(_ context.Context, campaignID strin
 	defer r.mu.RUnlock()
 	result := make([]*domain.Creative, 0)
 	for _, creative := range r.creatives {
-		if creative.CampaignID() == campaignID {
+		if creative.CampaignID() == campaignID && creative.Status() != domain.CreativeDeleted {
 			result = append(result, creative.Clone())
 		}
 	}

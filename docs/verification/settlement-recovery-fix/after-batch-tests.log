@@ -1,0 +1,19 @@
+=== RUN   TestSettlementCancellationReturnsClaimsWithoutQuarantine
+redis: 2026/09/08 14:37:31 redis.go:478: auto mode fallback: maintnotifications disabled due to handshake error: ERR unknown subcommand 'MAINT_NOTIFICATIONS'. Try CLIENT HELP.
+--- PASS: TestSettlementCancellationReturnsClaimsWithoutQuarantine (0.09s)
+=== RUN   TestSettlementBatchKeepsCompletedPrefix
+redis: 2026/09/08 14:37:31 redis.go:478: auto mode fallback: maintnotifications disabled due to handshake error: ERR unknown subcommand 'MAINT_NOTIFICATIONS'. Try CLIENT HELP.
+--- PASS: TestSettlementBatchKeepsCompletedPrefix (0.02s)
+=== RUN   TestSettlementBatchFailureReturnsUnfinishedClaims
+=== RUN   TestSettlementBatchFailureReturnsUnfinishedClaims/complete
+redis: 2026/09/08 14:37:31 redis.go:478: auto mode fallback: maintnotifications disabled due to handshake error: ERR unknown subcommand 'MAINT_NOTIFICATIONS'. Try CLIENT HELP.
+=== RUN   TestSettlementBatchFailureReturnsUnfinishedClaims/fail
+redis: 2026/09/08 14:37:31 redis.go:478: auto mode fallback: maintnotifications disabled due to handshake error: ERR unknown subcommand 'MAINT_NOTIFICATIONS'. Try CLIENT HELP.
+--- PASS: TestSettlementBatchFailureReturnsUnfinishedClaims (0.05s)
+    --- PASS: TestSettlementBatchFailureReturnsUnfinishedClaims/complete (0.03s)
+    --- PASS: TestSettlementBatchFailureReturnsUnfinishedClaims/fail (0.02s)
+=== RUN   TestSettlementBatchCleanupFailureHasShortLeaseFallback
+redis: 2026/09/08 14:37:31 redis.go:478: auto mode fallback: maintnotifications disabled due to handshake error: ERR unknown subcommand 'MAINT_NOTIFICATIONS'. Try CLIENT HELP.
+--- PASS: TestSettlementBatchCleanupFailureHasShortLeaseFallback (0.02s)
+PASS
+ok  	github.com/zhanghaiyang/adflow/internal/event/application	0.411s

@@ -3,6 +3,7 @@ package mysql
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"strings"
 	"time"
 
@@ -15,17 +16,37 @@ type Store struct {
 
 func NewStore(db *sql.DB) *Store { return &Store{db: db} }
 
+type decisionSQL interface {
+	ExecContext(context.Context, string, ...any) (sql.Result, error)
+	QueryRowContext(context.Context, string, ...any) *sql.Row
+}
+
 func (s *Store) SaveDecision(ctx context.Context, result domain.Result) error {
+	return saveDecision(ctx, s.db, result)
+}
+func saveDecision(ctx context.Context, db decisionSQL, result domain.Result) error {
 	var expiresAt any
 	if !result.ExpiresAt.IsZero() {
-		expiresAt = result.ExpiresAt
+		expiresAt = result.ExpiresAt.UTC().Truncate(time.Millisecond)
 	}
-	inserted, err := s.db.ExecContext(ctx, `
+	var pricing any
+	if result.Pricing.Mode != "" {
+		payload, err := json.Marshal(result.Pricing)
+		if err != nil {
+			return err
+		}
+		pricing = json.RawMessage(payload)
+	}
+	var fingerprint any
+	if result.RequestFingerprint != "" {
+		fingerprint = result.RequestFingerprint
+	}
+	inserted, err := db.ExecContext(ctx, `
 		INSERT IGNORE INTO decisions
-			(request_id, user_id, slot_id, matched, campaign_id, creative_id, reservation_token, expires_at, reason)
-		VALUES (?, ?, ?, ?, NULLIF(?, ''), NULLIF(?, ''), NULLIF(?, ''), ?, ?)`,
+			(request_id, user_id, slot_id, matched, campaign_id, creative_id, reservation_token, expires_at, reason, pricing, request_fingerprint)
+		VALUES (?, ?, ?, ?, NULLIF(?, ''), NULLIF(?, ''), NULLIF(?, ''), ?, ?, ?, ?)`,
 		result.RequestID, result.UserID, result.SlotID, result.Matched, result.CampaignID,
-		result.CreativeID, result.ReservationToken, expiresAt, string(result.Reason),
+		result.CreativeID, result.ReservationToken, expiresAt, string(result.Reason), pricing, fingerprint,
 	)
 	if err != nil {
 		return err
@@ -34,7 +55,7 @@ func (s *Store) SaveDecision(ctx context.Context, result domain.Result) error {
 	if err != nil || rows == 1 {
 		return err
 	}
-	existing, found, err := s.FindDecision(ctx, result.RequestID)
+	existing, found, err := findDecision(ctx, db, result.RequestID)
 	if err != nil {
 		return err
 	}
@@ -45,9 +66,16 @@ func (s *Store) SaveDecision(ctx context.Context, result domain.Result) error {
 }
 
 func (s *Store) FindDecision(ctx context.Context, requestID string) (domain.Result, bool, error) {
-	result, err := scanDecision(s.db.QueryRowContext(ctx, `
+	return findDecision(ctx, s.db, requestID)
+}
+
+func (s *Store) PeekDecision(ctx context.Context, requestID string) (domain.Result, bool, error) {
+	return findDecision(ctx, s.db, requestID)
+}
+func findDecision(ctx context.Context, db decisionSQL, requestID string) (domain.Result, bool, error) {
+	result, err := scanDecision(db.QueryRowContext(ctx, `
 		SELECT request_id, user_id, slot_id, matched, campaign_id, creative_id,
-		       reservation_token, expires_at, reason
+		       reservation_token, expires_at, reason, pricing, request_fingerprint
 		FROM decisions WHERE request_id = ?`, requestID))
 	if err == sql.ErrNoRows {
 		return domain.Result{}, false, nil
@@ -75,7 +103,7 @@ func (s *Store) FindDecisions(ctx context.Context, requestIDs []string) (map[str
 	}
 	rows, err := s.db.QueryContext(ctx, `
 		SELECT request_id, user_id, slot_id, matched, campaign_id, creative_id,
-		       reservation_token, expires_at, reason
+		       reservation_token, expires_at, reason, pricing, request_fingerprint
 		FROM decisions WHERE request_id IN (`+placeholders+`)`, args...)
 	if err != nil {
 		return nil, err
@@ -97,8 +125,10 @@ func scanDecision(scanner interface{ Scan(...any) error }) (domain.Result, error
 		campaignID, creativeID, token sql.NullString
 		expiresAt                     sql.NullTime
 		reason                        string
+		pricing                       []byte
+		fingerprint                   sql.NullString
 	)
-	err := scanner.Scan(&result.RequestID, &result.UserID, &result.SlotID, &result.Matched, &campaignID, &creativeID, &token, &expiresAt, &reason)
+	err := scanner.Scan(&result.RequestID, &result.UserID, &result.SlotID, &result.Matched, &campaignID, &creativeID, &token, &expiresAt, &reason, &pricing, &fingerprint)
 	if err != nil {
 		return domain.Result{}, err
 	}
@@ -108,19 +138,25 @@ func scanDecision(scanner interface{ Scan(...any) error }) (domain.Result, error
 	if expiresAt.Valid {
 		result.ExpiresAt = expiresAt.Time.UTC()
 	}
+	result.RequestFingerprint = fingerprint.String
 	result.Reason = domain.Reason(reason)
+	if len(pricing) > 0 {
+		if err := json.Unmarshal(pricing, &result.Pricing); err != nil {
+			return domain.Result{}, err
+		}
+	}
 	return result, nil
 }
 
 func sameDecision(left, right domain.Result) bool {
-	return left.RequestID == right.RequestID && left.UserID == right.UserID && left.SlotID == right.SlotID &&
+	return left.RequestFingerprint == right.RequestFingerprint && left.RequestID == right.RequestID && left.UserID == right.UserID && left.SlotID == right.SlotID &&
 		left.Matched == right.Matched && left.CampaignID == right.CampaignID && left.CreativeID == right.CreativeID &&
-		left.ReservationToken == right.ReservationToken && equalTime(left.ExpiresAt, right.ExpiresAt) && left.Reason == right.Reason
+		left.ReservationToken == right.ReservationToken && equalTime(left.ExpiresAt, right.ExpiresAt) && left.Reason == right.Reason && left.Pricing == right.Pricing
 }
 
 func equalTime(left, right time.Time) bool {
 	if left.IsZero() && right.IsZero() {
 		return true
 	}
-	return left.Equal(right)
+	return left.UTC().Truncate(time.Millisecond).Equal(right.UTC().Truncate(time.Millisecond))
 }

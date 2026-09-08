@@ -22,6 +22,7 @@ type UpdateCommand struct {
 }
 
 type PublishCommand struct {
+	Auction           *domain.AuctionTerms
 	CampaignID        string
 	All               []domain.Condition
 	Any               []domain.Condition

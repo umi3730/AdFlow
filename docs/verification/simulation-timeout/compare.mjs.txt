@@ -1,0 +1,18 @@
+import http from 'node:http';
+import {writeFileSync} from 'node:fs';
+import {startSimulation} from '../../web/lib/user-pool-simulator.ts';
+const port=Number(process.argv[2]),label=process.argv[3];
+const agent=new http.Agent({keepAlive:true,maxSockets:6});
+let token;
+const call=(path,body,signal)=>new Promise((resolve,reject)=>{
+ const data=JSON.stringify(body);const request=http.request({hostname:'127.0.0.1',port,path,method:'POST',agent,signal,headers:{'content-type':'application/json','content-length':Buffer.byteLength(data),...(token?{authorization:`Bearer ${token}`}:{})}},response=>{let value='';response.on('data',chunk=>value+=chunk);response.on('end',()=>{try{const decoded=JSON.parse(value);if(response.statusCode>=400)reject(Object.assign(Error('HTTP '+response.statusCode),{status:response.statusCode}));else resolve(decoded);}catch(err){reject(err)}})});request.on('error',reject);request.end(data);
+});
+token=(await call('/v1/auth/login',{username:'admin',password:'adflow-admin'})).accessToken;
+const runId='sql-compare-'+label+'-'+Date.now();
+const event=(decision,eventId,type,valueFen,signal)=>call('/v1/events',{eventId,requestId:decision.requestId,campaignId:decision.campaignId,creativeId:decision.creativeId,type,valueFen},signal);
+const transport={decide:(input,signal)=>call('/v1/simulations/decisions',{runId,requestId:input.requestId,slotId:input.slotId,profile:{userId:input.userId,tags:input.userId==='user-0001'?['adflow_demo','gaming_interest']:['tech_interest'],fields:{device:'android',score:'85'}}},signal),impression:(d,id,s)=>event(d,id,'impression',0,s),click:(d,id,s)=>event(d,id,'click',0,s),conversion:(d,id,v,s)=>event(d,id,'conversion',v,s)};
+const config={runId,userIds:['user-0001','user-0002','user-0003'],slotId:'game-home-banner',maxRounds:300,concurrency:100,seconds:30,timeoutMs:5000,impressions:true,behavior:{clickPercent:100,conversionPercent:100,minValueFen:500,maxValueFen:500}};
+const result=await startSimulation(config,transport).done;
+agent.destroy();
+writeFileSync(`docs/verification/simulation-timeout/${label}.json`,JSON.stringify({at:new Date().toISOString(),port,transport:'Node HTTP/1.1 with 6 sockets, shared browser simulator engine; synthetic temporary profiles',config,result},null,2));
+console.log(JSON.stringify({label,...result,recent:undefined}));

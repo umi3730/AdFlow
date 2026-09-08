@@ -1,0 +1,47 @@
+{
+  "at": "2026-09-07T07:26:15.7961398Z",
+  "deployedPorts": [
+    18080,
+    18081
+  ],
+  "goTopLevelTests": 224,
+  "frontendTests": 102,
+  "browser": {
+    "exposuresAccepted": 3,
+    "conversionsAccepted": 3,
+    "viewportRestored": true,
+    "desktop": true,
+    "clicksAccepted": 3,
+    "mobileWidth": 390,
+    "demoRunId": "sim-1788765736020-c41456",
+    "guideCollapseSurvivesReload": true,
+    "rounds": 3,
+    "failed": 0
+  },
+  "sources": [
+    {
+      "path": "web/components/console-guide.tsx",
+      "sha256": "141B3E75BC4CA53ED395497319AD2B704B1144CAAA5882FCC3941C73EF128C98"
+    },
+    {
+      "path": "web/lib/demo-readiness.ts",
+      "sha256": "5C87C73EB9127A1C12FDB11660A83E694EB80B4C2724A67A9222F1FE499A0BE8"
+    },
+    {
+      "path": "web/components/user-pool-simulation.tsx",
+      "sha256": "DEC5AC3DDE8B62620B1A14D33397AB94267793EC8D903820746803860733C9D3"
+    },
+    {
+      "path": "web/components/adflow-console.tsx",
+      "sha256": "FA61F9FC202E5C3B34565F92484ED480D2DC3B6BFFF70C4C6781FE1D5AB64843"
+    },
+    {
+      "path": "internal/decision/adapter/profilecache/store.go",
+      "sha256": "074DF3BB5B2A2B2A6F4689DCA72A569E220E78ABC32C61A66774C719033D4DB6"
+    },
+    {
+      "path": "internal/decision/adapter/profilecache/generation.go",
+      "sha256": "0DA8CEDF34717D7DA39C3A1B824D5E98436D3BA9CDC16E1965D8F0027FAE26CF"
+    }
+  ]
+}

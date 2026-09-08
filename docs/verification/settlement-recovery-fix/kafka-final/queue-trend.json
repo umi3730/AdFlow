@@ -1,0 +1,35 @@
+{
+  "method": "Exclude first 5 seconds; compare means of first/last 5 sampled backlog counts during request dispatch. >100 events growth is a one-relay-batch warning, not proof of infinite-horizon stability.",
+  "stages": [
+    {
+      "id": "01-confirm-1-50",
+      "targetBusinessRate": 50,
+      "seconds": 60,
+      "firstFiveMeanPendingEvents": 114,
+      "lastFiveMeanPendingEvents": 100.6,
+      "growthEvents": -13.400000000000006,
+      "peakPendingDuringDispatch": 152,
+      "growthExceedsOneRelayBatch": false
+    },
+    {
+      "id": "02-confirm-2-50",
+      "targetBusinessRate": 50,
+      "seconds": 60,
+      "firstFiveMeanPendingEvents": 100.6,
+      "lastFiveMeanPendingEvents": 99.6,
+      "growthEvents": -1.0,
+      "peakPendingDuringDispatch": 150,
+      "growthExceedsOneRelayBatch": false
+    },
+    {
+      "id": "03-confirm-3-50",
+      "targetBusinessRate": 50,
+      "seconds": 60,
+      "firstFiveMeanPendingEvents": 116,
+      "lastFiveMeanPendingEvents": 124.2,
+      "growthEvents": 8.200000000000003,
+      "peakPendingDuringDispatch": 161,
+      "growthExceedsOneRelayBatch": false
+    }
+  ]
+}

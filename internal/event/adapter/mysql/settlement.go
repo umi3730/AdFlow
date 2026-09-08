@@ -1,0 +1,293 @@
+package mysql
+
+import (
+	"context"
+	"crypto/rand"
+	"database/sql"
+	"encoding/hex"
+	"encoding/json"
+	decisiondomain "github.com/zhanghaiyang/adflow/internal/decision/domain"
+	"github.com/zhanghaiyang/adflow/internal/event/domain"
+	"sort"
+	"strings"
+	"time"
+)
+
+func (o *Outbox) FindAcceptedEvent(ctx context.Context, id string) (domain.Event, bool, error) {
+	var payload []byte
+	err := o.db.QueryRowContext(ctx, `SELECT payload FROM event_outbox WHERE event_id = ?`, id).Scan(&payload)
+	if err == sql.ErrNoRows {
+		return domain.Event{}, false, nil
+	}
+	if err != nil {
+		return domain.Event{}, false, err
+	}
+	var event domain.Event
+	err = json.Unmarshal(payload, &event)
+	return event, err == nil, err
+}
+
+func (o *Outbox) EnqueueForSettlement(ctx context.Context, event domain.Event, decision decisiondomain.Result, acceptedAt time.Time) (bool, error) {
+	created := false
+	err := o.settlementTransaction(ctx, func(tx *sql.Tx) error {
+		var err error
+		created, err = o.enqueueForSettlementTx(ctx, tx, event, decision, acceptedAt)
+		if err == nil && !created {
+			return errRollbackNoop
+		}
+		return err
+	})
+	return created && err == nil, err
+}
+
+func (o *Outbox) enqueueForSettlementTx(ctx context.Context, tx *sql.Tx, event domain.Event, decision decisiondomain.Result, acceptedAt time.Time) (bool, error) {
+	// Serialize ingress and settlement completion on the same request row. A
+	// click arriving during completion cannot be left permanently in SETTLING.
+	if event.Type == domain.Impression {
+		snapshot, err := json.Marshal(decision)
+		if err != nil {
+			return false, err
+		}
+		if _, err = tx.ExecContext(ctx, `INSERT IGNORE INTO event_settlements (request_id, event_id, decision_snapshot, accepted_at, next_attempt_at)
+			VALUES (?, ?, ?, ?, UTC_TIMESTAMP(3))`, event.RequestID, event.EventID, json.RawMessage(snapshot), acceptedAt); err != nil {
+			return false, err
+		}
+	}
+	var impressionID, settlementStatus string
+	if err := tx.QueryRowContext(ctx, `SELECT event_id, status FROM event_settlements WHERE request_id = ? FOR UPDATE`, event.RequestID).Scan(&impressionID, &settlementStatus); err == sql.ErrNoRows {
+		if event.Type == domain.Impression {
+			return false, domain.ErrEventConflict
+		}
+		return false, domain.ErrImpressionRequired
+	} else if err != nil {
+		return false, err
+	}
+	if event.Type == domain.Impression && impressionID != event.EventID {
+		return false, domain.ErrEventConflict
+	}
+	result, err := tx.ExecContext(ctx, `INSERT IGNORE INTO event_receipts
+  (event_id, request_id, campaign_id, creative_id, event_type, value_fen, occurred_at, status)
+  VALUES (?, ?, ?, ?, ?, ?, ?, 'ACCEPTED')`, event.EventID, event.RequestID, event.CampaignID, event.CreativeID, string(event.Type), event.ValueFen, event.OccurredAt)
+	if err != nil {
+		return false, err
+	}
+	affected, err := result.RowsAffected()
+	if err != nil {
+		return false, err
+	}
+	if affected == 0 {
+		var payload []byte
+		if err := tx.QueryRowContext(ctx, `SELECT payload FROM event_outbox WHERE event_id = ? FOR UPDATE`, event.EventID).Scan(&payload); err != nil {
+			return false, err
+		}
+		var accepted domain.Event
+		if err := json.Unmarshal(payload, &accepted); err != nil {
+			return false, err
+		}
+		if !domain.SameEventIdentity(event, accepted) {
+			return false, domain.ErrEventConflict
+		}
+		// No new settlement row may survive a legacy duplicate.
+		return false, nil
+	}
+	status := "SETTLING"
+	if settlementStatus == "SETTLED" {
+		status = "PENDING"
+	}
+	if settlementStatus == "RECONCILE" {
+		status = "RECONCILE"
+	}
+	payload, err := json.Marshal(event)
+	if err != nil {
+		return false, err
+	}
+	if _, err := tx.ExecContext(ctx, `INSERT INTO event_outbox
+  (event_id, aggregate_key, payload, status, attempts, next_attempt_at)
+  VALUES (?, ?, ?, ?, 0, ?)`, event.EventID, event.RequestID, json.RawMessage(payload), status, acceptedAt); err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
+func (o *Outbox) ClaimSettlements(ctx context.Context, limit int, lease time.Duration) ([]domain.SettlementEntry, error) {
+	if limit <= 0 {
+		return nil, nil
+	}
+	var token [16]byte
+	if _, err := rand.Read(token[:]); err != nil {
+		return nil, err
+	}
+	owner := hex.EncodeToString(token[:])
+	tx, err := o.db.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelReadCommitted})
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+	rows, err := tx.QueryContext(ctx, `SELECT event_id, decision_snapshot, attempts FROM event_settlements
+  WHERE status IN ('PENDING', 'PROCESSING') AND next_attempt_at <= UTC_TIMESTAMP(3)
+   AND (locked_until IS NULL OR locked_until <= UTC_TIMESTAMP(3))
+  ORDER BY next_attempt_at, request_id LIMIT ? FOR UPDATE SKIP LOCKED`, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	entries := make([]domain.SettlementEntry, 0)
+	ids := make([]any, 0)
+	for rows.Next() {
+		var entry domain.SettlementEntry
+		var snapshot []byte
+		entry.Owner = owner
+		if err := rows.Scan(&entry.Settlement.EventID, &snapshot, &entry.Attempts); err != nil {
+			return nil, err
+		}
+		if err := json.Unmarshal(snapshot, &entry.Settlement.Decision); err != nil {
+			return nil, err
+		}
+		entries = append(entries, entry)
+		ids = append(ids, entry.Settlement.EventID)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if len(ids) > 0 {
+		args := append([]any{owner, lease.Microseconds()}, ids...)
+		if _, err := tx.ExecContext(ctx, `UPDATE event_settlements SET status = 'PROCESSING', locked_by = ?, locked_until = TIMESTAMPADD(MICROSECOND, ?, UTC_TIMESTAMP(3)) WHERE event_id IN (`+strings.TrimSuffix(strings.Repeat("?,", len(ids)), ",")+`)`, args...); err != nil {
+			return nil, err
+		}
+	}
+	if err := tx.Commit(); err != nil {
+		return nil, err
+	}
+	return entries, nil
+}
+
+func checkSettlementLease(result sql.Result, err error) error {
+	if err != nil {
+		return err
+	}
+	count, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if count != 1 {
+		return domain.ErrSettlementLeaseLost
+	}
+	return nil
+}
+
+func (o *Outbox) CompleteSettlement(ctx context.Context, entry domain.SettlementEntry) error {
+	return o.settlementTransaction(ctx, func(tx *sql.Tx) error {
+		result, err := tx.ExecContext(ctx, `UPDATE event_settlements SET status = 'SETTLED', settled_at = UTC_TIMESTAMP(3),
+  locked_by = NULL, locked_until = NULL, last_error = NULL
+  WHERE request_id = ? AND event_id = ? AND status = 'PROCESSING' AND locked_by = ? AND locked_until > UTC_TIMESTAMP(3)`,
+			entry.Settlement.Decision.RequestID, entry.Settlement.EventID, entry.Owner)
+		if err := checkSettlementLease(result, err); err != nil {
+			return err
+		}
+		if _, err := tx.ExecContext(ctx, `UPDATE event_outbox SET status = 'PENDING', attempts = 0,
+  next_attempt_at = UTC_TIMESTAMP(3), last_error = NULL
+  WHERE aggregate_key = ? AND status = 'SETTLING'`, entry.Settlement.Decision.RequestID); err != nil {
+			return err
+		}
+		return nil
+	})
+}
+
+func (o *Outbox) FailSettlement(ctx context.Context, entry domain.SettlementEntry, message string, delay time.Duration, review bool) error {
+	// MySQL VARCHAR counts characters. Avoid cutting a UTF-8 error mid-codepoint.
+	runes := []rune(message)
+	if len(runes) > 1024 {
+		message = string(runes[:1024])
+	}
+	status, outboxStatus := "PENDING", "SETTLING"
+	if review {
+		status, outboxStatus = "RECONCILE", "RECONCILE"
+	}
+	return o.settlementTransaction(ctx, func(tx *sql.Tx) error {
+		result, err := tx.ExecContext(ctx, `UPDATE event_settlements SET status = ?, attempts = attempts + 1,
+  next_attempt_at = TIMESTAMPADD(MICROSECOND, ?, UTC_TIMESTAMP(3)), last_error = ?, locked_by = NULL, locked_until = NULL
+  WHERE request_id = ? AND event_id = ? AND status = 'PROCESSING' AND locked_by = ? AND locked_until > UTC_TIMESTAMP(3)`,
+			status, delay.Microseconds(), message, entry.Settlement.Decision.RequestID, entry.Settlement.EventID, entry.Owner)
+		if err := checkSettlementLease(result, err); err != nil {
+			return err
+		}
+		if _, err := tx.ExecContext(ctx, `UPDATE event_outbox SET status = ?, attempts = ?, last_error = ?,
+  next_attempt_at = TIMESTAMPADD(MICROSECOND, ?, UTC_TIMESTAMP(3))
+  WHERE aggregate_key = ? AND status = 'SETTLING'`, outboxStatus, entry.Attempts+1, message, delay.Microseconds(), entry.Settlement.Decision.RequestID); err != nil {
+			return err
+		}
+		return nil
+	})
+}
+
+func (o *Outbox) ReleaseSettlements(ctx context.Context, entries []domain.SettlementEntry) error {
+	if len(entries) == 0 {
+		return nil
+	}
+	ordered := append([]domain.SettlementEntry(nil), entries...)
+	for _, entry := range ordered {
+		if entry.Owner == "" || entry.Settlement.EventID == "" || entry.Settlement.Decision.RequestID == "" {
+			return domain.ErrSettlementLeaseLost
+		}
+	}
+	sort.Slice(ordered, func(i, j int) bool {
+		return ordered[i].Settlement.Decision.RequestID < ordered[j].Settlement.Decision.RequestID
+	})
+	return o.settlementTransaction(ctx, func(tx *sql.Tx) error {
+		for _, entry := range ordered {
+			if _, err := tx.ExecContext(ctx, `UPDATE event_settlements SET status = 'PENDING',
+  next_attempt_at = UTC_TIMESTAMP(3), locked_by = NULL, locked_until = NULL
+  WHERE request_id = ? AND event_id = ? AND status = 'PROCESSING' AND locked_by = ?`, entry.Settlement.Decision.RequestID, entry.Settlement.EventID, entry.Owner); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+}
+
+func (o *Outbox) VerifySettledEvents(ctx context.Context, events []domain.Event) error {
+	if len(events) == 0 {
+		return nil
+	}
+	args := make([]any, len(events))
+	for i, event := range events {
+		args[i] = event.EventID
+	}
+	rows, err := o.db.QueryContext(ctx, `SELECT o.payload FROM event_outbox o
+  LEFT JOIN event_settlements s ON s.request_id = o.aggregate_key
+  LEFT JOIN processed_events p ON p.event_id = o.event_id
+  WHERE o.event_id IN (`+strings.TrimSuffix(strings.Repeat("?,", len(events)), ",")+`)
+  AND (s.status = 'SETTLED' OR p.event_id IS NOT NULL)`, args...)
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+	accepted := make(map[string]domain.Event, len(events))
+	for rows.Next() {
+		var payload []byte
+		var event domain.Event
+		if err := rows.Scan(&payload); err != nil {
+			return err
+		}
+		if err := json.Unmarshal(payload, &event); err != nil {
+			return err
+		}
+		accepted[event.EventID] = event
+	}
+	if err := rows.Err(); err != nil {
+		return err
+	}
+	for _, event := range events {
+		stored, ok := accepted[event.EventID]
+		if !ok {
+			return domain.ErrSettlementPending
+		}
+		if !domain.SameEventIdentity(event, stored) || !event.OccurredAt.Equal(stored.OccurredAt) {
+			return domain.ErrEventConflict
+		}
+	}
+	return nil
+}

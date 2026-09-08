@@ -1,0 +1,40 @@
+package profilecache
+
+import (
+ "context"
+ "testing"
+ "time"
+ "github.com/alicebob/miniredis/v2"
+ "github.com/redis/go-redis/v9"
+ memory "github.com/zhanghaiyang/adflow/internal/decision/adapter/memory"
+ "github.com/zhanghaiyang/adflow/internal/decision/domain"
+)
+
+type reviewPausedSource struct {
+ *memory.Runtime
+ read chan struct{}
+ resume chan struct{}
+}
+func (s *reviewPausedSource) FindProfile(ctx context.Context, id string) (domain.Profile,error) {
+ p,err:=s.Runtime.FindProfile(ctx,id)
+ close(s.read)
+ select {case <-s.resume: return p,err;case <-ctx.Done():return domain.Profile{},ctx.Err()}
+}
+func TestReviewTwoInstancesCannotRefillStaleProfile(t *testing.T) {
+ server:=miniredis.RunT(t)
+ client:=redis.NewClient(&redis.Options{Addr:server.Addr()});defer client.Close()
+ db:=memory.NewRuntime()
+ if err:=db.PutProfile(t.Context(),domain.NewProfile("review-user",nil,map[string]string{"score":"10"}));err!=nil{t.Fatal(err)}
+ paused:=&reviewPausedSource{Runtime:db,read:make(chan struct{}),resume:make(chan struct{})}
+ reader,err:=New(paused,client,"review-cache",time.Minute,time.Second,time.Second,nil);if err!=nil{t.Fatal(err)}
+ writer,err:=New(db,client,"review-cache",time.Minute,time.Second,time.Second,nil);if err!=nil{t.Fatal(err)}
+ done:=make(chan error,1)
+ go func(){_,err:=reader.FindProfile(t.Context(),"review-user");done<-err}()
+ <-paused.read
+ if err:=writer.PutProfile(t.Context(),domain.NewProfile("review-user",nil,map[string]string{"score":"99"}));err!=nil{t.Fatal(err)}
+ close(paused.resume)
+ if err:=<-done;err!=nil{t.Fatal(err)}
+ cached,err:=writer.FindProfile(t.Context(),"review-user");if err!=nil{t.Fatal(err)}
+ stored,err:=db.FindProfile(t.Context(),"review-user");if err!=nil{t.Fatal(err)}
+ if cached.Fields["score"]!=stored.Fields["score"]{t.Fatalf("cross-instance stale refill: persisted score=%s, cached score=%s",stored.Fields["score"],cached.Fields["score"])}
+}

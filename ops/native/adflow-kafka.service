@@ -1,0 +1,21 @@
+[Unit]
+Description=AdFlow local Kafka (native WSL, no containers)
+After=network.target
+
+[Service]
+Type=simple
+User=adflow-kafka
+Group=adflow-kafka
+Environment="KAFKA_HEAP_OPTS=-Xms256M -Xmx512M"
+Environment="KAFKA_OPTS=-Djava.net.preferIPv4Stack=true"
+Environment="LOG_DIR=/var/log/adflow-kafka"
+ExecStart=/opt/adflow-runtime/kafka_2.13-4.3.1/bin/kafka-server-start.sh /etc/adflow/kafka.properties
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=30
+LimitNOFILE=65536
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

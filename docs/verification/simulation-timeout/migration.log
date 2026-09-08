@@ -1,0 +1,1 @@
+{"time":"2026-09-07T14:36:57.4069366+08:00","level":"INFO","msg":"migrations complete","applied":["000011_outbox_request_index.up.sql"],"count":1}

@@ -52,7 +52,11 @@ func (s *Service) Generate(ctx context.Context, prompt string) (agentdomain.Draf
 		len([]rune(draft.Explanation)) > 2000 || len(draft.Warnings) > 10 || hasOversizedWarning(draft.Warnings) {
 		return agentdomain.Draft{}, agentdomain.ErrInvalidDraft
 	}
-	if _, err := campaigndomain.NewTargetingRule(all, anyOf, none); err != nil {
+	rule, err := campaigndomain.NewTargetingRule(all, anyOf, none)
+	if err != nil {
+		return agentdomain.Draft{}, agentdomain.ErrInvalidDraft
+	}
+	if err := rule.ValidateForPublication(); err != nil {
 		return agentdomain.Draft{}, agentdomain.ErrInvalidDraft
 	}
 	if _, err := campaigndomain.NewVersion(1, mustRule(all, anyOf, none), draft.DailyBudgetFen, draft.ImpressionCostFen, draft.FrequencyLimit, s.now()); err != nil {

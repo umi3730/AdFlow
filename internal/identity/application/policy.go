@@ -7,6 +7,12 @@ import (
 )
 
 func requiredRole(method, route string) (domain.Role, bool) {
+	if route == "/v1/simulations/decisions" {
+		return domain.RoleAdmin, method == http.MethodPost
+	}
+	if method == http.MethodDelete && (route == "/v1/campaigns/:id" || route == "/v1/campaigns/:id/creatives/:creativeId" || route == "/v1/profiles/:userId") {
+		return domain.RoleAdmin, true
+	}
 	if route == "/v1/audit-logs" {
 		return domain.RoleAdmin, method == http.MethodGet
 	}

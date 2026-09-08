@@ -1,0 +1,133 @@
+{
+  "verified": true,
+  "incompleteStages": [
+    {
+      "id": "09-confirm-1-60",
+      "rate": 60,
+      "seconds": 120,
+      "status": "aborted; no complete measurement",
+      "runError": "warmup did not drain"
+    }
+  ],
+  "confirmedBusinessRoundsPerSecond": null,
+  "measuredLoopsAllStages": 14907,
+  "acceptedEventsAllStages": 44721,
+  "confirmationLoops": 0,
+  "confirmationEvents": 0,
+  "confirmedCombinedP95Ms": null,
+  "stages": [
+    {
+      "id": "01-ramp-10",
+      "rate": 10,
+      "seconds": 20,
+      "completed": 201,
+      "events": 603,
+      "decisionP95Ms": 40.965305,
+      "acceptanceP95Ms": 99,
+      "committedObservedP95Ms": 1251,
+      "observationCoverage": 1.0,
+      "drainSeconds": 0.7703982,
+      "accountingPassed": true,
+      "passed": true
+    },
+    {
+      "id": "02-ramp-25",
+      "rate": 25,
+      "seconds": 20,
+      "completed": 500,
+      "events": 1500,
+      "decisionP95Ms": 50.583617049999994,
+      "acceptanceP95Ms": 151.0999999999999,
+      "committedObservedP95Ms": 1397,
+      "observationCoverage": 1.0,
+      "drainSeconds": 1.068664047,
+      "accountingPassed": true,
+      "passed": true
+    },
+    {
+      "id": "03-ramp-50",
+      "rate": 50,
+      "seconds": 20,
+      "completed": 1001,
+      "events": 3003,
+      "decisionP95Ms": 60.478695,
+      "acceptanceP95Ms": 175,
+      "committedObservedP95Ms": 1321,
+      "observationCoverage": 1.0,
+      "drainSeconds": 1.154815485,
+      "accountingPassed": true,
+      "passed": true
+    },
+    {
+      "id": "04-ramp-75",
+      "rate": 75,
+      "seconds": 20,
+      "completed": 1501,
+      "events": 4503,
+      "decisionP95Ms": 71.467691,
+      "acceptanceP95Ms": 202,
+      "committedObservedP95Ms": 8291,
+      "observationCoverage": 1.0,
+      "drainSeconds": 8.112796208,
+      "accountingPassed": true,
+      "passed": false
+    },
+    {
+      "id": "05-refine-60",
+      "rate": 60,
+      "seconds": 20,
+      "completed": 1201,
+      "events": 3603,
+      "decisionP95Ms": 65.292705,
+      "acceptanceP95Ms": 188,
+      "committedObservedP95Ms": 2885,
+      "observationCoverage": 1.0,
+      "drainSeconds": 2.207274943,
+      "accountingPassed": true,
+      "passed": true
+    },
+    {
+      "id": "06-refine-65",
+      "rate": 65,
+      "seconds": 20,
+      "completed": 1301,
+      "events": 3903,
+      "decisionP95Ms": 64.810797,
+      "acceptanceP95Ms": 187,
+      "committedObservedP95Ms": 4982,
+      "observationCoverage": 1.0,
+      "drainSeconds": 4.8601230189999995,
+      "accountingPassed": true,
+      "passed": true
+    },
+    {
+      "id": "07-refine-70",
+      "rate": 70,
+      "seconds": 20,
+      "completed": 1401,
+      "events": 4203,
+      "decisionP95Ms": 74.328891,
+      "acceptanceP95Ms": 206,
+      "committedObservedP95Ms": 6845,
+      "observationCoverage": 1.0,
+      "drainSeconds": 6.504501812,
+      "accountingPassed": true,
+      "passed": false
+    },
+    {
+      "id": "08-confirm-1-65",
+      "rate": 65,
+      "seconds": 120,
+      "completed": 7801,
+      "events": 23403,
+      "decisionP95Ms": 74.255902,
+      "acceptanceP95Ms": 208,
+      "committedObservedP95Ms": null,
+      "observationCoverage": 0.6569670555057044,
+      "drainSeconds": 0.15792539,
+      "accountingPassed": false,
+      "passed": false
+    }
+  ],
+  "rawSHA256": "7e40b14ec3d8755050b109059235080d8654aa0fd30b8cadb850131383c8f86b"
+}

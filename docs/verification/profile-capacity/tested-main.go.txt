@@ -1,0 +1,506 @@
+// Runs the same JMeter GET plan against mysql / mysql-redis adapters.
+package main
+
+import (
+	"bytes"
+	"context"
+	"crypto/sha256"
+	"database/sql"
+	"encoding/csv"
+	"encoding/json"
+	"flag"
+	"fmt"
+	driver "github.com/go-sql-driver/mysql"
+	"github.com/redis/go-redis/v9"
+	"github.com/zhanghaiyang/adflow/internal/platform/migrate"
+	"io"
+	"net"
+	"net/http"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"regexp"
+	"sort"
+	"strconv"
+	"strings"
+	"syscall"
+	"time"
+)
+
+type lab struct {
+	created                                          bool
+	db, admin                                        *sql.DB
+	rc                                               *redis.Client
+	api, rp                                          *exec.Cmd
+	dir, schema, redisAddr, binary, base, token, dsn string
+	client                                           *http.Client
+	report                                           map[string]any
+	results                                          []map[string]any
+}
+
+func main() {
+	if err := run(); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+}
+func run() (err error) {
+	output := flag.String("output", "work/jmeter/run-01", "new output directory")
+	seconds := flag.Int("seconds", 15, "measured seconds per arm")
+	threads := flag.Int("threads", 20, "JMeter threads")
+	rounds := flag.Int("rounds", 3, "paired AB/BA rounds")
+	capacity := flag.Bool("capacity", false, "find profile GET capacity with k6 arrival-rate probes")
+	probeSeconds := flag.Int("probe-seconds", 20, "capacity probe duration")
+	confirmSeconds := flag.Int("confirm-seconds", 60, "capacity confirmation duration")
+	flag.Parse()
+	if *capacity {
+		return runCapacity(*output, *probeSeconds, *confirmSeconds)
+	}
+	if *seconds < 3 || *seconds > 60 || *threads < 1 || *threads > 100 || *rounds < 1 || *rounds > 5 {
+		return fmt.Errorf("bounded configuration required")
+	}
+	dir, e := filepath.Abs(*output)
+	if e != nil {
+		return e
+	}
+	if e = os.Mkdir(dir, 0755); e != nil {
+		return e
+	}
+	h := &lab{dir: dir, schema: "adflow_jmeter_" + time.Now().UTC().Format("20060102_150405"), client: &http.Client{Timeout: 5 * time.Second}, report: map[string]any{"startedAt": time.Now().UTC(), "threads": *threads, "secondsPerArm": *seconds, "pairedRounds": *rounds, "users": 1000, "jmeter": "5.6.3", "java": "OpenJDK 21; -Xms256m -Xmx512m", "timing": "JMeter elapsed milliseconds; measured label GET profile only; JVM warmup label excluded", "modeControl": "Only ADFLOW_PROFILE_STORE changes; mysql vs mysql-redis. Both prewarm the same 1000 existing profiles, then JMeter warms 20 loops per thread.", "notes": []string{"Fresh API/JVM each arm, alternate AB/BA. Closed-model fixed threads, no think time; throughput is completed requests / actual measured sample span.", "Client, API, Redis and MySQL colocated in WSL, shared hardware. MySQL primary-key lookup and InnoDB already warm; Redis speedup is not assumed.", "MySQL source SELECT counts are per-schema performance_schema statement-digest COUNT_STAR deltas including JMeter warmup; compare to all JTL rows, not only measured rows.", "Prometheus cache counters include JMeter warmup and measured reads; Go prewarm excluded from deltas. No Kafka traffic, no decision/auction calls.", "JWT enabled; profile GET has no audit write. JMeter token passed via child environment, never in JMX, command args or committed reports."}}}
+	defer func() {
+		if err != nil {
+			h.report["error"] = err.Error()
+		}
+		cleanup := map[string]any{"apiStopped": stop(h.api) == nil, "redisStopped": stop(h.rp) == nil}
+		if h.rc != nil {
+			_ = h.rc.Close()
+		}
+		if h.db != nil {
+			_ = h.db.Close()
+		}
+		if h.admin != nil && h.created {
+			_, e := h.admin.Exec("DROP DATABASE IF EXISTS `" + h.schema + "`")
+			cleanup["schemaDropped"] = e == nil
+			_ = h.admin.Close()
+		}
+		h.report["cleanup"] = cleanup
+		h.report["finishedAt"] = time.Now().UTC()
+		_ = h.save()
+	}()
+	if err = h.setup(); err != nil {
+		return
+	}
+	for round := 1; round <= *rounds; round++ {
+		modes := []string{"mysql", "mysql-redis"}
+		if round%2 == 0 {
+			modes[0], modes[1] = modes[1], modes[0]
+		}
+		for _, mode := range modes {
+			var result map[string]any
+			result, err = h.arm(mode, round, *seconds, *threads)
+			h.results = append(h.results, result)
+			h.report["results"] = h.results
+			_ = h.save()
+			if err != nil {
+				return
+			}
+		}
+	}
+	return nil
+}
+func (h *lab) save() error {
+	raw, e := json.MarshalIndent(h.report, "", "  ")
+	if e != nil {
+		return e
+	}
+	return os.WriteFile(filepath.Join(h.dir, "results.json"), raw, 0644)
+}
+func (h *lab) setup() error {
+	cfg := driver.NewConfig()
+	cfg.User = "root"
+	cfg.Net = "unix"
+	cfg.Addr = "/var/run/mysqld/mysqld.sock"
+	cfg.ParseTime = true
+	cfg.Loc = time.UTC
+	cfg.InterpolateParams = true
+	cfg.Params = map[string]string{"time_zone": "'+00:00'"}
+	var e error
+	h.admin, e = sql.Open("mysql", cfg.FormatDSN())
+	if e != nil {
+		return e
+	}
+	if _, e = h.admin.Exec("CREATE DATABASE `" + h.schema + "` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"); e != nil {
+		return e
+	}
+	h.created = true
+	cfg.DBName = h.schema
+	h.dsn = cfg.FormatDSN()
+	h.db, e = sql.Open("mysql", h.dsn)
+	if e != nil {
+		return e
+	}
+	runner, e := migrate.NewRunner(h.db, "migrations")
+	if e != nil {
+		return e
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+	defer cancel()
+	versions, e := runner.Up(ctx)
+	if e != nil {
+		return e
+	}
+	h.report["migrations"] = versions
+	var version, consumer string
+	var pool int64
+	if e = h.db.QueryRow("SELECT VERSION(),@@innodb_buffer_pool_size").Scan(&version, &pool); e != nil {
+		return e
+	}
+	if e = h.db.QueryRow("SELECT ENABLED FROM performance_schema.setup_consumers WHERE NAME='statements_digest'").Scan(&consumer); e != nil {
+		return e
+	}
+	if consumer != "YES" {
+		return fmt.Errorf("statement digest must already be enabled")
+	}
+	h.report["environment"] = map[string]any{"mysql": version, "bufferPoolBytes": pool, "transport": "JMeter/API/Redis/MySQL colocated WSL; HTTP+Redis loopback, MySQL Unix socket", "schema": h.schema, "profileCacheTTL": "5m", "profileCacheTimeout": "50ms", "auth": true, "mysqlMaxConnections": 30}
+	var lines []string
+	tx, e := h.db.Begin()
+	if e != nil {
+		return e
+	}
+	defer tx.Rollback()
+	for i := 0; i < 1000; i++ {
+		id := fmt.Sprintf("profile-%04d", i)
+		lines = append(lines, id)
+		if _, e = tx.Exec("INSERT INTO user_profiles(user_id,tags,fields) VALUES(?,JSON_ARRAY('jmeter_test'),JSON_OBJECT('device','android','age','25','score','88'))", id); e != nil {
+			return e
+		}
+	}
+	if e = tx.Commit(); e != nil {
+		return e
+	}
+	if e = os.WriteFile(filepath.Join(h.dir, "users.csv"), []byte(strings.Join(lines, "\n")+"\n"), 0644); e != nil {
+		return e
+	}
+	h.redisAddr, e = port()
+	if e != nil {
+		return e
+	}
+	_, p, _ := net.SplitHostPort(h.redisAddr)
+	h.rp = exec.Command("redis-server", "--bind", "127.0.0.1", "--port", p, "--save", "", "--appendonly", "no")
+	if e = launch(h.rp, filepath.Join(h.dir, "redis.log")); e != nil {
+		return e
+	}
+	h.rc = redis.NewClient(&redis.Options{Addr: h.redisAddr, Protocol: 2, DisableIdentity: true})
+	for i := 0; i < 50; i++ {
+		if h.rc.Ping(ctx).Err() == nil {
+			break
+		}
+		time.Sleep(100 * time.Millisecond)
+	}
+	if e = h.rc.Ping(ctx).Err(); e != nil {
+		return e
+	}
+	h.binary, e = filepath.Abs("work/end-to-end/api-linux")
+	if e != nil {
+		return e
+	}
+	raw, e := os.ReadFile(h.binary)
+	if e != nil {
+		return e
+	}
+	h.report["apiBinarySHA256"] = fmt.Sprintf("%x", sha256.Sum256(raw))
+	hashes := map[string]string{}
+	for _, path := range []string{"tests/bench/jmeter-profile/main.go", "tests/load/profile-query.jmx", "internal/decision/adapter/mysql/profile_store.go", "internal/decision/adapter/profilecache/store.go", "internal/decision/adapter/profilecache/generation.go"} {
+		raw, e := os.ReadFile(path)
+		if e != nil {
+			return e
+		}
+		hashes[path] = fmt.Sprintf("%x", sha256.Sum256(raw))
+	}
+	h.report["sourceSHA256"] = hashes
+	return nil
+}
+func (h *lab) start(mode, id string) error {
+	addr, e := port()
+	if e != nil {
+		return e
+	}
+	h.base = "http://" + addr
+	h.token = ""
+	settings := map[string]string{"ENV": "test", "HTTP_ADDR": addr, "MYSQL_DSN": h.dsn, "REDIS_ADDR": h.redisAddr, "CAMPAIGN_REPOSITORY": "mysql", "PROFILE_STORE": mode, "DECISION_STORE": "mysql", "RESERVATION_ADAPTER": "redis", "EVENT_TRANSPORT": "sync", "AUTH_ENABLED": "true", "AUDIT_STORE": "mysql", "DEMO_DATA": "false", "AGENT_PROVIDER": "mock", "DECISION_TIMEOUT": "1s", "PROFILE_CACHE_TIMEOUT": "50ms"}
+	h.api = exec.Command(h.binary)
+	for _, v := range os.Environ() {
+		if !strings.HasPrefix(v, "ADFLOW_") {
+			h.api.Env = append(h.api.Env, v)
+		}
+	}
+	for k, v := range settings {
+		h.api.Env = append(h.api.Env, "ADFLOW_"+k+"="+v)
+	}
+	if e = launch(h.api, filepath.Join(h.dir, id+"-api.log")); e != nil {
+		return e
+	}
+	for i := 0; i < 80; i++ {
+		if _, e = h.request("GET", "/readyz", nil); e == nil {
+			break
+		}
+		time.Sleep(100 * time.Millisecond)
+	}
+	raw, e := h.request("POST", "/v1/auth/login", []byte(`{"username":"admin","password":"adflow-admin"}`))
+	if e != nil {
+		return e
+	}
+	var login struct {
+		Token string `json:"accessToken"`
+	}
+	if e = json.Unmarshal(raw, &login); e != nil {
+		return e
+	}
+	if login.Token == "" {
+		return fmt.Errorf("missing login token")
+	}
+	h.token = login.Token
+	return nil
+}
+func (h *lab) request(method, path string, body []byte) ([]byte, error) {
+	req, e := http.NewRequest(method, h.base+path, bytes.NewReader(body))
+	if e != nil {
+		return nil, e
+	}
+	req.Header.Set("Content-Type", "application/json")
+	if h.token != "" {
+		req.Header.Set("Authorization", "Bearer "+h.token)
+	}
+	res, e := h.client.Do(req)
+	if e != nil {
+		return nil, e
+	}
+	defer res.Body.Close()
+	raw, e := io.ReadAll(res.Body)
+	if e != nil {
+		return nil, e
+	}
+	if res.StatusCode != 200 {
+		return nil, fmt.Errorf("%s returned %d", path, res.StatusCode)
+	}
+	return raw, nil
+}
+func (h *lab) sourceReads() (int64, error) {
+	var count int64
+	e := h.db.QueryRow("SELECT COALESCE(SUM(COUNT_STAR),0) FROM performance_schema.events_statements_summary_by_digest WHERE SCHEMA_NAME=? AND LOWER(DIGEST_TEXT) LIKE 'select%tags%fields%from%user_profiles%where%'", h.schema).Scan(&count)
+	return count, e
+}
+func (h *lab) tableFetches() (int64, error) {
+	var count int64
+	e := h.db.QueryRow("SELECT COALESCE(SUM(COUNT_FETCH),0) FROM performance_schema.table_io_waits_summary_by_table WHERE OBJECT_SCHEMA=? AND OBJECT_NAME='user_profiles'", h.schema).Scan(&count)
+	return count, e
+}
+
+var cacheLine = regexp.MustCompile(`(?m)^adflow_decision_profile_cache_total\{result="([^"]+)"\} ([0-9.e+]+)$`)
+
+func (h *lab) cacheCounters() (map[string]int64, error) {
+	raw, e := h.request("GET", "/metrics", nil)
+	if e != nil {
+		return nil, e
+	}
+	out := map[string]int64{}
+	for _, m := range cacheLine.FindAllStringSubmatch(string(raw), -1) {
+		v, e := strconv.ParseFloat(m[2], 64)
+		if e != nil {
+			return nil, e
+		}
+		out[m[1]] = int64(v)
+	}
+	return out, nil
+}
+func (h *lab) arm(mode string, round, seconds, threads int) (result map[string]any, err error) {
+	id := fmt.Sprintf("round-%d-%s", round, mode)
+	result = map[string]any{"round": round, "mode": mode, "id": id}
+	fmt.Printf("START %s: %d threads, %ds\n", id, threads, seconds)
+	if err = h.start(mode, id); err != nil {
+		return
+	}
+	defer func() {
+		e := stop(h.api)
+		h.api = nil
+		if err == nil {
+			err = e
+		}
+	}()
+	// Warm every profile in both adapters (including MySQL's buffer pool).
+	for i := 0; i < 1000; i++ {
+		if _, err = h.request("GET", fmt.Sprintf("/v1/profiles/profile-%04d", i), nil); err != nil {
+			return
+		}
+	}
+	before, e := h.sourceReads()
+	if e != nil {
+		err = e
+		return
+	}
+	fetchBefore, e := h.tableFetches()
+	if e != nil {
+		err = e
+		return
+	}
+	cb, e := h.cacheCounters()
+	if e != nil {
+		err = e
+		return
+	}
+	_, p, _ := net.SplitHostPort(strings.TrimPrefix(h.base, "http://"))
+	jtl := filepath.Join(h.dir, id+".jtl")
+	args := []string{"-Xms256m", "-Xmx512m", "-jar", "work/jmeter/apache-jmeter-5.6.3/bin/ApacheJMeter.jar", "-n", "-t", "tests/load/profile-query.jmx", "-l", jtl, "-j", filepath.Join(h.dir, id+"-jmeter.log"), "-Jport=" + p, "-Jusers=" + filepath.Join(h.dir, "users.csv"), fmt.Sprintf("-Jthreads=%d", threads), fmt.Sprintf("-Jseconds=%d", seconds), "-Jjmeter.save.saveservice.output_format=csv", "-Jjmeter.save.saveservice.print_field_names=true", "-Jjmeter.save.saveservice.response_data=false", "-Jjmeter.save.saveservice.response_headers=false", "-Jjmeter.save.saveservice.requestHeaders=false"}
+	result["command"] = append([]string{"java"}, args...)
+	cmd := exec.Command("java", args...)
+	cmd.Env = append(os.Environ(), "ADFLOW_JMETER_TOKEN="+h.token)
+	if err = launch(cmd, filepath.Join(h.dir, id+"-console.log")); err != nil {
+		return
+	}
+	if err = cmd.Wait(); err != nil {
+		return
+	}
+	after, e := h.sourceReads()
+	if e != nil {
+		err = e
+		return
+	}
+	fetchAfter, e := h.tableFetches()
+	if e != nil {
+		err = e
+		return
+	}
+	ca, e := h.cacheCounters()
+	if e != nil {
+		err = e
+		return
+	}
+	for k, v := range cb {
+		ca[k] -= v
+	}
+	result["sourceSelects"] = after - before
+	result["tableFetches"] = fetchAfter - fetchBefore
+	result["sourceSelectCounterBefore"] = before
+	result["sourceSelectCounterAfter"] = after
+	result["cacheCounterDeltas"] = ca
+	summary, e := readJTL(jtl)
+	if e != nil {
+		err = e
+		return
+	}
+	result["jmeter"] = summary
+	total := summary["allSamples"].(int)
+	failed := summary["allFailed"].(int)
+	valid := total > 0 && summary["measuredSamples"].(int) > 0 && failed == 0
+	if mode == "mysql" {
+		valid = valid && fetchAfter-fetchBefore == int64(total)
+	} else {
+		valid = valid && after-before == 0 && fetchAfter-fetchBefore == 0 && ca["hit"] == int64(total)
+	}
+	result["verificationPassed"] = valid
+	b, _ := json.Marshal(result)
+	fmt.Println(string(b))
+	if !valid {
+		err = fmt.Errorf("response or cache/source counter verification failed")
+	}
+	return
+}
+func readJTL(path string) (map[string]any, error) {
+	f, e := os.Open(path)
+	if e != nil {
+		return nil, e
+	}
+	defer f.Close()
+	r := csv.NewReader(f)
+	header, e := r.Read()
+	if e != nil {
+		return nil, e
+	}
+	idx := map[string]int{}
+	for i, k := range header {
+		idx[k] = i
+	}
+	for _, key := range []string{"timeStamp", "elapsed", "label", "success", "responseCode"} {
+		if _, ok := idx[key]; !ok {
+			return nil, fmt.Errorf("missing JTL column %s", key)
+		}
+	}
+	all, failed := 0, 0
+	var lat []int
+	var min, max int64
+	for {
+		row, e := r.Read()
+		if e == io.EOF {
+			break
+		}
+		if e != nil {
+			return nil, e
+		}
+		all++
+		if row[idx["success"]] != "true" || row[idx["responseCode"]] != "200" {
+			failed++
+		}
+		if row[idx["label"]] != "GET profile" {
+			continue
+		}
+		t, e := strconv.ParseInt(row[idx["timeStamp"]], 10, 64)
+		if e != nil {
+			return nil, e
+		}
+		ms, e := strconv.Atoi(row[idx["elapsed"]])
+		if e != nil {
+			return nil, e
+		}
+		lat = append(lat, ms)
+		if min == 0 || t < min {
+			min = t
+		}
+		if t+int64(ms) > max {
+			max = t + int64(ms)
+		}
+	}
+	if len(lat) == 0 {
+		return nil, fmt.Errorf("no measured samples")
+	}
+	sort.Ints(lat)
+	n := len(lat)
+	sum := 0
+	for _, v := range lat {
+		sum += v
+	}
+	return map[string]any{"allSamples": all, "allFailed": failed, "measuredSamples": n, "warmupSamples": all - n, "meanMs": float64(sum) / float64(n), "p50Ms": lat[(50*n+99)/100-1], "p95Ms": lat[(95*n+99)/100-1], "p99Ms": lat[(99*n+99)/100-1], "maxMs": lat[n-1], "sampleSpanSeconds": float64(max-min) / 1000, "requestsPerSecond": float64(n) * 1000 / float64(max-min)}, nil
+}
+func port() (string, error) {
+	l, e := net.Listen("tcp", "127.0.0.1:0")
+	if e != nil {
+		return "", e
+	}
+	defer l.Close()
+	return l.Addr().String(), nil
+}
+func launch(cmd *exec.Cmd, path string) error {
+	f, e := os.Create(path)
+	if e != nil {
+		return e
+	}
+	defer f.Close()
+	cmd.Stdout = f
+	cmd.Stderr = f
+	return cmd.Start()
+}
+func stop(cmd *exec.Cmd) error {
+	if cmd == nil || cmd.Process == nil {
+		return nil
+	}
+	_ = cmd.Process.Signal(syscall.SIGTERM)
+	done := make(chan error, 1)
+	go func() { done <- cmd.Wait() }()
+	select {
+	case e := <-done:
+		return e
+	case <-time.After(15 * time.Second):
+		_ = cmd.Process.Kill()
+		<-done
+		return fmt.Errorf("forced stop")
+	}
+}

@@ -1,0 +1,13 @@
+{
+  "at": "2026-09-07T09:43:47.767Z",
+  "target": "http://127.0.0.1:18081",
+  "requestId": "late-event-40e2f8db-b862-4ece-881d-551c7b36656c",
+  "adminStatus": 200,
+  "viewerStatus": 200,
+  "anonymousStatus": 401,
+  "processedEvents": 3,
+  "repeatedReadUnchanged": true,
+  "privateExecutionFieldsOmitted": true,
+  "noAdHasNoSettlement": true,
+  "temporaryOriginalTupleResolves": true
+}

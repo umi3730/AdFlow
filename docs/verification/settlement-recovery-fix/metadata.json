@@ -1,0 +1,37 @@
+{
+  "RecordedAt": "2026-09-08T06:40:22.2581384Z",
+  "Sources": {
+    "internal/event/application/settlement_worker.go": "170a1c79cf548e7667cb72e6da2718e99d1284992122fe40eb8e38021a525163",
+    "internal/event/adapter/mysql/settlement.go": "f7dba19c59e8e3804b1c12d9d3e4de13fe1a3ec3e4f7d7eaca26cab5950eb8c6",
+    "internal/event/domain/settlement.go": "5695c5292042a55180c6ce57e07b158cfdee61c0f3ce5d2a3b46011ce1810af3",
+    "internal/event/adapter/mysql/outbox.go": "e2bc5827c9988345b573f1b80480a4d22828f139104952bdc0fecd038b4cd7f5",
+    "internal/event/adapter/mysql/settlement_transaction.go": "80b1177781cbf0b2d9b5f516357dd41e93a7f4c37ddd6495678369ce0f7209cc"
+  },
+  "LocalAPIs": [
+    {
+      "Port": 18080,
+      "PID": 25104,
+      "Binary": "D:\\AdFlow\\work\\native-api\\adflow-api-20260908-143430-562.exe",
+      "BinarySHA256": "97B1DFBC117B95CBF73DE5DF8EA2506C279685B3881EBB328E381C7CD8923BF1",
+      "Ready": true
+    },
+    {
+      "Port": 18081,
+      "PID": 30228,
+      "Binary": "D:\\AdFlow\\work\\native-api\\adflow-api-20260908-143435-619.exe",
+      "BinarySHA256": "97B1DFBC117B95CBF73DE5DF8EA2506C279685B3881EBB328E381C7CD8923BF1",
+      "Ready": true
+    }
+  ],
+  "MigrationRequired": false,
+  "PreservedOutboxStats": {
+    "settling": 0,
+    "reconcile": 42,
+    "pending": 0,
+    "processing": 0,
+    "published": 1426,
+    "deadLettered": 0
+  },
+  "RealDeadlockRepeated": 3,
+  "RealStoreCasesRepeated": 3
+}

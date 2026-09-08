@@ -1,0 +1,16 @@
+=== RUN   TestSettlementBatchReleaseAndFencingWithRealStores
+--- PASS: TestSettlementBatchReleaseAndFencingWithRealStores (1.52s)
+=== RUN   TestSettlementRestartFencesOldWorkerAndReleasesDependentEvents
+redis: 2026/09/08 14:18:50 redis.go:478: auto mode fallback: maintnotifications disabled due to handshake error: ERR unknown subcommand 'maint_notifications'. Try CLIENT HELP.
+--- PASS: TestSettlementRestartFencesOldWorkerAndReleasesDependentEvents (0.14s)
+=== RUN   TestSettlementBatchReleaseAndFencingWithRealStores
+--- PASS: TestSettlementBatchReleaseAndFencingWithRealStores (0.22s)
+=== RUN   TestSettlementRestartFencesOldWorkerAndReleasesDependentEvents
+redis: 2026/09/08 14:18:50 redis.go:478: auto mode fallback: maintnotifications disabled due to handshake error: ERR unknown subcommand 'maint_notifications'. Try CLIENT HELP.
+--- PASS: TestSettlementRestartFencesOldWorkerAndReleasesDependentEvents (0.15s)
+=== RUN   TestSettlementBatchReleaseAndFencingWithRealStores
+--- PASS: TestSettlementBatchReleaseAndFencingWithRealStores (0.24s)
+=== RUN   TestSettlementRestartFencesOldWorkerAndReleasesDependentEvents
+redis: 2026/09/08 14:18:51 redis.go:478: auto mode fallback: maintnotifications disabled due to handshake error: ERR unknown subcommand 'maint_notifications'. Try CLIENT HELP.
+--- PASS: TestSettlementRestartFencesOldWorkerAndReleasesDependentEvents (0.15s)
+PASS

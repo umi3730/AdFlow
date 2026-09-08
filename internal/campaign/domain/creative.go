@@ -10,6 +10,7 @@ type CreativeStatus string
 const (
 	CreativeActive   CreativeStatus = "ACTIVE"
 	CreativeDisabled CreativeStatus = "DISABLED"
+	CreativeDeleted  CreativeStatus = "DELETED"
 )
 
 type Creative struct {
@@ -53,8 +54,29 @@ func (c *Creative) Disable() error {
 	return nil
 }
 
+func (c *Creative) Enable() error {
+	if c.status != CreativeDisabled {
+		return ErrInvalidTransition
+	}
+	c.status = CreativeActive
+	c.revision++
+	return nil
+}
+
 func (c *Creative) Clone() *Creative {
 	return RehydrateCreative(c.id, c.campaignID, c.title, c.description, c.imageURL, c.landingURL, c.status, c.revision)
+}
+
+func (c *Creative) Delete() error {
+	if c.status == CreativeDeleted {
+		return ErrCreativeNotFound
+	}
+	if c.status != CreativeDisabled {
+		return ErrDeleteActive
+	}
+	c.status = CreativeDeleted
+	c.revision++
+	return nil
 }
 
 func validHTTPURL(value string) bool {

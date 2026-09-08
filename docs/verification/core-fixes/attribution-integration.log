@@ -1,0 +1,4 @@
+=== RUN   TestAttributionWithRealReceiptsAndDelayedConsumer
+--- PASS: TestAttributionWithRealReceiptsAndDelayedConsumer (0.14s)
+PASS
+ok  	github.com/zhanghaiyang/adflow/internal/event/application	0.435s

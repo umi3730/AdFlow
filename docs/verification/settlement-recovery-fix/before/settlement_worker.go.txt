@@ -1,0 +1,88 @@
+package application
+
+import (
+	"context"
+	"errors"
+	decisiondomain "github.com/zhanghaiyang/adflow/internal/decision/domain"
+	"github.com/zhanghaiyang/adflow/internal/event/domain"
+	"log/slog"
+	"time"
+)
+
+type SettlementWorker struct {
+	queue   domain.SettlementQueue
+	settler decisiondomain.ImpressionSettler
+	logger  *slog.Logger
+}
+
+func NewSettlementWorker(queue domain.SettlementQueue, settler decisiondomain.ImpressionSettler, logger *slog.Logger) *SettlementWorker {
+	if logger == nil {
+		logger = slog.Default()
+	}
+	return &SettlementWorker{queue: queue, settler: settler, logger: logger}
+}
+
+func (w *SettlementWorker) Run(ctx context.Context) error {
+	ticker := time.NewTicker(200 * time.Millisecond)
+	defer ticker.Stop()
+	for {
+		if ctx.Err() != nil {
+			return nil
+		}
+		completed, err := w.RunOnce(ctx)
+		if err != nil && ctx.Err() == nil {
+			w.logger.Error("settlement worker iteration failed", "error", err)
+		}
+		// Drain healthy work immediately; polling only backs off when idle or
+		// failing, rather than imposing a 10-events-per-tick throughput ceiling.
+		if err == nil && completed > 0 {
+			continue
+		}
+		select {
+		case <-ctx.Done():
+			return nil
+		case <-ticker.C:
+		}
+	}
+}
+
+func (w *SettlementWorker) RunOnce(ctx context.Context) (int, error) {
+	// Small claims avoid holding a large batch behind a failing Redis request.
+	entries, err := w.queue.ClaimSettlements(ctx, 10, 30*time.Second)
+	if err != nil {
+		return 0, err
+	}
+	completed := 0
+	for _, entry := range entries {
+		attemptCtx, cancel := context.WithTimeout(ctx, 2*time.Second)
+		err := w.settler.SettleImpression(attemptCtx, entry.Settlement)
+		cancel()
+		if err != nil {
+			review := errors.Is(err, decisiondomain.ErrSettlementUnavailable) || entry.Attempts+1 >= 8
+			if failErr := w.queue.FailSettlement(ctx, entry, err.Error(), retryDelay(entry.Attempts+1), review); failErr != nil {
+				return completed, failErr
+			}
+			if review {
+				w.logger.Warn("impression requires settlement reconciliation", "request_id", entry.Settlement.Decision.RequestID, "error", err)
+			}
+			continue
+		}
+		// Redis success followed by a DB error is retried using its settlement receipt.
+		if err := w.queue.CompleteSettlement(ctx, entry); err != nil {
+			return completed, err
+		}
+		completed++
+	}
+	return completed, nil
+}
+
+// Guard even broker replay: an event without durable settlement proof must not
+// reach the metrics writer, including events published by the legacy relay.
+func RecordSettledBatch(proof domain.SettlementProof, processor *Service) func(context.Context, []domain.Event) error {
+	return func(ctx context.Context, events []domain.Event) error {
+		if err := proof.VerifySettledEvents(ctx, events); err != nil {
+			return err
+		}
+		return processor.RecordBatch(ctx, events)
+	}
+}

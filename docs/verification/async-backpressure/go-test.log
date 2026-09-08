@@ -1,0 +1,56 @@
+?   	github.com/zhanghaiyang/adflow/cmd/api	[no test files]
+?   	github.com/zhanghaiyang/adflow/cmd/migrate	[no test files]
+?   	github.com/zhanghaiyang/adflow/internal/agentassistant/adapter/http	[no test files]
+ok  	github.com/zhanghaiyang/adflow/internal/agentassistant/adapter/mock	0.137s
+ok  	github.com/zhanghaiyang/adflow/internal/agentassistant/adapter/openai	0.882s
+ok  	github.com/zhanghaiyang/adflow/internal/agentassistant/application	0.173s
+?   	github.com/zhanghaiyang/adflow/internal/agentassistant/domain	[no test files]
+ok  	github.com/zhanghaiyang/adflow/internal/audit/adapter/http	2.228s
+ok  	github.com/zhanghaiyang/adflow/internal/audit/adapter/memory	0.266s
+ok  	github.com/zhanghaiyang/adflow/internal/audit/adapter/mysql	0.150s
+ok  	github.com/zhanghaiyang/adflow/internal/audit/application	0.142s
+?   	github.com/zhanghaiyang/adflow/internal/audit/domain	[no test files]
+ok  	github.com/zhanghaiyang/adflow/internal/bootstrap	0.124s
+ok  	github.com/zhanghaiyang/adflow/internal/campaign/adapter/http	2.886s
+ok  	github.com/zhanghaiyang/adflow/internal/campaign/adapter/memory	0.436s
+ok  	github.com/zhanghaiyang/adflow/internal/campaign/adapter/mysql	0.409s
+ok  	github.com/zhanghaiyang/adflow/internal/campaign/application	0.385s
+ok  	github.com/zhanghaiyang/adflow/internal/campaign/domain	0.379s
+ok  	github.com/zhanghaiyang/adflow/internal/config	0.326s
+ok  	github.com/zhanghaiyang/adflow/internal/decision/adapter/campaign	0.265s
+ok  	github.com/zhanghaiyang/adflow/internal/decision/adapter/http	3.030s
+ok  	github.com/zhanghaiyang/adflow/internal/decision/adapter/memory	0.633s
+ok  	github.com/zhanghaiyang/adflow/internal/decision/adapter/mysql	0.577s
+ok  	github.com/zhanghaiyang/adflow/internal/decision/adapter/profilecache	2.568s
+ok  	github.com/zhanghaiyang/adflow/internal/decision/adapter/redis	2.602s
+ok  	github.com/zhanghaiyang/adflow/internal/decision/adapter/requestprofile	0.559s
+ok  	github.com/zhanghaiyang/adflow/internal/decision/application	0.603s
+ok  	github.com/zhanghaiyang/adflow/internal/decision/domain	0.541s
+?   	github.com/zhanghaiyang/adflow/internal/event/adapter/http	[no test files]
+ok  	github.com/zhanghaiyang/adflow/internal/event/adapter/kafka	0.625s
+?   	github.com/zhanghaiyang/adflow/internal/event/adapter/memory	[no test files]
+ok  	github.com/zhanghaiyang/adflow/internal/event/adapter/mysql	1.840s
+ok  	github.com/zhanghaiyang/adflow/internal/event/application	2.609s
+ok  	github.com/zhanghaiyang/adflow/internal/event/domain	1.178s
+ok  	github.com/zhanghaiyang/adflow/internal/health	1.165s
+ok  	github.com/zhanghaiyang/adflow/internal/identity/adapter/http	0.048s
+ok  	github.com/zhanghaiyang/adflow/internal/identity/adapter/jwt	0.035s
+ok  	github.com/zhanghaiyang/adflow/internal/identity/adapter/memory	0.028s
+?   	github.com/zhanghaiyang/adflow/internal/identity/adapter/password	[no test files]
+ok  	github.com/zhanghaiyang/adflow/internal/identity/application	0.028s
+ok  	github.com/zhanghaiyang/adflow/internal/identity/domain	0.023s
+ok  	github.com/zhanghaiyang/adflow/internal/observability	0.942s
+ok  	github.com/zhanghaiyang/adflow/internal/operations/adapter/http	0.747s
+ok  	github.com/zhanghaiyang/adflow/internal/operations/application	0.222s
+?   	github.com/zhanghaiyang/adflow/internal/platform/cache	[no test files]
+?   	github.com/zhanghaiyang/adflow/internal/platform/database	[no test files]
+ok  	github.com/zhanghaiyang/adflow/internal/platform/migrate	0.222s
+ok  	github.com/zhanghaiyang/adflow/internal/profile/schema	0.701s
+ok  	github.com/zhanghaiyang/adflow/internal/transport/http	1.199s
+?   	github.com/zhanghaiyang/adflow/tests/bench/full-chain	[no test files]
+?   	github.com/zhanghaiyang/adflow/tests/bench/jmeter-profile	[no test files]
+ok  	github.com/zhanghaiyang/adflow/tests/bench/k6-lab	1.013s
+?   	github.com/zhanghaiyang/adflow/tests/bench/outbox-index	[no test files]
+?   	github.com/zhanghaiyang/adflow/tests/plan-sample-contract	[no test files]
+?   	github.com/zhanghaiyang/adflow/work	[no test files]
+?   	github.com/zhanghaiyang/adflow/work/simulation-timeout	[no test files]

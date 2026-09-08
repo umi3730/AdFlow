@@ -1,0 +1,297 @@
+
+         /\      Grafana   /‾‾/  
+    /\  /  \     |\  __   /  /   
+   /  \/    \    | |/ /  /   ‾‾\ 
+  /          \   |   (  |  (‾)  |
+ / __________ \  |_|\_\  \_____/ 
+
+
+     execution: local
+        script: /mnt/d/AdFlow/tests/load/k6-walkthrough.js
+        output: -
+
+     scenarios: (100.00%) 3 scenarios, 80 max VUs, 59s max duration (incl. graceful stop):
+              * smoke: 1.00 iterations/s for 5s (maxVUs: 2-4, gracefulStop: 10s)
+              * baseline: 10.00 iterations/s for 20s (maxVUs: 10-20, startTime: 7s, gracefulStop: 10s)
+              * moderate: 30.00 iterations/s for 20s (maxVUs: 30-60, startTime: 29s, gracefulStop: 10s)
+
+
+Run        [ 100% ] setup()
+smoke      [   0% ]
+baseline   [   0% ]
+moderate   [   0% ]
+
+Run        [ 100% ] setup()
+smoke      [   0% ]
+baseline   [   0% ]
+moderate   [   0% ]
+
+Run        [ 100% ] setup()
+smoke      [   0% ]
+baseline   [   0% ]
+moderate   [   0% ]
+
+running (04.0s), 00/40 VUs, 1 complete and 0 interrupted iterations
+smoke      [   5% ] 0/2 VUs  0.3s/5s  1.00 iters/s
+baseline • [   0% ] waiting  6.7s    
+moderate • [   0% ] waiting  28.7s   
+
+running (05.0s), 00/40 VUs, 2 complete and 0 interrupted iterations
+smoke      [  25% ] 0/2 VUs  1.3s/5s  1.00 iters/s
+baseline • [   0% ] waiting  5.7s    
+moderate • [   0% ] waiting  27.7s   
+
+running (06.0s), 00/40 VUs, 3 complete and 0 interrupted iterations
+smoke      [  45% ] 0/2 VUs  2.3s/5s  1.00 iters/s
+baseline • [   0% ] waiting  4.7s    
+moderate • [   0% ] waiting  26.7s   
+
+running (07.0s), 00/40 VUs, 4 complete and 0 interrupted iterations
+smoke      [  65% ] 0/2 VUs  3.3s/5s  1.00 iters/s
+baseline • [   0% ] waiting  3.7s    
+moderate • [   0% ] waiting  25.7s   
+
+running (08.0s), 00/40 VUs, 5 complete and 0 interrupted iterations
+smoke      [  85% ] 0/2 VUs  4.3s/5s  1.00 iters/s
+baseline • [   0% ] waiting  2.7s    
+moderate • [   0% ] waiting  24.7s   
+
+running (09.0s), 00/40 VUs, 6 complete and 0 interrupted iterations
+smoke    ✓ [ 100% ] 0/2 VUs  5s  1.00 iters/s
+baseline • [   0% ] waiting  1.7s
+moderate • [   0% ] waiting  23.7s
+
+running (10.0s), 00/40 VUs, 6 complete and 0 interrupted iterations
+smoke    ✓ [ 100% ] 0/2 VUs  5s  1.00 iters/s
+baseline • [   0% ] waiting  0.7s
+moderate • [   0% ] waiting  22.7s
+
+running (11.0s), 01/40 VUs, 8 complete and 0 interrupted iterations
+smoke    ✓ [ 100% ] 0/2 VUs    5s         1.00 iters/s
+baseline   [   1% ] 01/10 VUs  00.3s/20s  10.00 iters/s
+moderate • [   0% ] waiting    21.7s     
+
+running (12.0s), 01/40 VUs, 18 complete and 0 interrupted iterations
+smoke    ✓ [ 100% ] 0/2 VUs    5s         1.00 iters/s
+baseline   [   6% ] 01/10 VUs  01.3s/20s  10.00 iters/s
+moderate • [   0% ] waiting    20.7s     
+
+running (13.0s), 01/40 VUs, 28 complete and 0 interrupted iterations
+smoke    ✓ [ 100% ] 0/2 VUs    5s         1.00 iters/s
+baseline   [  11% ] 01/10 VUs  02.3s/20s  10.00 iters/s
+moderate • [   0% ] waiting    19.7s     
+
+running (14.0s), 01/40 VUs, 38 complete and 0 interrupted iterations
+smoke    ✓ [ 100% ] 0/2 VUs    5s         1.00 iters/s
+baseline   [  16% ] 01/10 VUs  03.3s/20s  10.00 iters/s
+moderate • [   0% ] waiting    18.7s     
+
+running (15.0s), 01/40 VUs, 48 complete and 0 interrupted iterations
+smoke    ✓ [ 100% ] 0/2 VUs    5s         1.00 iters/s
+baseline   [  21% ] 01/10 VUs  04.3s/20s  10.00 iters/s
+moderate • [   0% ] waiting    17.7s     
+
+running (16.0s), 01/40 VUs, 58 complete and 0 interrupted iterations
+smoke    ✓ [ 100% ] 0/2 VUs    5s         1.00 iters/s
+baseline   [  26% ] 01/10 VUs  05.3s/20s  10.00 iters/s
+moderate • [   0% ] waiting    16.7s     
+
+running (17.0s), 01/40 VUs, 68 complete and 0 interrupted iterations
+smoke    ✓ [ 100% ] 0/2 VUs    5s         1.00 iters/s
+baseline   [  31% ] 01/10 VUs  06.3s/20s  10.00 iters/s
+moderate • [   0% ] waiting    15.7s     
+
+running (18.0s), 01/40 VUs, 78 complete and 0 interrupted iterations
+smoke    ✓ [ 100% ] 0/2 VUs    5s         1.00 iters/s
+baseline   [  36% ] 01/10 VUs  07.3s/20s  10.00 iters/s
+moderate • [   0% ] waiting    14.7s     
+
+running (19.0s), 01/40 VUs, 88 complete and 0 interrupted iterations
+smoke    ✓ [ 100% ] 0/2 VUs    5s         1.00 iters/s
+baseline   [  41% ] 01/10 VUs  08.3s/20s  10.00 iters/s
+moderate • [   0% ] waiting    13.7s     
+
+running (20.0s), 01/40 VUs, 98 complete and 0 interrupted iterations
+smoke    ✓ [ 100% ] 0/2 VUs    5s         1.00 iters/s
+baseline   [  46% ] 01/10 VUs  09.3s/20s  10.00 iters/s
+moderate • [   0% ] waiting    12.7s     
+
+running (21.0s), 01/40 VUs, 108 complete and 0 interrupted iterations
+smoke    ✓ [ 100% ] 0/2 VUs    5s         1.00 iters/s
+baseline   [  51% ] 01/10 VUs  10.3s/20s  10.00 iters/s
+moderate • [   0% ] waiting    11.7s     
+
+running (22.0s), 01/40 VUs, 118 complete and 0 interrupted iterations
+smoke    ✓ [ 100% ] 0/2 VUs    5s         1.00 iters/s
+baseline   [  56% ] 01/10 VUs  11.3s/20s  10.00 iters/s
+moderate • [   0% ] waiting    10.7s     
+
+running (23.0s), 01/40 VUs, 128 complete and 0 interrupted iterations
+smoke    ✓ [ 100% ] 0/2 VUs    5s         1.00 iters/s
+baseline   [  61% ] 01/10 VUs  12.3s/20s  10.00 iters/s
+moderate • [   0% ] waiting    09.7s     
+
+running (24.0s), 01/40 VUs, 138 complete and 0 interrupted iterations
+smoke    ✓ [ 100% ] 0/2 VUs    5s         1.00 iters/s
+baseline   [  66% ] 01/10 VUs  13.3s/20s  10.00 iters/s
+moderate • [   0% ] waiting    08.7s     
+
+running (25.0s), 01/40 VUs, 148 complete and 0 interrupted iterations
+smoke    ✓ [ 100% ] 0/2 VUs    5s         1.00 iters/s
+baseline   [  71% ] 01/10 VUs  14.3s/20s  10.00 iters/s
+moderate • [   0% ] waiting    07.7s     
+
+running (26.0s), 01/40 VUs, 158 complete and 0 interrupted iterations
+smoke    ✓ [ 100% ] 0/2 VUs    5s         1.00 iters/s
+baseline   [  76% ] 01/10 VUs  15.3s/20s  10.00 iters/s
+moderate • [   0% ] waiting    06.7s     
+
+running (27.0s), 01/40 VUs, 168 complete and 0 interrupted iterations
+smoke    ✓ [ 100% ] 0/2 VUs    5s         1.00 iters/s
+baseline   [  81% ] 01/10 VUs  16.3s/20s  10.00 iters/s
+moderate • [   0% ] waiting    05.7s     
+
+running (28.0s), 01/40 VUs, 178 complete and 0 interrupted iterations
+smoke    ✓ [ 100% ] 0/2 VUs    5s         1.00 iters/s
+baseline   [  86% ] 01/10 VUs  17.3s/20s  10.00 iters/s
+moderate • [   0% ] waiting    04.7s     
+
+running (29.0s), 01/40 VUs, 188 complete and 0 interrupted iterations
+smoke    ✓ [ 100% ] 0/2 VUs    5s         1.00 iters/s
+baseline   [  91% ] 01/10 VUs  18.3s/20s  10.00 iters/s
+moderate • [   0% ] waiting    03.7s     
+
+running (30.0s), 01/40 VUs, 198 complete and 0 interrupted iterations
+smoke    ✓ [ 100% ] 0/2 VUs    5s         1.00 iters/s
+baseline   [  96% ] 01/10 VUs  19.3s/20s  10.00 iters/s
+moderate • [   0% ] waiting    02.7s     
+
+running (31.0s), 00/40 VUs, 207 complete and 0 interrupted iterations
+smoke    ✓ [ 100% ] 0/2 VUs    5s   1.00 iters/s
+baseline ✓ [ 100% ] 00/10 VUs  20s  10.00 iters/s
+moderate • [   0% ] waiting    01.7s
+
+running (32.0s), 00/40 VUs, 207 complete and 0 interrupted iterations
+smoke    ✓ [ 100% ] 0/2 VUs    5s   1.00 iters/s
+baseline ✓ [ 100% ] 00/10 VUs  20s  10.00 iters/s
+moderate • [   0% ] waiting    00.7s
+
+running (33.0s), 03/40 VUs, 212 complete and 0 interrupted iterations
+smoke    ✓ [ 100% ] 0/2 VUs    5s         1.00 iters/s
+baseline ✓ [ 100% ] 00/10 VUs  20s        10.00 iters/s
+moderate   [   1% ] 03/30 VUs  00.3s/20s  30.00 iters/s
+
+running (34.0s), 03/40 VUs, 242 complete and 0 interrupted iterations
+smoke    ✓ [ 100% ] 0/2 VUs    5s         1.00 iters/s
+baseline ✓ [ 100% ] 00/10 VUs  20s        10.00 iters/s
+moderate   [   6% ] 03/30 VUs  01.3s/20s  30.00 iters/s
+
+running (35.0s), 03/40 VUs, 272 complete and 0 interrupted iterations
+smoke    ✓ [ 100% ] 0/2 VUs    5s         1.00 iters/s
+baseline ✓ [ 100% ] 00/10 VUs  20s        10.00 iters/s
+moderate   [  11% ] 03/30 VUs  02.3s/20s  30.00 iters/s
+
+running (36.0s), 03/40 VUs, 302 complete and 0 interrupted iterations
+smoke    ✓ [ 100% ] 0/2 VUs    5s         1.00 iters/s
+baseline ✓ [ 100% ] 00/10 VUs  20s        10.00 iters/s
+moderate   [  16% ] 03/30 VUs  03.3s/20s  30.00 iters/s
+
+running (37.0s), 03/40 VUs, 332 complete and 0 interrupted iterations
+smoke    ✓ [ 100% ] 0/2 VUs    5s         1.00 iters/s
+baseline ✓ [ 100% ] 00/10 VUs  20s        10.00 iters/s
+moderate   [  21% ] 03/30 VUs  04.3s/20s  30.00 iters/s
+
+running (38.0s), 03/40 VUs, 362 complete and 0 interrupted iterations
+smoke    ✓ [ 100% ] 0/2 VUs    5s         1.00 iters/s
+baseline ✓ [ 100% ] 00/10 VUs  20s        10.00 iters/s
+moderate   [  26% ] 03/30 VUs  05.3s/20s  30.00 iters/s
+
+running (39.0s), 03/40 VUs, 392 complete and 0 interrupted iterations
+smoke    ✓ [ 100% ] 0/2 VUs    5s         1.00 iters/s
+baseline ✓ [ 100% ] 00/10 VUs  20s        10.00 iters/s
+moderate   [  31% ] 03/30 VUs  06.3s/20s  30.00 iters/s
+
+running (40.0s), 03/40 VUs, 422 complete and 0 interrupted iterations
+smoke    ✓ [ 100% ] 0/2 VUs    5s         1.00 iters/s
+baseline ✓ [ 100% ] 00/10 VUs  20s        10.00 iters/s
+moderate   [  36% ] 03/30 VUs  07.3s/20s  30.00 iters/s
+
+running (41.0s), 05/40 VUs, 450 complete and 0 interrupted iterations
+smoke    ✓ [ 100% ] 0/2 VUs    5s         1.00 iters/s
+baseline ✓ [ 100% ] 00/10 VUs  20s        10.00 iters/s
+moderate   [  41% ] 05/30 VUs  08.3s/20s  30.00 iters/s
+
+running (42.0s), 03/40 VUs, 482 complete and 0 interrupted iterations
+smoke    ✓ [ 100% ] 0/2 VUs    5s         1.00 iters/s
+baseline ✓ [ 100% ] 00/10 VUs  20s        10.00 iters/s
+moderate   [  46% ] 03/30 VUs  09.3s/20s  30.00 iters/s
+
+running (43.0s), 03/40 VUs, 512 complete and 0 interrupted iterations
+smoke    ✓ [ 100% ] 0/2 VUs    5s         1.00 iters/s
+baseline ✓ [ 100% ] 00/10 VUs  20s        10.00 iters/s
+moderate   [  51% ] 03/30 VUs  10.3s/20s  30.00 iters/s
+
+running (44.0s), 03/40 VUs, 542 complete and 0 interrupted iterations
+smoke    ✓ [ 100% ] 0/2 VUs    5s         1.00 iters/s
+baseline ✓ [ 100% ] 00/10 VUs  20s        10.00 iters/s
+moderate   [  56% ] 03/30 VUs  11.3s/20s  30.00 iters/s
+
+running (45.0s), 03/40 VUs, 572 complete and 0 interrupted iterations
+smoke    ✓ [ 100% ] 0/2 VUs    5s         1.00 iters/s
+baseline ✓ [ 100% ] 00/10 VUs  20s        10.00 iters/s
+moderate   [  61% ] 03/30 VUs  12.3s/20s  30.00 iters/s
+
+running (46.0s), 03/40 VUs, 602 complete and 0 interrupted iterations
+smoke    ✓ [ 100% ] 0/2 VUs    5s         1.00 iters/s
+baseline ✓ [ 100% ] 00/10 VUs  20s        10.00 iters/s
+moderate   [  66% ] 03/30 VUs  13.3s/20s  30.00 iters/s
+
+running (47.0s), 03/40 VUs, 632 complete and 0 interrupted iterations
+smoke    ✓ [ 100% ] 0/2 VUs    5s         1.00 iters/s
+baseline ✓ [ 100% ] 00/10 VUs  20s        10.00 iters/s
+moderate   [  71% ] 03/30 VUs  14.3s/20s  30.00 iters/s
+
+running (48.0s), 03/40 VUs, 662 complete and 0 interrupted iterations
+smoke    ✓ [ 100% ] 0/2 VUs    5s         1.00 iters/s
+baseline ✓ [ 100% ] 00/10 VUs  20s        10.00 iters/s
+moderate   [  76% ] 03/30 VUs  15.3s/20s  30.00 iters/s
+
+running (49.0s), 03/40 VUs, 692 complete and 0 interrupted iterations
+smoke    ✓ [ 100% ] 0/2 VUs    5s         1.00 iters/s
+baseline ✓ [ 100% ] 00/10 VUs  20s        10.00 iters/s
+moderate   [  81% ] 03/30 VUs  16.3s/20s  30.00 iters/s
+
+running (50.0s), 03/40 VUs, 722 complete and 0 interrupted iterations
+smoke    ✓ [ 100% ] 0/2 VUs    5s         1.00 iters/s
+baseline ✓ [ 100% ] 00/10 VUs  20s        10.00 iters/s
+moderate   [  86% ] 03/30 VUs  17.3s/20s  30.00 iters/s
+
+running (51.0s), 03/40 VUs, 752 complete and 0 interrupted iterations
+smoke    ✓ [ 100% ] 0/2 VUs    5s         1.00 iters/s
+baseline ✓ [ 100% ] 00/10 VUs  20s        10.00 iters/s
+moderate   [  91% ] 03/30 VUs  18.3s/20s  30.00 iters/s
+
+running (52.0s), 03/40 VUs, 782 complete and 0 interrupted iterations
+smoke    ✓ [ 100% ] 0/2 VUs    5s         1.00 iters/s
+baseline ✓ [ 100% ] 00/10 VUs  20s        10.00 iters/s
+moderate   [  96% ] 03/30 VUs  19.3s/20s  30.00 iters/s
+AdFlow k6 walkthrough (HTTP acceptance only; async proof follows)
+iterations: {"type":"counter","contains":"default","values":{"count":808,"rate":15.28648282925744}}
+http_reqs: {"type":"counter","contains":"default","values":{"rate":68.90268621801435,"count":3642}}
+checks: {"thresholds":{"rate==1":{"ok":true}},"type":"rate","contains":"default","values":{"rate":1,"passes":4040,"fails":0}}
+business_errors: {"type":"rate","contains":"default","values":{"rate":0,"passes":0,"fails":808},"thresholds":{"rate==0":{"ok":true}}}
+dropped_iterations: {"type":"counter","contains":"default","values":{"rate":0,"count":0},"thresholds":{"count==0":{"ok":true}}}
+matched_decisions: {"type":"counter","contains":"default","values":{"count":808,"rate":15.28648282925744}}
+accepted_events: {"type":"counter","contains":"default","values":{"count":2424,"rate":45.859448487772326}}
+accepted_rounds{phase:smoke}: {"values":{"count":6,"rate":0.11351348635587209},"thresholds":{"count>0":{"ok":true}},"type":"counter","contains":"default"}
+accepted_rounds{phase:baseline}: {"values":{"count":201,"rate":3.802701792921715},"thresholds":{"count>0":{"ok":true}},"type":"counter","contains":"default"}
+accepted_rounds{phase:moderate}: {"type":"counter","contains":"default","values":{"count":601,"rate":11.370267549979854},"thresholds":{"count>0":{"ok":true}}}
+decision_ms{phase:baseline}: {"contains":"time","values":{"p(99)":58.932128,"max":105.548741,"avg":27.357603159203993,"min":20.618805,"med":25.875511,"p(95)":36.733608},"thresholds":{"p(95)<300":{"ok":true},"p(99)<1000":{"ok":true}},"type":"trend"}
+decision_ms{phase:moderate}: {"values":{"avg":37.224112850249625,"min":23.042713,"med":34.268906,"p(95)":57.276711,"p(99)":72.041212,"max":95.893117},"thresholds":{"p(95)<300":{"ok":true},"p(99)<1000":{"ok":true}},"type":"trend","contains":"time"}
+business_accepted_ms{phase:baseline}: {"type":"trend","contains":"time","values":{"avg":83.35820895522389,"min":65,"med":80,"p(95)":103,"p(99)":150,"max":226},"thresholds":{"p(95)<1000":{"ok":true}}}
+business_accepted_ms{phase:moderate}: {"values":{"p(99)":183,"max":199,"avg":112.66555740432612,"min":78,"med":106,"p(95)":156},"thresholds":{"p(95)<1000":{"ok":true}},"type":"trend","contains":"time"}
+
+running (52.9s), 00/40 VUs, 808 complete and 0 interrupted iterations
+smoke    ✓ [ 100% ] 0/2 VUs    5s   1.00 iters/s
+baseline ✓ [ 100% ] 00/10 VUs  20s  10.00 iters/s
+moderate ✓ [ 100% ] 00/30 VUs  20s  30.00 iters/s

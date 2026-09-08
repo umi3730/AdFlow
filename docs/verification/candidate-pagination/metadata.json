@@ -1,0 +1,19 @@
+{
+  "baselineCommit": "ca50d137f4fc0eba1df4bab1426512248a8b27c6",
+  "after": "Current source; full candidate adapter suite passes",
+  "before": "Provider from baseline commit via Go overlay; same tail-decision test fails",
+  "limitations": [
+    "SQL contract tested with sqlmock, not a real database",
+    "No local race run: CGO/C compiler unavailable",
+    "No live service restart or capacity benchmark"
+  ],
+  "date": "2026-09-07",
+  "go": "go version go1.27.0 windows/amd64",
+  "sourceSHA256": {
+    "internal/decision/adapter/campaign/provider_test.go": "2A7E4B6A4B76008CEBB142D291EE2EA81A2FC484082495717DFD0548E85256BC",
+    "internal/campaign/domain/repository.go": "AD5D01F510D572252702E95A96C9A124AA29AFA1EDBE1BCEB7FC5AB8BDF72CBC",
+    "internal/decision/adapter/campaign/provider.go": "E8183B8D80146C44A688CF0A2972DCBC2BC8E8C4805B188A1305C38D8038CCAE",
+    "internal/campaign/adapter/mysql/repository.go": "64448D233291C7678DC6FF92E9A495FAF2FA440E6BDF4FF6385501B3DF27E5E4",
+    "internal/campaign/adapter/memory/repository.go": "522C6FDB5DC604F9452C0D9386939BBC7345F218E989C49DA037425909411608"
+  }
+}

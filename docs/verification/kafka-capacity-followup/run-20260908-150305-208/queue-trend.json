@@ -1,0 +1,14 @@
+{
+  "method": "Exclude first 5 seconds; compare means of first/last 5 sampled backlog counts during request dispatch. >100 events growth is a one-relay-batch warning, not proof of infinite-horizon stability.",
+  "excludedStages": [
+    {
+      "id": "08-confirm-1-65",
+      "reason": "incomplete completion coverage; dispatch window cannot be inferred reliably"
+    },
+    {
+      "id": "09-confirm-1-60",
+      "reason": "incomplete completion coverage; dispatch window cannot be inferred reliably"
+    }
+  ],
+  "stages": []
+}

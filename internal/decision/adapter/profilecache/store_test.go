@@ -53,6 +53,40 @@ func (f *fakeProfiles) PutProfile(_ context.Context, profile domain.Profile) err
 	return nil
 }
 
+func (f *fakeProfiles) DeleteProfile(_ context.Context, id string) error {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	delete(f.profiles, id)
+	return nil
+}
+
+func TestDeleteInvalidatesCacheAndCanRecreate(t *testing.T) {
+	source := &fakeProfiles{profiles: map[string]domain.Profile{}}
+	store, _ := testStore(t, source)
+	if err := store.PutProfile(t.Context(), domain.NewProfile("u", []string{"anime"}, nil)); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := store.FindProfile(t.Context(), "u"); err != nil {
+		t.Fatal(err)
+	}
+	if err := store.DeleteProfile(t.Context(), "u"); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := store.FindProfile(t.Context(), "u"); err != domain.ErrProfileNotFound {
+		t.Fatal("deleted profile still cached", err)
+	}
+	if err := store.DeleteProfile(t.Context(), "u"); err != nil {
+		t.Fatal(err)
+	}
+	if err := store.PutProfile(t.Context(), domain.NewProfile("u", []string{"new_user"}, nil)); err != nil {
+		t.Fatal(err)
+	}
+	profile, err := store.FindProfile(t.Context(), "u")
+	if _, ok := profile.Tags["new_user"]; err != nil || !ok {
+		t.Fatal("recreate failed", err)
+	}
+}
+
 func testStore(t *testing.T, source domain.ProfileStore) (*Store, *miniredis.Miniredis) {
 	t.Helper()
 	server := miniredis.RunT(t)
@@ -108,7 +142,7 @@ func TestProfileCacheAsideNegativeCachesMissingUsers(t *testing.T) {
 	}
 }
 
-func TestProfileCacheAsideWriteThroughReplacesCachedProfile(t *testing.T) {
+func TestProfileCacheAsideWriteInvalidatesCachedProfile(t *testing.T) {
 	source := &fakeProfiles{profiles: map[string]domain.Profile{
 		"user-1": domain.NewProfile("user-1", []string{"old"}, nil),
 	}}
@@ -124,7 +158,7 @@ func TestProfileCacheAsideWriteThroughReplacesCachedProfile(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, exists := profile.Tags["new"]; !exists || profile.Fields["device"] != "android" || source.finds.Load() != 1 {
+	if _, exists := profile.Tags["new"]; !exists || profile.Fields["device"] != "android" || source.finds.Load() != 2 {
 		t.Fatalf("finds=%d profile=%+v", source.finds.Load(), profile)
 	}
 }

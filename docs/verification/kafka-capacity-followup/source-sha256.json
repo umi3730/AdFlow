@@ -1,0 +1,17 @@
+{
+  "internal/event/adapter/mysql/settlement_transaction.go": "80b1177781cbf0b2d9b5f516357dd41e93a7f4c37ddd6495678369ce0f7209cc",
+  "internal/audit/adapter/http/middleware.go": "347d088f3cca1363a9ea499aab2d4e225a9d531f94f31bcda63c4268d9920306",
+  "internal/event/domain/settlement.go": "5695c5292042a55180c6ce57e07b158cfdee61c0f3ce5d2a3b46011ce1810af3",
+  "internal/event/adapter/mysql/settlement.go": "f7dba19c59e8e3804b1c12d9d3e4de13fe1a3ec3e4f7d7eaca26cab5950eb8c6",
+  "internal/event/adapter/kafka/client.go": "5205c8a699a1f006d4be15f6c94c44033d98c406b2d9d178b2be9c11960fe369",
+  "tests/load/k6-walkthrough.js": "5802a268e78d191bc1a0a0577beeba2be3cce4ed95549f5f8e1c07cd05aa99ea",
+  "internal/audit/adapter/mysql/store.go": "208dbac1ad962aa8783bc6cc614bfd2f43dc97c58b698f3315be2cd03420e3e6",
+  "internal/event/application/outbox_relay.go": "836dcc12c401a3be735471ce8548a42dfc296985ddd69cc34a9295c07ba061f1",
+  "internal/event/application/settlement_worker.go": "170a1c79cf548e7667cb72e6da2718e99d1284992122fe40eb8e38021a525163",
+  "internal/event/adapter/mysql/outbox.go": "e2bc5827c9988345b573f1b80480a4d22828f139104952bdc0fecd038b4cd7f5",
+  "tests/bench/k6-lab/kafka_capacity.go": "9288a9e7de198398ca89c10860fd4b226ad72efaa3e8daa6be25618bdfb3136b",
+  "tests/load/kafka-capacity.js": "c30ab54cfcf22305f2fb2f561fa241fb71a9fcf8caccbb60686575192d22194c",
+  "tests/bench/k6-lab/main.go": "ec23cb5bc54b82c4a0ad20d261710f4dd303137a43cc243dd3e68ba5ad93eddb",
+  "tests/bench/k6-lab/queue_trend.py": "77d42702a331fa2bd94f5e64685f44f57c5419af28b02ba0b401f1f007fd4265",
+  "tests/bench/k6-lab/verify_capacity.py": "625716e0991e33caefe37ab2ea6fd71ba6b0094a642604118e2830fd999ed169"
+}

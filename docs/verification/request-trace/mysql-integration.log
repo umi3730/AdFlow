@@ -1,0 +1,4 @@
+=== RUN   TestRequestTraceReadsDurableStagesWithoutAdvancingThem
+--- PASS: TestRequestTraceReadsDurableStagesWithoutAdvancingThem (2.76s)
+PASS
+ok  	github.com/zhanghaiyang/adflow/tests/integration	2.975s

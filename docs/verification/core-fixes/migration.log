@@ -1,0 +1,1 @@
+{"time":"2026-09-07T16:35:32.8116266+08:00","level":"INFO","msg":"migrations complete","applied":["000012_profile_identity.up.sql"],"count":1}

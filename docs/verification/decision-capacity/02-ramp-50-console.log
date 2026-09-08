@@ -1,0 +1,7 @@
+Decision capacity: unique requests, real matched auction, no event calls
+http_reqs: {"type":"counter","contains":"default","values":{"count":1000,"rate":49.99122984858099}}
+http_req_duration: {"values":{"avg":25.865667133999953,"med":24.1727935,"p(95)":36.846279499999994,"p(99)":50.095162999999985,"max":77.405011},"thresholds":{"p(95)<300":{"ok":true}},"type":"trend","contains":"time"}
+decision_errors: {"contains":"default","values":{"rate":0,"passes":0,"fails":1000},"thresholds":{"rate<0.001":{"ok":true}},"type":"rate"}
+matched_decisions: {"type":"counter","contains":"default","values":{"count":1000,"rate":49.99122984858099},"thresholds":{"count>0":{"ok":true}}}
+dropped_iterations: {"values":{"count":0,"rate":0},"thresholds":{"count==0":{"ok":true}},"type":"counter","contains":"default"}
+vus: {"type":"gauge","contains":"default","values":{"value":2,"min":2,"max":3}}

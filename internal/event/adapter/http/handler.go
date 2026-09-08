@@ -3,6 +3,7 @@ package httpadapter
 import (
 	"context"
 	"errors"
+	decisiondomain "github.com/zhanghaiyang/adflow/internal/decision/domain"
 	"net/http"
 	"time"
 
@@ -83,6 +84,12 @@ func (h *Handler) metrics(c *gin.Context) {
 
 func handleError(c *gin.Context, err error) {
 	switch {
+	case errors.Is(err, domain.ErrAttributionExpired):
+		httptransport.RespondError(c, http.StatusConflict, "attribution_expired", err.Error(), nil)
+	case errors.Is(err, decisiondomain.ErrSettlementUnavailable):
+		httptransport.RespondError(c, http.StatusConflict, "settlement_unavailable", err.Error(), nil)
+	case errors.Is(err, domain.ErrEventConflict):
+		httptransport.RespondError(c, http.StatusConflict, "event_conflict", err.Error(), nil)
 	case errors.Is(err, domain.ErrInvalidEvent):
 		httptransport.RespondError(c, http.StatusUnprocessableEntity, "invalid_event", err.Error(), nil)
 	case errors.Is(err, domain.ErrDecisionNotFound):

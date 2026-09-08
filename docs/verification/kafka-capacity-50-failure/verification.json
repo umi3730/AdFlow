@@ -1,0 +1,26 @@
+{
+  "verified": true,
+  "confirmedBusinessRoundsPerSecond": null,
+  "measuredLoopsAllStages": 3001,
+  "acceptedEventsAllStages": 9003,
+  "confirmationLoops": 3001,
+  "confirmationEvents": 9003,
+  "confirmedCombinedP95Ms": null,
+  "stages": [
+    {
+      "id": "01-confirm-1-50",
+      "rate": 50,
+      "seconds": 60,
+      "completed": 3001,
+      "events": 9003,
+      "decisionP95Ms": 60.881307,
+      "acceptanceP95Ms": 177,
+      "committedObservedP95Ms": null,
+      "observationCoverage": 0.9986671109630123,
+      "drainSeconds": 5.231730278,
+      "accountingPassed": false,
+      "passed": false
+    }
+  ],
+  "rawSHA256": "4c35ea0f2280c269e6b03f84eafba04aa1dbc7252176f5c6f4f2dfe39e4a0ccb"
+}

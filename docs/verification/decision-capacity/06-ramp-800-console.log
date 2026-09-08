@@ -1,0 +1,14 @@
+time="2026-09-08T12:10:56+08:00" level=warning msg="Request Failed" error="Post \"http://127.0.0.1:39889/v1/decisions\": request timeout"
+time="2026-09-08T12:10:56+08:00" level=warning msg="Request Failed" error="Post \"http://127.0.0.1:39889/v1/decisions\": request timeout"
+time="2026-09-08T12:10:57+08:00" level=warning msg="Request Failed" error="Post \"http://127.0.0.1:39889/v1/decisions\": request timeout"
+time="2026-09-08T12:10:57+08:00" level=warning msg="Request Failed" error="Post \"http://127.0.0.1:39889/v1/decisions\": request timeout"
+time="2026-09-08T12:10:57+08:00" level=warning msg="Request Failed" error="Post \"http://127.0.0.1:39889/v1/decisions\": request timeout"
+Decision capacity: unique requests, real matched auction, no event calls
+http_reqs: {"type":"counter","contains":"default","values":{"count":15635,"rate":770.11301457252}}
+http_req_duration: {"type":"trend","contains":"time","values":{"avg":451.8104024493758,"med":430.175752,"p(95)":1016.8403597999996,"p(99)":1359.47813342,"max":2000.77221},"thresholds":{"p(95)<300":{"ok":false}}}
+decision_errors: {"type":"rate","contains":"default","values":{"rate":0.39481931563799166,"passes":6173,"fails":9462},"thresholds":{"rate<0.001":{"ok":false}}}
+decision_http_errors: {"type":"counter","contains":"default","values":{"count":6173,"rate":304.0554933774331}}
+matched_decisions: {"type":"counter","contains":"default","values":{"rate":466.05752119508696,"count":9462},"thresholds":{"count>0":{"ok":true}}}
+dropped_iterations: {"type":"counter","contains":"default","values":{"count":365,"rate":17.978333886726563},"thresholds":{"count==0":{"ok":false}}}
+vus: {"type":"gauge","contains":"default","values":{"min":282,"max":463,"value":362}}
+time="2026-09-08T12:11:02+08:00" level=error msg="thresholds on metrics 'decision_errors, dropped_iterations, http_req_duration' have been crossed"

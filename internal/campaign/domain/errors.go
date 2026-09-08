@@ -3,6 +3,7 @@ package domain
 import "errors"
 
 var (
+	ErrDeleteActive       = errors.New("pause the campaign or disable the creative before deleting")
 	ErrCampaignNotFound   = errors.New("campaign not found")
 	ErrInvalidName        = errors.New("campaign name must contain 2 to 128 characters")
 	ErrInvalidSlotID      = errors.New("slot id must contain 2 to 64 characters")

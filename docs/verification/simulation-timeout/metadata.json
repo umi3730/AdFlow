@@ -1,0 +1,29 @@
+{
+  "recordedAt": "2026-09-07T06:41:07.2532229Z",
+  "deployedPorts": [
+    18080,
+    18081
+  ],
+  "migration": "000011_outbox_request_index",
+  "browserRun": "sim-1788763105387-f59121",
+  "verifiedPublishedEvents": 285,
+  "verifiedSettledImpressions": 95,
+  "sources": [
+    {
+      "path": "internal/platform/database/mysql.go",
+      "sha256": "1FA2E0BDEB35FCCAAF6D6F0E54434F86B7DCB973CD0FFDFFDFF385DD17B74623"
+    },
+    {
+      "path": "internal/event/adapter/mysql/outbox.go",
+      "sha256": "BF498BC5DFFDF7AA25D97BAB74F0F2C915F02E1F64EA9DEBBF4BBE7E50332180"
+    },
+    {
+      "path": "internal/event/adapter/mysql/settlement.go",
+      "sha256": "FABA3C3C0CE4CF3371206505AE8C86D219DA069DF2F06F24B14EC6E9967994F2"
+    },
+    {
+      "path": "migrations/000011_outbox_request_index.up.sql",
+      "sha256": "2B5003C066F37316F1680E686BABDA90F546E67D1550710B8ACF3D519A4910BC"
+    }
+  ]
+}

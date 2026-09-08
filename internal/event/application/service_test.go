@@ -19,6 +19,13 @@ func testService(t *testing.T) (*Service, *eventmemory.Store) {
 	result := decisiondomain.Result{
 		RequestID: "request-1", UserID: "user-1", Matched: true, CampaignID: "campaign-1",
 		CreativeID: "creative-1", ReservationToken: "request-1", ExpiresAt: time.Now().Add(time.Minute),
+		Pricing: decisiondomain.Pricing{Mode: "fixed", PriceFen: 5},
+	}
+	if _, ok, err := decisions.ReserveFrequency(ctx, "user-1", "campaign-1", "request-1", 100, time.Now(), time.Minute); err != nil || !ok {
+		t.Fatal(err)
+	}
+	if _, ok, err := decisions.ReserveBudget(ctx, "campaign-1", 100, 5, "request-1", time.Now(), time.Minute); err != nil || !ok {
+		t.Fatal(err)
 	}
 	if err := decisions.SaveDecision(ctx, result); err != nil {
 		t.Fatal(err)

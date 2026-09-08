@@ -1,0 +1,38 @@
+{
+  "at": "2026-09-07T08:01:19.7340750Z",
+  "purpose": "review, not fixes",
+  "reproductionAssertions": "expected to fail on current code",
+  "liveBusinessDataModified": false,
+  "ownedTestDatabaseRemoved": true,
+  "ownedRedisKeysRemoved": true,
+  "sources": [
+    {
+      "path": "internal/decision/adapter/mysql/profile_store.go",
+      "sha256": "A1758827C508B80EA8DD36BD08CE0A11C6F165DF3AD2CD285A525F4947C7347D"
+    },
+    {
+      "path": "internal/decision/adapter/profilecache/store.go",
+      "sha256": "074DF3BB5B2A2B2A6F4689DCA72A569E220E78ABC32C61A66774C719033D4DB6"
+    },
+    {
+      "path": "internal/event/application/service.go",
+      "sha256": "AA57830B4B92E578E3BFDDF6FE01FA7FC1328F5E41FE36DFE4648A724186B903"
+    },
+    {
+      "path": "internal/event/application/async_service.go",
+      "sha256": "E53E3A7BA7483D9E44900E24598CB9971F26E00DCCECE1349C5EAFA01189F19F"
+    },
+    {
+      "path": "internal/event/adapter/memory/store.go",
+      "sha256": "E91A46636884DD5877BCA5D11CF2D8DD6965275ED236359046502DD94190F761"
+    },
+    {
+      "path": "migrations/000004_profiles.up.sql",
+      "sha256": "AC0CBE64E7D2028F388EB1E23E39A8DCDA05722F97F6367DF2F75B950D96FF14"
+    },
+    {
+      "path": "tests/integration/settlement_recovery_test.go",
+      "sha256": "EF4D90448A1617A91AAAB0CBA40310190D1F7D3F6A91E2DE9B74750DC9D67469"
+    }
+  ]
+}

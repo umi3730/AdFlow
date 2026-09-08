@@ -1,0 +1,639 @@
+{
+  "startedAt": "2026-09-08T02:20:52Z",
+  "finishedAt": "2026-09-08T02:20:53Z",
+  "environment": {
+    "driver": "go-sql-driver/mysql v1.9.3; interpolateParams=true",
+    "go": "go1.27.0",
+    "initialIsolation": "REPEATABLE-READ",
+    "innodbBufferPoolBytes": "134217728",
+    "innodbFlushLogAtTrxCommit": "1",
+    "mysql": "8.0.46-0ubuntu0.24.04.4",
+    "optimizerInvisibleIndexes": "off",
+    "platform": "linux/amd64",
+    "sqlConcurrency": "1",
+    "syncBinlog": "1",
+    "transactionIsolation": "REPEATABLE-READ",
+    "transport": "unix"
+  },
+  "sourceSHA256": {
+    "internal/event/adapter/mysql/settlement.go": "faba3c3c0ce4cf3371206505ae8c86d219da069df2f06f24b14ec6e9967994f2",
+    "migrations/000002_events.up.sql": "9f529e878c034542c0c022fb58052c717308de2641fe5b9e57621656d4cd2cbc",
+    "migrations/000011_outbox_request_index.up.sql": "2b5003c066f37316f1680e686babda90f546e67d1550710b8acf3d519a4910bc",
+    "tests/bench/outbox-index/main.go": "5fc0d9fef5b52630c22d9fa93f0035695015601036949a4075ab7a0034c04232"
+  },
+  "rounds": 2,
+  "samplesPerOperationPerRound": 2,
+  "warmupsPerBlock": 1,
+  "sql": {
+    "select": "SELECT event_id, status, attempts, next_attempt_at, last_error FROM event_outbox WHERE aggregate_key = ? AND status = 'SETTLING'",
+    "update": "UPDATE event_outbox SET status = 'PENDING', attempts = 0,\n  next_attempt_at = UTC_TIMESTAMP(3), last_error = NULL\n  WHERE aggregate_key = ? AND status = 'SETTLING'"
+  },
+  "notes": [
+    "Synthetic data, three events per request; 90% PUBLISHED, 5% SETTLING, 3% PENDING, 1% PROCESSING, 1% RECONCILE (rounding at dataset tail).",
+    "Same physical table/index in both modes; toggle index visibility only. Invisible indexes still incur write maintenance, so this does not measure insert overhead or physical index absence.",
+    "Alternating AB/BA rounds, same paired request IDs. Each block warms both statements. This is warmed access-path timing, not a guarantee all rows fit in buffer pool.",
+    "UPDATE executes production Outbox statement inside an explicit transaction then ROLLBACK; exactly three rows must change. Timing excludes BEGIN, telemetry queries, ROLLBACK and commit/fsync cost.",
+    "SELECT is a diagnostic read of the same predicate/updated columns, not an extra production endpoint. EXPLAIN ANALYZE used only for SELECT; UPDATE uses nonexecuting EXPLAIN FORMAT=JSON.",
+    "Actual rows examined and server time come from performance_schema.events_statements_history, not optimizer estimates. Single client; no concurrency/lock-contention or whole-service QPS claim.",
+    "Shared local MySQL instance; application schemas are never touched. Dataset schema is dropped after successful measurement; failure retains it for inspection."
+  ],
+  "datasets": [
+    {
+      "schema": "adflow_idxbench_20260908_022052_1000",
+      "rows": 1000,
+      "statusCounts": {
+        "PENDING": 27,
+        "PROCESSING": 9,
+        "PUBLISHED": 910,
+        "RECONCILE": 9,
+        "SETTLING": 45
+      },
+      "seedSeconds": 0.450980135,
+      "indexBuildSeconds": 0.087863469,
+      "indexBytes": 81920,
+      "plans": {
+        "invisible": {
+          "indexes": [
+            {
+              "Cardinality": "1008",
+              "Collation": "A",
+              "Column_name": "event_id",
+              "Comment": "",
+              "Expression": "NULL",
+              "Index_comment": "",
+              "Index_type": "BTREE",
+              "Key_name": "PRIMARY",
+              "Non_unique": "0",
+              "Null": "",
+              "Packed": "NULL",
+              "Seq_in_index": "1",
+              "Sub_part": "NULL",
+              "Table": "event_outbox",
+              "Visible": "YES"
+            },
+            {
+              "Cardinality": "5",
+              "Collation": "A",
+              "Column_name": "status",
+              "Comment": "",
+              "Expression": "NULL",
+              "Index_comment": "",
+              "Index_type": "BTREE",
+              "Key_name": "idx_event_outbox_claim",
+              "Non_unique": "1",
+              "Null": "",
+              "Packed": "NULL",
+              "Seq_in_index": "1",
+              "Sub_part": "NULL",
+              "Table": "event_outbox",
+              "Visible": "YES"
+            },
+            {
+              "Cardinality": "1000",
+              "Collation": "A",
+              "Column_name": "next_attempt_at",
+              "Comment": "",
+              "Expression": "NULL",
+              "Index_comment": "",
+              "Index_type": "BTREE",
+              "Key_name": "idx_event_outbox_claim",
+              "Non_unique": "1",
+              "Null": "",
+              "Packed": "NULL",
+              "Seq_in_index": "2",
+              "Sub_part": "NULL",
+              "Table": "event_outbox",
+              "Visible": "YES"
+            },
+            {
+              "Cardinality": "1000",
+              "Collation": "A",
+              "Column_name": "locked_until",
+              "Comment": "",
+              "Expression": "NULL",
+              "Index_comment": "",
+              "Index_type": "BTREE",
+              "Key_name": "idx_event_outbox_claim",
+              "Non_unique": "1",
+              "Null": "YES",
+              "Packed": "NULL",
+              "Seq_in_index": "3",
+              "Sub_part": "NULL",
+              "Table": "event_outbox",
+              "Visible": "YES"
+            },
+            {
+              "Cardinality": "1000",
+              "Collation": "A",
+              "Column_name": "created_at",
+              "Comment": "",
+              "Expression": "NULL",
+              "Index_comment": "",
+              "Index_type": "BTREE",
+              "Key_name": "idx_event_outbox_claim",
+              "Non_unique": "1",
+              "Null": "",
+              "Packed": "NULL",
+              "Seq_in_index": "4",
+              "Sub_part": "NULL",
+              "Table": "event_outbox",
+              "Visible": "YES"
+            },
+            {
+              "Cardinality": "334",
+              "Collation": "A",
+              "Column_name": "aggregate_key",
+              "Comment": "",
+              "Expression": "NULL",
+              "Index_comment": "",
+              "Index_type": "BTREE",
+              "Key_name": "idx_outbox_request_status",
+              "Non_unique": "1",
+              "Null": "",
+              "Packed": "NULL",
+              "Seq_in_index": "1",
+              "Sub_part": "NULL",
+              "Table": "event_outbox",
+              "Visible": "NO"
+            },
+            {
+              "Cardinality": "334",
+              "Collation": "A",
+              "Column_name": "status",
+              "Comment": "",
+              "Expression": "NULL",
+              "Index_comment": "",
+              "Index_type": "BTREE",
+              "Key_name": "idx_outbox_request_status",
+              "Non_unique": "1",
+              "Null": "",
+              "Packed": "NULL",
+              "Seq_in_index": "2",
+              "Sub_part": "NULL",
+              "Table": "event_outbox",
+              "Visible": "NO"
+            }
+          ],
+          "selectAnalyze": [
+            {
+              "EXPLAIN": "-\u003e Filter: (event_outbox.aggregate_key = 'req-000000000090')  (cost=11.7 rows=4.5) (actual time=0.0765..0.754 rows=3 loops=1)\n    -\u003e Index lookup on event_outbox using idx_event_outbox_claim (status='SETTLING')  (cost=11.7 rows=45) (actual time=0.0505..0.717 rows=45 loops=1)\n"
+            }
+          ],
+          "selectJSON": [
+            {
+              "EXPLAIN": "{\n  \"query_block\": {\n    \"select_id\": 1,\n    \"cost_info\": {\n      \"query_cost\": \"15.75\"\n    },\n    \"table\": {\n      \"table_name\": \"event_outbox\",\n      \"access_type\": \"ref\",\n      \"possible_keys\": [\n        \"idx_event_outbox_claim\"\n      ],\n      \"key\": \"idx_event_outbox_claim\",\n      \"used_key_parts\": [\n        \"status\"\n      ],\n      \"key_length\": \"66\",\n      \"ref\": [\n        \"const\"\n      ],\n      \"rows_examined_per_scan\": 45,\n      \"rows_produced_per_join\": 4,\n      \"filtered\": \"10.00\",\n      \"cost_info\": {\n        \"read_cost\": \"11.25\",\n        \"eval_cost\": \"0.45\",\n        \"prefix_cost\": \"15.75\",\n        \"data_read_per_join\": \"24K\"\n      },\n      \"used_columns\": [\n        \"event_id\",\n        \"aggregate_key\",\n        \"status\",\n        \"attempts\",\n        \"next_attempt_at\",\n        \"last_error\"\n      ],\n      \"attached_condition\": \"(`adflow_idxbench_20260908_022052_1000`.`event_outbox`.`aggregate_key` = 'req-000000000090')\"\n    }\n  }\n}"
+            }
+          ],
+          "updateJSON": [
+            {
+              "EXPLAIN": "{\n  \"query_block\": {\n    \"select_id\": 1,\n    \"table\": {\n      \"update\": true,\n      \"table_name\": \"event_outbox\",\n      \"access_type\": \"range\",\n      \"possible_keys\": [\n        \"idx_event_outbox_claim\"\n      ],\n      \"key\": \"idx_event_outbox_claim\",\n      \"used_key_parts\": [\n        \"status\"\n      ],\n      \"key_length\": \"66\",\n      \"ref\": [\n        \"const\"\n      ],\n      \"rows_examined_per_scan\": 45,\n      \"filtered\": \"100.00\",\n      \"using_temporary_table\": \"for update\",\n      \"attached_condition\": \"((`adflow_idxbench_20260908_022052_1000`.`event_outbox`.`aggregate_key` = 'req-000000000090') and (`adflow_idxbench_20260908_022052_1000`.`event_outbox`.`status` = 'SETTLING'))\"\n    }\n  }\n}"
+            }
+          ]
+        },
+        "visible": {
+          "indexes": [
+            {
+              "Cardinality": "1008",
+              "Collation": "A",
+              "Column_name": "event_id",
+              "Comment": "",
+              "Expression": "NULL",
+              "Index_comment": "",
+              "Index_type": "BTREE",
+              "Key_name": "PRIMARY",
+              "Non_unique": "0",
+              "Null": "",
+              "Packed": "NULL",
+              "Seq_in_index": "1",
+              "Sub_part": "NULL",
+              "Table": "event_outbox",
+              "Visible": "YES"
+            },
+            {
+              "Cardinality": "5",
+              "Collation": "A",
+              "Column_name": "status",
+              "Comment": "",
+              "Expression": "NULL",
+              "Index_comment": "",
+              "Index_type": "BTREE",
+              "Key_name": "idx_event_outbox_claim",
+              "Non_unique": "1",
+              "Null": "",
+              "Packed": "NULL",
+              "Seq_in_index": "1",
+              "Sub_part": "NULL",
+              "Table": "event_outbox",
+              "Visible": "YES"
+            },
+            {
+              "Cardinality": "1000",
+              "Collation": "A",
+              "Column_name": "next_attempt_at",
+              "Comment": "",
+              "Expression": "NULL",
+              "Index_comment": "",
+              "Index_type": "BTREE",
+              "Key_name": "idx_event_outbox_claim",
+              "Non_unique": "1",
+              "Null": "",
+              "Packed": "NULL",
+              "Seq_in_index": "2",
+              "Sub_part": "NULL",
+              "Table": "event_outbox",
+              "Visible": "YES"
+            },
+            {
+              "Cardinality": "1000",
+              "Collation": "A",
+              "Column_name": "locked_until",
+              "Comment": "",
+              "Expression": "NULL",
+              "Index_comment": "",
+              "Index_type": "BTREE",
+              "Key_name": "idx_event_outbox_claim",
+              "Non_unique": "1",
+              "Null": "YES",
+              "Packed": "NULL",
+              "Seq_in_index": "3",
+              "Sub_part": "NULL",
+              "Table": "event_outbox",
+              "Visible": "YES"
+            },
+            {
+              "Cardinality": "1000",
+              "Collation": "A",
+              "Column_name": "created_at",
+              "Comment": "",
+              "Expression": "NULL",
+              "Index_comment": "",
+              "Index_type": "BTREE",
+              "Key_name": "idx_event_outbox_claim",
+              "Non_unique": "1",
+              "Null": "",
+              "Packed": "NULL",
+              "Seq_in_index": "4",
+              "Sub_part": "NULL",
+              "Table": "event_outbox",
+              "Visible": "YES"
+            },
+            {
+              "Cardinality": "334",
+              "Collation": "A",
+              "Column_name": "aggregate_key",
+              "Comment": "",
+              "Expression": "NULL",
+              "Index_comment": "",
+              "Index_type": "BTREE",
+              "Key_name": "idx_outbox_request_status",
+              "Non_unique": "1",
+              "Null": "",
+              "Packed": "NULL",
+              "Seq_in_index": "1",
+              "Sub_part": "NULL",
+              "Table": "event_outbox",
+              "Visible": "YES"
+            },
+            {
+              "Cardinality": "334",
+              "Collation": "A",
+              "Column_name": "status",
+              "Comment": "",
+              "Expression": "NULL",
+              "Index_comment": "",
+              "Index_type": "BTREE",
+              "Key_name": "idx_outbox_request_status",
+              "Non_unique": "1",
+              "Null": "",
+              "Packed": "NULL",
+              "Seq_in_index": "2",
+              "Sub_part": "NULL",
+              "Table": "event_outbox",
+              "Visible": "YES"
+            }
+          ],
+          "selectAnalyze": [
+            {
+              "EXPLAIN": "-\u003e Index lookup on event_outbox using idx_outbox_request_status (aggregate_key='req-000000000090', status='SETTLING')  (cost=1.05 rows=3) (actual time=0.0293..0.0316 rows=3 loops=1)\n"
+            }
+          ],
+          "selectJSON": [
+            {
+              "EXPLAIN": "{\n  \"query_block\": {\n    \"select_id\": 1,\n    \"cost_info\": {\n      \"query_cost\": \"1.05\"\n    },\n    \"table\": {\n      \"table_name\": \"event_outbox\",\n      \"access_type\": \"ref\",\n      \"possible_keys\": [\n        \"idx_event_outbox_claim\",\n        \"idx_outbox_request_status\"\n      ],\n      \"key\": \"idx_outbox_request_status\",\n      \"used_key_parts\": [\n        \"aggregate_key\",\n        \"status\"\n      ],\n      \"key_length\": \"580\",\n      \"ref\": [\n        \"const\",\n        \"const\"\n      ],\n      \"rows_examined_per_scan\": 3,\n      \"rows_produced_per_join\": 3,\n      \"filtered\": \"100.00\",\n      \"cost_info\": {\n        \"read_cost\": \"0.75\",\n        \"eval_cost\": \"0.30\",\n        \"prefix_cost\": \"1.05\",\n        \"data_read_per_join\": \"16K\"\n      },\n      \"used_columns\": [\n        \"event_id\",\n        \"aggregate_key\",\n        \"status\",\n        \"attempts\",\n        \"next_attempt_at\",\n        \"last_error\"\n      ]\n    }\n  }\n}"
+            }
+          ],
+          "updateJSON": [
+            {
+              "EXPLAIN": "{\n  \"query_block\": {\n    \"select_id\": 1,\n    \"table\": {\n      \"update\": true,\n      \"table_name\": \"event_outbox\",\n      \"access_type\": \"range\",\n      \"possible_keys\": [\n        \"idx_event_outbox_claim\",\n        \"idx_outbox_request_status\"\n      ],\n      \"key\": \"idx_outbox_request_status\",\n      \"used_key_parts\": [\n        \"aggregate_key\",\n        \"status\"\n      ],\n      \"key_length\": \"580\",\n      \"ref\": [\n        \"const\",\n        \"const\"\n      ],\n      \"rows_examined_per_scan\": 3,\n      \"filtered\": \"100.00\",\n      \"using_temporary_table\": \"for update\",\n      \"attached_condition\": \"((`adflow_idxbench_20260908_022052_1000`.`event_outbox`.`aggregate_key` = 'req-000000000090') and (`adflow_idxbench_20260908_022052_1000`.`event_outbox`.`status` = 'SETTLING'))\"\n    }\n  }\n}"
+            }
+          ]
+        }
+      },
+      "measurements": [
+        {
+          "round": 1,
+          "indexMode": "invisible",
+          "operation": "select",
+          "request": "req-000000000291",
+          "clientStatementMs": 0.8211,
+          "serverStatementMs": 0.662,
+          "statementLockMs": 0.001,
+          "rowsExamined": 45,
+          "rowsAffected": 0,
+          "rowsSent": 3,
+          "verifiedRows": 3
+        },
+        {
+          "round": 1,
+          "indexMode": "invisible",
+          "operation": "update",
+          "request": "req-000000000291",
+          "clientStatementMs": 0.6687,
+          "serverStatementMs": 0.55,
+          "statementLockMs": 0.001,
+          "rowsExamined": 48,
+          "rowsAffected": 3,
+          "rowsSent": 0,
+          "verifiedRows": 3
+        },
+        {
+          "round": 1,
+          "indexMode": "invisible",
+          "operation": "select",
+          "request": "req-000000000192",
+          "clientStatementMs": 0.4243,
+          "serverStatementMs": 0.268,
+          "statementLockMs": 0.002,
+          "rowsExamined": 45,
+          "rowsAffected": 0,
+          "rowsSent": 3,
+          "verifiedRows": 3
+        },
+        {
+          "round": 1,
+          "indexMode": "invisible",
+          "operation": "update",
+          "request": "req-000000000192",
+          "clientStatementMs": 0.6497,
+          "serverStatementMs": 0.5251,
+          "statementLockMs": 0.001,
+          "rowsExamined": 48,
+          "rowsAffected": 3,
+          "rowsSent": 0,
+          "verifiedRows": 3
+        },
+        {
+          "round": 1,
+          "indexMode": "visible",
+          "operation": "select",
+          "request": "req-000000000291",
+          "clientStatementMs": 0.3334,
+          "serverStatementMs": 0.2083,
+          "statementLockMs": 0.002,
+          "rowsExamined": 3,
+          "rowsAffected": 0,
+          "rowsSent": 3,
+          "verifiedRows": 3
+        },
+        {
+          "round": 1,
+          "indexMode": "visible",
+          "operation": "update",
+          "request": "req-000000000291",
+          "clientStatementMs": 0.5059,
+          "serverStatementMs": 0.3759,
+          "statementLockMs": 0.001,
+          "rowsExamined": 6,
+          "rowsAffected": 3,
+          "rowsSent": 0,
+          "verifiedRows": 3
+        },
+        {
+          "round": 1,
+          "indexMode": "visible",
+          "operation": "select",
+          "request": "req-000000000192",
+          "clientStatementMs": 0.4348,
+          "serverStatementMs": 0.2645,
+          "statementLockMs": 0.002,
+          "rowsExamined": 3,
+          "rowsAffected": 0,
+          "rowsSent": 3,
+          "verifiedRows": 3
+        },
+        {
+          "round": 1,
+          "indexMode": "visible",
+          "operation": "update",
+          "request": "req-000000000192",
+          "clientStatementMs": 0.5059,
+          "serverStatementMs": 0.3926,
+          "statementLockMs": 0,
+          "rowsExamined": 6,
+          "rowsAffected": 3,
+          "rowsSent": 0,
+          "verifiedRows": 3
+        },
+        {
+          "round": 2,
+          "indexMode": "visible",
+          "operation": "select",
+          "request": "req-000000000091",
+          "clientStatementMs": 0.399299,
+          "serverStatementMs": 0.244,
+          "statementLockMs": 0.002,
+          "rowsExamined": 3,
+          "rowsAffected": 0,
+          "rowsSent": 3,
+          "verifiedRows": 3
+        },
+        {
+          "round": 2,
+          "indexMode": "visible",
+          "operation": "update",
+          "request": "req-000000000091",
+          "clientStatementMs": 0.578,
+          "serverStatementMs": 0.4207,
+          "statementLockMs": 0.001,
+          "rowsExamined": 6,
+          "rowsAffected": 3,
+          "rowsSent": 0,
+          "verifiedRows": 3
+        },
+        {
+          "round": 2,
+          "indexMode": "visible",
+          "operation": "select",
+          "request": "req-000000000292",
+          "clientStatementMs": 0.4374,
+          "serverStatementMs": 0.2813,
+          "statementLockMs": 0.002,
+          "rowsExamined": 3,
+          "rowsAffected": 0,
+          "rowsSent": 3,
+          "verifiedRows": 3
+        },
+        {
+          "round": 2,
+          "indexMode": "visible",
+          "operation": "update",
+          "request": "req-000000000292",
+          "clientStatementMs": 0.615799,
+          "serverStatementMs": 0.455099,
+          "statementLockMs": 0.001,
+          "rowsExamined": 6,
+          "rowsAffected": 3,
+          "rowsSent": 0,
+          "verifiedRows": 3
+        },
+        {
+          "round": 2,
+          "indexMode": "invisible",
+          "operation": "select",
+          "request": "req-000000000091",
+          "clientStatementMs": 0.427,
+          "serverStatementMs": 0.2818,
+          "statementLockMs": 0.003,
+          "rowsExamined": 45,
+          "rowsAffected": 0,
+          "rowsSent": 3,
+          "verifiedRows": 3
+        },
+        {
+          "round": 2,
+          "indexMode": "invisible",
+          "operation": "update",
+          "request": "req-000000000091",
+          "clientStatementMs": 0.584199,
+          "serverStatementMs": 0.477899,
+          "statementLockMs": 0.001,
+          "rowsExamined": 48,
+          "rowsAffected": 3,
+          "rowsSent": 0,
+          "verifiedRows": 3
+        },
+        {
+          "round": 2,
+          "indexMode": "invisible",
+          "operation": "select",
+          "request": "req-000000000292",
+          "clientStatementMs": 0.384,
+          "serverStatementMs": 0.2377,
+          "statementLockMs": 0.001,
+          "rowsExamined": 45,
+          "rowsAffected": 0,
+          "rowsSent": 3,
+          "verifiedRows": 3
+        },
+        {
+          "round": 2,
+          "indexMode": "invisible",
+          "operation": "update",
+          "request": "req-000000000292",
+          "clientStatementMs": 0.525199,
+          "serverStatementMs": 0.412999,
+          "statementLockMs": 0.001,
+          "rowsExamined": 48,
+          "rowsAffected": 3,
+          "rowsSent": 0,
+          "verifiedRows": 3
+        }
+      ],
+      "summary": [
+        {
+          "indexMode": "invisible",
+          "operation": "select",
+          "samples": 4,
+          "clientStatementMs": {
+            "median": 0.42565,
+            "p95": 0.8211,
+            "min": 0.384,
+            "max": 0.8211
+          },
+          "serverStatementMs": {
+            "median": 0.27490000000000003,
+            "p95": 0.662,
+            "min": 0.2377,
+            "max": 0.662
+          },
+          "rowsExamined": {
+            "median": 45,
+            "p95": 45,
+            "min": 45,
+            "max": 45
+          }
+        },
+        {
+          "indexMode": "invisible",
+          "operation": "update",
+          "samples": 4,
+          "clientStatementMs": {
+            "median": 0.6169495,
+            "p95": 0.6687,
+            "min": 0.525199,
+            "max": 0.6687
+          },
+          "serverStatementMs": {
+            "median": 0.5014995,
+            "p95": 0.55,
+            "min": 0.412999,
+            "max": 0.55
+          },
+          "rowsExamined": {
+            "median": 48,
+            "p95": 48,
+            "min": 48,
+            "max": 48
+          }
+        },
+        {
+          "indexMode": "visible",
+          "operation": "select",
+          "samples": 4,
+          "clientStatementMs": {
+            "median": 0.4170495,
+            "p95": 0.4374,
+            "min": 0.3334,
+            "max": 0.4374
+          },
+          "serverStatementMs": {
+            "median": 0.25425,
+            "p95": 0.2813,
+            "min": 0.2083,
+            "max": 0.2813
+          },
+          "rowsExamined": {
+            "median": 3,
+            "p95": 3,
+            "min": 3,
+            "max": 3
+          }
+        },
+        {
+          "indexMode": "visible",
+          "operation": "update",
+          "samples": 4,
+          "clientStatementMs": {
+            "median": 0.5419499999999999,
+            "p95": 0.615799,
+            "min": 0.5059,
+            "max": 0.615799
+          },
+          "serverStatementMs": {
+            "median": 0.40665,
+            "p95": 0.455099,
+            "min": 0.3759,
+            "max": 0.455099
+          },
+          "rowsExamined": {
+            "median": 6,
+            "p95": 6,
+            "min": 6,
+            "max": 6
+          }
+        }
+      ],
+      "schemaDropped": true
+    }
+  ]
+}

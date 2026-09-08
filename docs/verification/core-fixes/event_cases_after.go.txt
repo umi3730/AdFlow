@@ -1,0 +1,56 @@
+package application
+
+import (
+ "context"
+ "testing"
+ "time"
+ "github.com/alicebob/miniredis/v2"
+ "github.com/redis/go-redis/v9"
+ decisionmemory "github.com/zhanghaiyang/adflow/internal/decision/adapter/memory"
+ decisionredis "github.com/zhanghaiyang/adflow/internal/decision/adapter/redis"
+ decisiondomain "github.com/zhanghaiyang/adflow/internal/decision/domain"
+ eventmemory "github.com/zhanghaiyang/adflow/internal/event/adapter/memory"
+ "github.com/zhanghaiyang/adflow/internal/event/domain"
+)
+
+func reviewSyncFixture(t *testing.T)(*Service,*decisionredis.Reservations,time.Time){
+ t.Helper();now:=time.Now().UTC();server:=miniredis.RunT(t);server.SetTime(now)
+ client:=redis.NewClient(&redis.Options{Addr:server.Addr()});t.Cleanup(func(){_ = client.Close()})
+ reservations:=decisionredis.NewReservations(client,"review-sync")
+ decisions:=decisionmemory.NewRuntime()
+ for _,id:=range []string{"r1","r2"}{
+  if _,ok,err:=reservations.ReserveFrequency(t.Context(),"u","campaign",id,100,now,time.Minute);err!=nil||!ok{t.Fatal(err)}
+  if _,ok,err:=reservations.ReserveBudget(t.Context(),"campaign",100,5,id,now,time.Minute);err!=nil||!ok{t.Fatal(err)}
+  if err:=decisions.SaveDecision(t.Context(),decisiondomain.Result{RequestID:id,UserID:"u",Matched:true,CampaignID:"campaign",CreativeID:"creative",ReservationToken:id,ExpiresAt:now.Add(time.Minute),Pricing:decisiondomain.Pricing{Mode:"fixed",PriceFen:5}});err!=nil{t.Fatal(err)}
+ }
+ return NewService(eventmemory.NewStore(),decisions,reservations),reservations,now
+}
+func TestReviewSyncCollisionMustNotSettleAnotherDecision(t *testing.T){
+ service,reservations,now:=reviewSyncFixture(t)
+ e:=domain.Event{EventID:"same-event",RequestID:"r1",CampaignID:"campaign",CreativeID:"creative",Type:domain.Impression,OccurredAt:now}
+ if _,err:=service.Record(t.Context(),e);err!=nil{t.Fatal(err)}
+ e.RequestID="r2"
+ created,err:=service.Record(t.Context(),e)
+ spent,_:=reservations.DebugBudgetSpent(t.Context(),"campaign",now)
+ metrics,_:=service.Metrics(t.Context(),"campaign")
+ if err==nil||spent!=5{t.Fatalf("conflicting event accepted: created=%v err=%v spent=%d impressions=%d; want conflict and spent=5",created,err,spent,metrics.Impressions)}
+}
+func TestReviewSyncOneDecisionMustNotCountTwoImpressions(t *testing.T){
+ service,reservations,now:=reviewSyncFixture(t)
+ for _,id:=range []string{"event-a","event-b"}{_,_=service.Record(t.Context(),domain.Event{EventID:id,RequestID:"r1",CampaignID:"campaign",CreativeID:"creative",Type:domain.Impression,OccurredAt:now})}
+ metrics,_:=service.Metrics(t.Context(),"campaign");spent,_:=reservations.DebugBudgetSpent(t.Context(),"campaign",now)
+ if metrics.Impressions!=1{t.Fatalf("one decision counted %d impressions but spent=%d; want one impression",metrics.Impressions,spent)}
+}
+func TestReviewAcceptedExposureAllowsLaterClick(t *testing.T){
+ start:=time.Now().UTC()
+ finder:=fixedDecisionFinder{result:decisiondomain.Result{RequestID:"r",Matched:true,CampaignID:"campaign",CreativeID:"creative",ReservationToken:"token",ExpiresAt:start.Add(30*time.Second)}}
+ store:=eventmemory.NewStore();outbox:=&recordingOutbox{}
+ service:=NewAsyncService(NewService(store,finder,nil),finder,outbox)
+ service.now=func()time.Time{return start}
+ impression:=domain.Event{EventID:"impression",RequestID:"r",CampaignID:"campaign",CreativeID:"creative",Type:domain.Impression,OccurredAt:start}
+ if _,err:=service.Record(t.Context(),impression);err!=nil{t.Fatal(err)}
+ if _,err:=store.Record(context.Background(),impression);err!=nil{t.Fatal(err)}
+ service.now=func()time.Time{return start.Add(time.Minute)}
+ _,err:=service.Record(t.Context(),domain.Event{EventID:"later-click",RequestID:"r",CampaignID:"campaign",CreativeID:"creative",Type:domain.Click,OccurredAt:start.Add(time.Minute)})
+ if err!=nil{t.Fatalf("click one minute after an accepted/processed impression rejected: %v",err)}
+}

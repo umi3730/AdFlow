@@ -18,3 +18,7 @@
 *.jpg binary
 *.jpeg binary
 *.woff2 binary
+
+# Verification records and source snapshots have byte-level SHA256 evidence.
+# Preserve their original bytes on Windows and Linux.
+docs/verification/** -text whitespace=-blank-at-eol,-blank-at-eof

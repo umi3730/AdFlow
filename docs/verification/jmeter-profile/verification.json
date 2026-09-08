@@ -1,0 +1,40 @@
+{
+  "verified": true,
+  "rawSHA256": "c632c8b51338813e7c14be0d607100635cbd255dfd712cfc9a7544c34847c81f",
+  "jtlSHA256": {
+    "round-1-mysql.jtl": "ceb6dc6f00859bc51c3bfe5f28860ffac291442b12a74fb0cc63dbb79bfb7cd8",
+    "round-1-mysql-redis.jtl": "597bac6765d443b4b87f98a811d599ccc8f632a4fe54339af34aa15d8da07ef0",
+    "round-2-mysql-redis.jtl": "fe7ec6a9a61d3c23e3657f53e7ff2adbb946b1a72c4642c86584a7a4b0c5b5de",
+    "round-2-mysql.jtl": "708b488d31bf6c26de6c5f01f6bbb28bd3a709cb1d22c8149ccfd7d5d37d1414",
+    "round-3-mysql.jtl": "f96c06f59716c84dd1dee330b7f8b819302d5385f59dd4ff7f8394d141ada354",
+    "round-3-mysql-redis.jtl": "ac4d913d33d236051b4e0fb37abaa6690d5e6be06e53e9a6193edafe3fd7978b"
+  },
+  "pooled": [
+    {
+      "mode": "mysql",
+      "measuredSamples": 90971,
+      "p95Ms": 13,
+      "p99Ms": 15,
+      "meanMs": 9.782974794165174,
+      "requestsPerSecond": 2020.0515166318783,
+      "seconds": 45.034,
+      "allSamples": 92171,
+      "tableFetches": 92171,
+      "sourceDigestCount": 91991,
+      "cacheHits": 0
+    },
+    {
+      "mode": "mysql-redis",
+      "measuredSamples": 91584,
+      "p95Ms": 13,
+      "p99Ms": 16,
+      "meanMs": 9.72097746331237,
+      "requestsPerSecond": 2033.5279880986745,
+      "seconds": 45.037,
+      "allSamples": 92784,
+      "tableFetches": 0,
+      "sourceDigestCount": 0,
+      "cacheHits": 92784
+    }
+  ]
+}

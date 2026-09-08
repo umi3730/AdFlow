@@ -14,6 +14,22 @@ import (
 	httptransport "github.com/zhanghaiyang/adflow/internal/transport/http"
 )
 
+func TestDeleteRoutesAreAudited(t *testing.T) {
+	for route, want := range map[string]string{"/v1/campaigns/:id": "DELETE_CAMPAIGN", "/v1/campaigns/:id/creatives/:creativeId": "DELETE_CREATIVE", "/v1/profiles/:userId": "DELETE_PROFILE"} {
+		action, _, ok := auditedAction(http.MethodDelete, route)
+		if !ok || action != want {
+			t.Fatalf("route %s action %s", route, action)
+		}
+	}
+}
+
+func TestCreativeEnableIsAudited(t *testing.T) {
+	action, resource, ok := auditedAction(http.MethodPost, "/v1/campaigns/:id/creatives/:creativeId/enable")
+	if !ok || action != "ENABLE_CREATIVE" || resource != "creative" {
+		t.Fatalf("%s %s %v", action, resource, ok)
+	}
+}
+
 func TestMiddlewareRecordsSuccessfulAndFailedMutations(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	store := memory.NewStore()

@@ -1,5 +1,7 @@
 # AdFlow Performance Baseline
 
+Later isolated SQL evidence: [Outbox request-index experiment, 2026-09-08](sql-index-experiment-20260908.md) compares optimizer access paths on 100k/1M synthetic rows. It measures individual SQL statements and must not be combined with the historical HTTP capacity figures below.
+
 ## Baseline 001 — local in-memory smoke load
 
 - Date: 2026-09-02

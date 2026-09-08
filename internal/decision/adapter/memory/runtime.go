@@ -3,11 +3,21 @@ package memory
 import (
 	"context"
 	"fmt"
+	"sort"
+	"strings"
 	"sync"
 	"time"
 
 	"github.com/zhanghaiyang/adflow/internal/decision/domain"
 )
+
+func (r *Runtime) DeleteProfile(_ context.Context, userID string) error {
+	userID = strings.TrimSpace(userID)
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	delete(r.profiles, userID)
+	return nil
+}
 
 type reservation struct {
 	key       string
@@ -28,6 +38,9 @@ type Runtime struct {
 	frequencyReservations map[string]reservation
 	budgetReserved        map[string]int64
 	budgetReservations    map[string]reservation
+	requestClaims         map[string]requestClaim
+	requestSweep          time.Time
+	settlementReceipts    map[string]settlementReceipt
 }
 
 func NewRuntime() *Runtime {
@@ -35,10 +48,16 @@ func NewRuntime() *Runtime {
 		profiles: make(map[string]domain.Profile), decisions: make(map[string]storedDecision),
 		frequencyCounts: make(map[string]uint32), frequencyReservations: make(map[string]reservation),
 		budgetReserved: make(map[string]int64), budgetReservations: make(map[string]reservation),
+		requestClaims:      make(map[string]requestClaim),
+		settlementReceipts: make(map[string]settlementReceipt),
 	}
 }
 
 func (r *Runtime) PutProfile(_ context.Context, profile domain.Profile) error {
+	profile.UserID = strings.TrimSpace(profile.UserID)
+	if profile.UserID == "" {
+		return domain.ErrInvalidRequest
+	}
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	r.profiles[profile.UserID] = domain.NewProfile(profile.UserID, profileTags(profile), profile.Fields)
@@ -46,6 +65,7 @@ func (r *Runtime) PutProfile(_ context.Context, profile domain.Profile) error {
 }
 
 func (r *Runtime) FindProfile(_ context.Context, userID string) (domain.Profile, error) {
+	userID = strings.TrimSpace(userID)
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	profile, exists := r.profiles[userID]
@@ -53,6 +73,35 @@ func (r *Runtime) FindProfile(_ context.Context, userID string) (domain.Profile,
 		return domain.Profile{}, domain.ErrProfileNotFound
 	}
 	return domain.NewProfile(profile.UserID, profileTags(profile), profile.Fields), nil
+}
+
+func (r *Runtime) ListProfiles(_ context.Context, filter domain.ProfileFilter) (domain.ProfilePage, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	items := make([]domain.Profile, 0)
+	for _, profile := range r.profiles {
+		if filter.Query != "" && !strings.Contains(profile.UserID, filter.Query) {
+			continue
+		}
+		if filter.Tag != "" {
+			if _, ok := profile.Tags[filter.Tag]; !ok {
+				continue
+			}
+		}
+		if filter.Device != "" && profile.Fields["device"] != filter.Device {
+			continue
+		}
+		items = append(items, domain.NewProfile(profile.UserID, profileTags(profile), profile.Fields))
+	}
+	sort.Slice(items, func(i, j int) bool { return items[i].UserID < items[j].UserID })
+	total := len(items)
+	limit, offset := filter.Limit, max(filter.Offset, 0)
+	if limit < 1 || limit > 100 {
+		limit = 20
+	}
+	start := min(offset, total)
+	end := min(start+limit, total)
+	return domain.ProfilePage{Items: items[start:end], Total: total}, nil
 }
 
 func (r *Runtime) FindDecision(_ context.Context, requestID string) (domain.Result, bool, error) {
@@ -87,9 +136,6 @@ func (r *Runtime) SaveDecision(_ context.Context, result domain.Result) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	expiresAt := time.Now().UTC().Add(5 * time.Minute)
-	if result.Matched {
-		expiresAt = result.ExpiresAt
-	}
 	if existing, exists := r.decisions[result.RequestID]; exists && existing.result != result {
 		return domain.ErrInvalidRequest
 	}

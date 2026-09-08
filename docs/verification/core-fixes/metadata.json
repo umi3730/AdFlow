@@ -1,0 +1,44 @@
+{
+  "at": "2026-09-07T08:49:41.3581759Z",
+  "migration": "000012_profile_identity",
+  "deployedPorts": [
+    18080,
+    18081
+  ],
+  "syncTestStopped": true,
+  "dedicatedDatabaseRemoved": true,
+  "goTopLevelPassed": 232,
+  "frontendPassed": 102,
+  "identityContract": "case-sensitive opaque IDs; surrounding whitespace trimmed",
+  "attributionDays": 7,
+  "sources": [
+    {
+      "path": "internal/event/application/sync_service.go",
+      "sha256": "E3519D40C27920F3EA1DA893F5C5294E7B1BA0270A513632C6FB01BD26FC23EB"
+    },
+    {
+      "path": "internal/event/application/async_service.go",
+      "sha256": "1658CB379547E69ABB885DD87F65EC5FA11D2AA3E598237F0F5437978C5236A7"
+    },
+    {
+      "path": "internal/event/application/service.go",
+      "sha256": "272EA9FCBA4AB772C5C1CC38481EC099CDA730D64FBC5ADA751915A074D779E0"
+    },
+    {
+      "path": "internal/event/adapter/memory/receipt.go",
+      "sha256": "FECF7E8E93813B3E47C722184110BD474853F8BB0583B04804048B21ED9CD150"
+    },
+    {
+      "path": "internal/event/domain/receipt.go",
+      "sha256": "231EC5B87AD468C29ADA289BE6867E3DD4A6D69C634B297306E7A2E2212A6E3F"
+    },
+    {
+      "path": "migrations/000012_profile_identity.up.sql",
+      "sha256": "AD5474C69BF06DD6C1C8A5CD736F2972094580BF25803E3D1E1266FEAD4BABA8"
+    },
+    {
+      "path": "internal/decision/adapter/profilecache/store.go",
+      "sha256": "5F214E62F023ACC5D23B2FD54A729040E9B40A361D18BC0A91235CF5215E1006"
+    }
+  ]
+}

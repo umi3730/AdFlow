@@ -1,0 +1,1 @@
+{"time":"2026-09-07T14:10:16.8957448+08:00","level":"INFO","msg":"migrations complete","applied":["000007_demo_data.up.sql","000008_first_price_auction.up.sql","000009_decision_execution.up.sql","000010_event_settlements.up.sql"],"count":4}

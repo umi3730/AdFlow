@@ -1,0 +1,14 @@
+{
+  "at": "2026-09-07T08:37:40.234Z",
+  "port": 18081,
+  "mode": "kafka",
+  "requestId": "late-event-40e2f8db-b862-4ece-881d-551c7b36656c",
+  "identityCaseDistinct": true,
+  "duplicateImpressionStatus": 200,
+  "newIDSecondImpressionStatus": 409,
+  "changedRequestSameEventStatus": 409,
+  "callbacksAfterDecisionExpiry": true,
+  "impressionDelta": 1,
+  "clickDelta": 1,
+  "conversionDelta": 1
+}

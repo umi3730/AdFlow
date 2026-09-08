@@ -1,0 +1,8 @@
+Profile capacity probe
+http_reqs: {"type":"counter","contains":"default","values":{"count":30001,"rate":1499.9066217511622}}
+http_req_duration: {"type":"trend","contains":"time","values":{"avg":3.5615722538248935,"med":1.0197,"p(95)":16.607901,"p(99)":67.093501,"max":114.381807},"thresholds":{"p(95)<100":{"ok":true}}}
+http_req_failed: {"type":"rate","contains":"default","values":{"rate":0,"passes":0,"fails":30001}}
+profile_errors: {"thresholds":{"rate<0.001":{"ok":true}},"type":"rate","contains":"default","values":{"rate":0,"passes":0,"fails":30001}}
+valid_profiles: {"type":"counter","contains":"default","values":{"rate":1499.9066217511622,"count":30001},"thresholds":{"count>0":{"ok":true}}}
+dropped_iterations: {"values":{"count":0,"rate":0},"thresholds":{"count==0":{"ok":true}},"type":"counter","contains":"default"}
+vus: {"type":"gauge","contains":"default","values":{"value":2,"min":1,"max":26}}

@@ -22,6 +22,9 @@ func CORS(environment string) gin.HandlerFunc {
 	if environment == "local" || environment == "test" {
 		allowed["http://localhost:3000"] = struct{}{}
 		allowed["http://127.0.0.1:3000"] = struct{}{}
+		// A second loopback frontend can review changes against an isolated API.
+		allowed["http://localhost:3001"] = struct{}{}
+		allowed["http://127.0.0.1:3001"] = struct{}{}
 	}
 	return func(c *gin.Context) {
 		origin := c.GetHeader("Origin")
@@ -29,7 +32,7 @@ func CORS(environment string) gin.HandlerFunc {
 			c.Header("Access-Control-Allow-Origin", origin)
 			c.Header("Vary", "Origin")
 			c.Header("Access-Control-Allow-Headers", "Authorization, Content-Type, X-Request-ID")
-			c.Header("Access-Control-Allow-Methods", "GET, POST, PUT, OPTIONS")
+			c.Header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 		}
 		if c.Request.Method == http.MethodOptions {
 			if _, ok := allowed[origin]; !ok {

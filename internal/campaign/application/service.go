@@ -99,7 +99,7 @@ func (s *Service) Publish(ctx context.Context, command PublishCommand) (*domain.
 	if err != nil {
 		return nil, err
 	}
-	if err := campaign.Publish(rule, command.DailyBudgetFen, command.ImpressionCostFen, command.FrequencyLimit, s.now()); err != nil {
+	if err := campaign.PublishAuction(rule, command.DailyBudgetFen, command.ImpressionCostFen, command.FrequencyLimit, s.now(), command.Auction); err != nil {
 		return nil, err
 	}
 	return s.saveAndPublish(ctx, campaign, expectedRevision)
@@ -107,6 +107,18 @@ func (s *Service) Publish(ctx context.Context, command PublishCommand) (*domain.
 
 func (s *Service) Pause(ctx context.Context, id string) (*domain.Campaign, error) {
 	return s.mutate(ctx, id, func(campaign *domain.Campaign) error { return campaign.Pause(s.now()) })
+}
+
+func (s *Service) Delete(ctx context.Context, id string) error {
+	campaign, err := s.repository.FindByID(ctx, id)
+	if err != nil {
+		return err
+	}
+	revision := campaign.Revision()
+	if err := campaign.Delete(); err != nil {
+		return err
+	}
+	return s.repository.Save(ctx, campaign, revision)
 }
 
 func (s *Service) Resume(ctx context.Context, id string) (*domain.Campaign, error) {
@@ -177,6 +189,17 @@ func (s *CreativeService) List(ctx context.Context, campaignID string) ([]*domai
 }
 
 func (s *CreativeService) Disable(ctx context.Context, campaignID, creativeID string) (*domain.Creative, error) {
+	return s.changeAvailability(ctx, campaignID, creativeID, false)
+}
+
+func (s *CreativeService) Enable(ctx context.Context, campaignID, creativeID string) (*domain.Creative, error) {
+	return s.changeAvailability(ctx, campaignID, creativeID, true)
+}
+
+func (s *CreativeService) changeAvailability(ctx context.Context, campaignID, creativeID string, enable bool) (*domain.Creative, error) {
+	if _, err := s.campaigns.FindByID(ctx, campaignID); err != nil {
+		return nil, err
+	}
 	creative, err := s.creatives.FindCreativeByID(ctx, creativeID)
 	if err != nil {
 		return nil, err
@@ -185,11 +208,34 @@ func (s *CreativeService) Disable(ctx context.Context, campaignID, creativeID st
 		return nil, domain.ErrCreativeNotFound
 	}
 	expectedRevision := creative.Revision()
-	if err := creative.Disable(); err != nil {
+	if enable {
+		err = creative.Enable()
+	} else {
+		err = creative.Disable()
+	}
+	if err != nil {
 		return nil, err
 	}
 	if err := s.creatives.SaveCreative(ctx, creative, expectedRevision); err != nil {
 		return nil, err
 	}
 	return creative.Clone(), nil
+}
+
+func (s *CreativeService) Delete(ctx context.Context, campaignID, creativeID string) error {
+	if _, err := s.campaigns.FindByID(ctx, campaignID); err != nil {
+		return err
+	}
+	creative, err := s.creatives.FindCreativeByID(ctx, creativeID)
+	if err != nil {
+		return err
+	}
+	if creative.CampaignID() != campaignID {
+		return domain.ErrCreativeNotFound
+	}
+	revision := creative.Revision()
+	if err := creative.Delete(); err != nil {
+		return err
+	}
+	return s.creatives.SaveCreative(ctx, creative, revision)
 }

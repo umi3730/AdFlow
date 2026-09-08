@@ -1,0 +1,35 @@
+[
+  {
+    "id": "01-baseline-45",
+    "attempts": 901,
+    "admitted": 901,
+    "rejected": 0,
+    "peakDecisionsNotSettled": 19,
+    "peakAcceptedNotPublished": 139,
+    "peakAcceptedNotProcessed": 139,
+    "finalReconcile": 0,
+    "spentFenIncludingWarmup": 4520
+  },
+  {
+    "id": "02-overload-100",
+    "attempts": 12001,
+    "admitted": 6681,
+    "rejected": 5320,
+    "peakDecisionsNotSettled": 118,
+    "peakAcceptedNotPublished": 433,
+    "peakAcceptedNotProcessed": 433,
+    "finalReconcile": 0,
+    "spentFenIncludingWarmup": 33420
+  },
+  {
+    "id": "03-recovery-45",
+    "attempts": 1351,
+    "admitted": 1351,
+    "rejected": 0,
+    "peakDecisionsNotSettled": 10,
+    "peakAcceptedNotPublished": 122,
+    "peakAcceptedNotProcessed": 122,
+    "finalReconcile": 0,
+    "spentFenIncludingWarmup": 6770
+  }
+]

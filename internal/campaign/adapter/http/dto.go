@@ -21,10 +21,11 @@ type updateRequest struct {
 }
 
 type publishRequest struct {
-	Targeting         targetingRule `json:"targeting" binding:"required"`
-	DailyBudgetFen    int64         `json:"dailyBudgetFen" binding:"required,gt=0"`
-	ImpressionCostFen int64         `json:"impressionCostFen" binding:"required,gt=0"`
-	FrequencyLimit    uint32        `json:"frequencyLimit" binding:"required,gte=1,lte=100"`
+	Auction           *domain.AuctionTerms `json:"auction"`
+	Targeting         targetingRule        `json:"targeting" binding:"required"`
+	DailyBudgetFen    int64                `json:"dailyBudgetFen" binding:"required,gt=0"`
+	ImpressionCostFen int64                `json:"impressionCostFen" binding:"required,gt=0"`
+	FrequencyLimit    uint32               `json:"frequencyLimit" binding:"required,gte=1,lte=100"`
 }
 
 type createCreativeRequest struct {
@@ -41,17 +42,19 @@ type targetingRule struct {
 }
 
 type campaignResponse struct {
-	ID            string           `json:"id"`
-	Name          string           `json:"name"`
-	SlotID        string           `json:"slotId"`
-	StartAt       time.Time        `json:"startAt"`
-	EndAt         time.Time        `json:"endAt"`
-	Status        domain.Status    `json:"status"`
-	Revision      uint64           `json:"revision"`
-	ActiveVersion *versionResponse `json:"activeVersion,omitempty"`
+	AuctionSupported bool             `json:"auctionSupported"`
+	ID               string           `json:"id"`
+	Name             string           `json:"name"`
+	SlotID           string           `json:"slotId"`
+	StartAt          time.Time        `json:"startAt"`
+	EndAt            time.Time        `json:"endAt"`
+	Status           domain.Status    `json:"status"`
+	Revision         uint64           `json:"revision"`
+	ActiveVersion    *versionResponse `json:"activeVersion,omitempty"`
 }
 
 type versionResponse struct {
+	Auction           *domain.AuctionTerms `json:"auction,omitempty"`
 	Number            uint32               `json:"number"`
 	Targeting         domain.TargetingRule `json:"targeting"`
 	DailyBudgetFen    int64                `json:"dailyBudgetFen"`
@@ -73,16 +76,18 @@ type creativeResponse struct {
 
 func toResponse(campaign *domain.Campaign) campaignResponse {
 	response := campaignResponse{
-		ID:       campaign.ID(),
-		Name:     string(campaign.Name()),
-		SlotID:   string(campaign.SlotID()),
-		StartAt:  campaign.Period().Start(),
-		EndAt:    campaign.Period().End(),
-		Status:   campaign.Status(),
-		Revision: campaign.Revision(),
+		AuctionSupported: true,
+		ID:               campaign.ID(),
+		Name:             string(campaign.Name()),
+		SlotID:           string(campaign.SlotID()),
+		StartAt:          campaign.Period().Start(),
+		EndAt:            campaign.Period().End(),
+		Status:           campaign.Status(),
+		Revision:         campaign.Revision(),
 	}
 	if version := campaign.ActiveVersion(); version != nil {
 		response.ActiveVersion = &versionResponse{
+			Auction:           version.Auction(),
 			Number:            version.Number(),
 			Targeting:         version.Targeting(),
 			DailyBudgetFen:    version.DailyBudget().Amount(),

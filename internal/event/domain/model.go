@@ -102,6 +102,8 @@ type PublishedBatchMarker interface {
 }
 
 type OutboxStats struct {
+	Settling     int64 `json:"settling"`
+	Reconcile    int64 `json:"reconcile"`
 	Pending      int64 `json:"pending"`
 	Processing   int64 `json:"processing"`
 	Published    int64 `json:"published"`

@@ -1,293 +1,141 @@
-# AdFlow
+# AdFlow · 广告决策与投放验证平台
 
-AdFlow is a Go-based real-time advertising decision platform built as a portfolio-grade backend project. The MVP covers campaign configuration, deterministic targeting, frequency caps, budget reservations, ad events, and an approval-gated Agent rule assistant.
+基于 **Go、MySQL、Redis、Kafka** 的后端实践项目，配有可操作的 React 管理台。从配置广告计划，到用户定向、内部竞价、预算预占、曝光结算，再到事件计量和异常排查，走通一条完整的广告投放链路。
 
-## Current milestone
+重点是业务约束、并发正确性和可复查的压测记录，适合作为 Go 后端学习与面试展示项目。
 
-M0 foundation:
+[快速启动](#快速启动) · [功能说明](docs/getting-started.md) · [API 文档](docs/openapi.yaml) · [性能与验证](#性能与验证)
 
-- Go modular monolith layout with Gin at the HTTP boundary
-- JSON structured logging
-- liveness and dependency-aware readiness endpoints
-- request ID, structured access logging, recovery, and validated JSON binding
-- MySQL and Redis clients with bounded health checks
-- graceful shutdown
-- initial campaign schema
-- dependency-free in-memory development mode
+![投放总览](docs/images/overview.png)
 
-M1 campaign context (implemented):
+*截图来自本地运行的管理台，曝光、点击、转化价值均为模拟数据。*
 
-- DDD-lite Campaign aggregate and value objects
-- draft, publish, pause, and resume state transitions
-- immutable active campaign version
-- optimistic revision checks in the Repository port
-- in-memory Repository adapter for local development and tests
-- Gin REST endpoints with end-to-end lifecycle tests
+## 可以做什么
 
-M2 decision context (implemented):
+| 功能 | 说明 |
+| --- | --- |
+| 广告计划与素材 | 草稿、发布、暂停；不可变规则版本与乐观并发控制 |
+| 定向与竞价 | 标签/字段的 all、any、none 规则；多个广告主的一价竞价，保留成交快照 |
+| 预算与频控 | 整数“分”计价，决策时预占，曝光后确认；重复事件不重复扣费 |
+| 用户与投放模拟 | 保存模拟画像，按计划生成样本，单次验证或固定并发批量运行 |
+| 异步事件处理 | 结算队列、Transactional Outbox、Kafka 消费、幂等计量、死信与待核对 |
+| 请求追踪 | 按 requestId 查看决策、曝光结算、发布和统计状态 |
+| 权限与辅助配置 | JWT、RBAC、审计日志；Agent 生成草稿，经人工确认后发布 |
 
-- profile tags and fields
-- deterministic all/any/none targeting evaluation
-- active campaign and creative candidate adapter
-- request idempotency
-- atomic in-memory frequency and budget reservations with TTL release
-- deterministic creative selection
-- matched and explicit No-Ad responses
-- selectable per-process token-bucket or Redis shared sliding-window request admission
-- bounded in-flight decision execution and short queue timeout
-- per-request processing deadline and fail-fast 429/503/504 responses
-- cancellation-safe release of frequency and budget reservations
+内置固定成本和三广告主竞价用例。新环境自动安装一次；用户可以编辑或删除，持久化环境重启不会恢复已删除数据。后台账号与模拟用户画像是两种不同对象。
 
-M3 measurement context (implemented with local and Kafka modes):
+<details>
+<summary>查看竞价配置、决策结果和完整处理过程</summary>
 
-- Redis Lua frequency and budget reservation adapter
-- reservation confirmation and release
-- idempotent impression, click, and conversion events
-- impression-before-click/conversion ordering rule
-- campaign delivery metrics
-- Kafka producer and consumer group adapters using franz-go
-- versioned `adflow.ad-events.v1` event envelope
-- `requestId` partition key for per-decision ordering
-- MySQL transactional outbox with duplicate receipt protection
-- lease-based multi-relay batch claiming compatible with MySQL 5.7
-- exponential publish retry and consumer-side persistent `eventId` idempotency
-- batched Kafka publication, Outbox completion, decision lookup, event persistence, metric aggregation, and contiguous offset commits
-- concurrent cross-partition consumption with in-partition ordering and failed-offset rewind
-- dead-letter publication after eight failed relay attempts
-- persistent decision idempotency records for delayed event verification
-- Prometheus outbox-depth, relay-result, and Kafka consumer-lag metrics
-- operator APIs and console views for Outbox records, Kafka partition lag, dead-letter inspection, and admin-only replay
+### 竞价与定向配置
 
-M5 Agent assistant (implemented with mock and remote-provider modes):
+![竞价规则](docs/images/auction-rules.png)
 
-- provider-neutral rule generation interface
-- deterministic local mock provider for offline development
-- OpenAI Responses API mode with strict JSON Schema Structured Outputs
-- OpenAI-compatible Chat Completions mode for providers that expose JSON Object output
-- bounded whole-operation timeout, retryable-status backoff, and redirect protection
-- circuit breaker with a single half-open probe and optional local Mock fallback
-- model request ID, token usage, latency, fallback, model, and prompt-version metadata
-- Prometheus generation, duration, token, and circuit-state metrics
-- opt-in live evaluation set including budget escalation and prompt-injection cases
-- campaign-domain validation of every generated draft
-- explicit provider, model, prompt-version, explanation, and warning metadata
-- separate human confirmation before campaign publication
+### 单次投放验证
 
-M4 administration UI (basic implementation):
+![单次决策结果](docs/images/decision.png)
 
-- React and TypeScript working console
-- campaign, creative, profile, decision, event, and metric workflows
-- campaign rule editor with all/any/none conditions, yuan-based budget inputs, preview/confirm publication, read-only active versions, and pause-before-edit version updates
-- Agent rule draft preview and explicit human-confirmed publication
-- responsive navigation, API connection state, and failure feedback
+### 决策 → 曝光结算 → 事件计量
 
-M6 identity and audit context (implemented):
+![请求处理过程](docs/images/request-trace.png)
 
-- optional HS256 JWT authentication with issuer and expiry validation
-- hierarchical RBAC roles: viewer, operator, and admin
-- admin-only campaign publication and audit-log access
-- append-only business-action audit records with success/failure outcomes
-- in-memory and MySQL audit-store adapters
-- local development identities without changing the default frontend workflow
+</details>
 
-## Run locally
+## 技术设计
 
-Prerequisites: Go 1.27+. MySQL 5.7+ and Redis 6+ are optional while using the in-memory adapters.
+```mermaid
+flowchart LR
+    UI[React 管理台 / k6] --> API[Go · Gin API]
+    API --> Decision[幂等决策 · 定向 · 竞价]
+    Decision --> Redis[Redis 画像缓存 / 预算与频控预占]
+    Decision --> DB[(MySQL 决策与规则版本)]
+    API --> Ingest[曝光 / 点击 / 转化回传]
+    Ingest --> Settlement[持久化曝光结算队列]
+    Settlement --> Redis
+    Settlement --> Outbox[Transactional Outbox]
+    Outbox --> Kafka[Kafka]
+    Kafka --> Metrics[幂等消费与统计事务]
+    Metrics --> DB
+```
 
-```powershell
+- **模块化单体**：按 campaign、decision、event、identity 等业务模块组织；领域与应用层依赖接口，MySQL、Redis、Kafka 位于适配层。
+- **缓存与原子预占**：画像采用 Cache-Aside，含负缓存、并发回源合并和 generation 校验，避免旧查询重新填入过期值；Redis Lua 原子处理预算和频控。
+- **并发与过载保护**：速率限制、Channel 限制执行并发、Context 超时；根据异步队列高低门槛暂停和恢复新决策，避免积压失控。
+- **可靠事件链路**：先持久化受理，曝光结算确认后发布；Kafka 至少一次投递，消费端按 eventId 幂等，统计与处理记录同事务提交。
+- **恢复与可解释性**：worker 租约和 owner 校验、明确回滚后的有限事务重试；保存成交版本与价格，异常进入待核对而非猜测扣费成功。
+
+项目采用内部广告主竞价模型，不连接外部广告交易平台；广告主标识是业务归属，尚未实现广告主多租户隔离。MySQL 与 Redis 的跨存储操作不具备单事务原子性，通过预占、持久化状态和恢复流程处理失败边界。
+
+## 性能与验证
+
+以下是 **2026-09-08 本机实验记录**，不是生产容量承诺。测试版本、预热、负载、失败档位及原始记录保存在对应报告中；不同接口的数据不能互相替代。
+
+| 测试对象 | 已验证结果 | 证据与边界 |
+| --- | --- | --- |
+| 画像查询，Redis 热缓存 | 1000 QPS，3 × 60s 通过 | [容量报告](docs/profile-capacity-20260908.md)；1500 QPS 复测未稳定通过 |
+| 广告决策，含竞价与预占 | 450 QPS，3 × 60s 达标 | [决策报告](docs/decision-capacity-20260908.md)；81003 次请求有 2 次 409，不含事件回传 |
+| Kafka 完整业务链路 | 45 轮/秒，3 × 120s；16202 轮、48606 条事件完成 | [完整链路](docs/kafka-capacity-followup-20260908.md)；约 180 HTTP QPS，50 轮第三组出现积压 |
+| 异步积压保护 | 100 次新决策尝试/秒 × 120s，受理 6681 轮、明确拒绝 5320 次 | [保护验收](docs/async-backpressure-20260908.md)；已受理流程全部完成，统计 P95 2.875s，恢复阶段无拒绝；不代表全量接收 100 轮/秒 |
+| SQL 索引对照 | 百万行 Outbox 场景，UPDATE 服务端 P95 164.52ms → 1.09ms | [独立实验](docs/sql-index-experiment-20260908.md)；同一索引 invisible/visible 对照，含回滚，非接口耗时 |
+
+完整链路的一轮包含一次决策和曝光、点击、转化三次回传。压测同时核对受理数量、结算、消费、预算金额和重复事件；HTTP 202 或 Kafka lag=0 都不能单独代表业务已完成。
+
+## 快速启动
+
+需要 Go **1.27+** 和 Node.js **24**。默认使用内存适配器，可先体验功能，再接入真实基础设施。
+
+```bash
+git clone https://github.com/umi3730/AdFlow.git
+cd AdFlow
 go mod download
 go run ./cmd/api
 ```
 
-Campaign persistence defaults to the in-memory adapter so the API can be explored without MySQL. Set `ADFLOW_CAMPAIGN_REPOSITORY=mysql` after applying the migration to use the MySQL adapter.
+另开一个终端启动前端：
 
-Apply all pending MySQL migrations with the repeatable migration command:
-
-```powershell
-$env:ADFLOW_MYSQL_DSN = "adflow:adflow@tcp(127.0.0.1:3306)/adflow?parseTime=true&charset=utf8mb4&loc=UTC"
-go run ./cmd/migrate -dir migrations
-```
-
-The runner serializes concurrent migration attempts with a MySQL advisory lock and records each file checksum in `schema_migrations`. It refuses to continue if an already-applied migration file changes.
-
-Frequency and budget reservations also default to memory. Set `ADFLOW_RESERVATION_ADAPTER=redis` to use the atomic Redis Lua adapter.
-
-Event processing defaults to synchronous local mode. To enable Kafka, create the configured topic and set:
-
-```env
-ADFLOW_EVENT_TRANSPORT=kafka
-ADFLOW_DECISION_STORE=mysql
-ADFLOW_PROFILE_STORE=mysql-redis
-ADFLOW_PROFILE_CACHE_TTL=5m
-ADFLOW_PROFILE_NEGATIVE_CACHE_TTL=5s
-ADFLOW_PROFILE_CACHE_TIMEOUT=10ms
-ADFLOW_KAFKA_BROKERS=127.0.0.1:9092
-ADFLOW_KAFKA_TOPIC=adflow.ad-events.v1
-ADFLOW_KAFKA_DEAD_LETTER_TOPIC=adflow.ad-events.dlq.v1
-ADFLOW_KAFKA_CONSUMER_GROUP=adflow-metrics-v1
-```
-
-Kafka uses `requestId` as the record key, at-least-once delivery, manual offset commits after successful processing, and `eventId` idempotency at the consumer boundary. Kafka mode requires migrations `000002_events` and `000003_decisions`.
-
-`mysql-redis` keeps MySQL as the profile source of truth and applies Redis Cache-Aside reads with write-through updates. Missing users receive a short negative-cache entry to limit cache penetration. Redis operations have a small independent timeout so cache trouble leaves time for MySQL fallback; a failed cache update after a successful MySQL PUT is surfaced so the idempotent PUT can be retried.
-
-The local API listens on `http://localhost:18080` by default; the administration UI runs on `http://localhost:3000`.
-
-Authentication is disabled by default so the local UI remains frictionless. Enable it with:
-
-```env
-ADFLOW_AUTH_ENABLED=true
-ADFLOW_JWT_SECRET=replace-with-at-least-32-random-characters
-ADFLOW_ACCESS_TOKEN_TTL=30m
-```
-
-Local and test environments provide three demonstration accounts when `ADFLOW_AUTH_USERS` is empty:
-
-| Username | Password | Role | Permissions |
-| --- | --- | --- | --- |
-| `viewer` | `adflow-viewer` | viewer | Read APIs |
-| `operator` | `adflow-operator` | operator | Read, configure, and run debugging workflows |
-| `admin` | `adflow-admin` | admin | Operator permissions, campaign publication, and audit-log access |
-
-Outside local/test environments, enabled authentication requires `ADFLOW_AUTH_USERS`. Its format is a semicolon-separated list of `username:role:bcryptHash` entries. Never store plaintext production passwords in this value. Set `ADFLOW_AUDIT_STORE=mysql` after applying migration `000005_identity_audit` to persist the audit trail.
-
-The decision endpoint protects the hot path with two independent controls:
-
-```env
-ADFLOW_DECISION_RATE_LIMIT=5000
-ADFLOW_DECISION_RATE_LIMITER=memory
-ADFLOW_DECISION_RATE_WINDOW=1s
-ADFLOW_CANDIDATE_CACHE_TTL=5s
-ADFLOW_DECISION_BURST=1000
-ADFLOW_DECISION_MAX_IN_FLIGHT=256
-ADFLOW_DECISION_QUEUE_TIMEOUT=5ms
-ADFLOW_DECISION_TIMEOUT=100ms
-```
-
-`memory` uses a process-local token bucket and its burst setting. Set `ADFLOW_DECISION_RATE_LIMITER=redis` to enforce a shared exact sliding window across API replicas. The Redis adapter uses one Lua script to remove expired ZSET members, count the active window, append the current request, and refresh the key TTL. Redis server time avoids application-host clock skew; a limiter dependency error fails closed with HTTP 503.
-
-Active campaign and creative candidates are held in a per-process immutable snapshot keyed by slot. The default five-second TTL bounds configuration propagation delay, while concurrent cache misses are coalesced into one MySQL refresh. Prometheus exposes cache hit, miss, shared-wait, error, and refresh-duration metrics. Profile, reservation, budget, and decision-idempotency state remain request-specific and are never stored in this snapshot.
-
-Both adapters reject excess arrival rate with HTTP 429. The per-process concurrency gate remains in place because it protects each replica's CPU, database pool, and downstream dependencies independently of the shared rate limit. It waits only for the configured queue timeout before returning HTTP 503. Accepted execution receives its own processing deadline and returns HTTP 504 if it expires. Prometheus exposes admission outcomes, queue duration, current decision concurrency, and execution timeouts.
-
-The Agent assistant defaults to the deterministic Mock provider. To use an OpenAI Responses-compatible endpoint:
-
-```env
-ADFLOW_AGENT_PROVIDER=openai-compatible
-ADFLOW_AGENT_BASE_URL=https://api.openai.com/v1
-ADFLOW_AGENT_API_KEY=replace-with-a-runtime-secret
-ADFLOW_AGENT_MODEL=replace-with-a-supported-model
-ADFLOW_AGENT_API_STYLE=responses
-ADFLOW_AGENT_THINKING=
-```
-
-For another provider exposing OpenAI-compatible Chat Completions, set its documented base URL and model, then use `ADFLOW_AGENT_API_STYLE=chat_completions`. `ADFLOW_AGENT_THINKING` is optional; set it to `enabled` or `disabled` only when the provider supports that request extension. Responses mode sends a strict JSON Schema. Compatibility mode requests a JSON object and includes the contract in the system instruction; both modes pass through the same strict JSON decoder, Agent safety limits, campaign-domain validation, human confirmation, RBAC, and audit trail.
-
-Provider calls have an 8-second whole-operation timeout, at most two retries by default, and a circuit that opens after three failed calls. With fallback enabled, an unavailable provider returns a clearly marked local Mock draft instead of publishing or silently inventing a remote result. API keys are read only from the environment and are never included in logs or API responses.
-
-Live evaluations are opt-in because they call the configured paid provider:
-
-```powershell
-$env:ADFLOW_AGENT_RUN_LIVE_EVALS = "true"
-go test -run TestLiveProviderEvaluation -v ./internal/agentassistant/adapter/openai
-```
-
-The first recorded live run uses DeepSeek V4 Flash through Chat Completions with thinking disabled. See `docs/agent-live-evaluation.md` for the failed compatibility attempts, prompt-contract correction, final four-case pass, and HTTP end-to-end evidence. A local credential may be kept in the ignored `.env` file, but it must be loaded into the process environment before starting AdFlow; the application does not automatically parse dotenv files.
-
-Run the administration UI in a second terminal:
-
-```powershell
-cd web
+```bash
+cd AdFlow/web
+npm ci
 npm run dev
 ```
 
-The current UI includes dashboard metrics, campaign lifecycle actions, creative management, simulated profiles, decision debugging, and impression/click/conversion controls.
+打开终端显示的前端地址（默认 `http://localhost:3000`），API 默认 `http://localhost:18080`。环境变量可修改端口和适配器；程序本身不自动读取 `.env`，需要由 shell 或启动脚本加载。
 
-The OpenAPI 3.1 contract is maintained at `docs/openapi.yaml`.
+首次体验建议：右上角 **功能说明 → 准备竞价演示 → 开始模拟**，先跑三轮，观察成交价和事件统计，再查看请求处理过程。各页面的用途见[第一次上手](docs/getting-started.md)。
 
-Run a decision load test after installing k6:
+本地认证默认关闭。开启 `ADFLOW_AUTH_ENABLED=true` 后，local/test 环境的演示管理员为 `admin / adflow-admin`。这是演示账号；其他环境必须配置自己的账号哈希和 JWT 密钥。
 
-```powershell
-k6 run tests/load/decision.js
+### MySQL / Redis / Kafka 模式
+
+使用 MySQL **8.0**，先应用全部迁移（当前至 `000012`）：
+
+```bash
+go run ./cmd/migrate -dir migrations
 ```
 
-For a repeatable full-path baseline with configurable campaign/profile cardinality, a warm-up phase, steady arrival rate, and impression ingestion, run:
+通过环境配置选择 MySQL 存储、Redis 预占及 Kafka 传输，并准备对应数据库和 Topic。详见 [运行配置](docs/runtime-configuration.md)、[配置示例](.env.example) 和 [原生组件脚本](ops/native/)。Agent 默认为离线 Mock，可选配置兼容模型服务；API 密钥只放运行环境。
 
-```powershell
-$env:CAMPAIGN_COUNT = "20"
-$env:PROFILE_COUNT = "1000"
-$env:TARGET_RATE = "200"
-$env:WARMUP_DURATION = "30s"
-$env:STEADY_DURATION = "2m"
-$env:COOLDOWN_DURATION = "15s"
-New-Item -ItemType Directory -Force work | Out-Null
-k6 run --summary-export=work/k6-delivery.json tests/load/delivery-sustained.js
+## 测试与目录
+
+```bash
+go test ./...
+go vet ./...
+cd web
+npm test
+npm run lint
+npm run build
 ```
 
-The script creates one matching campaign segment per campaign, distributes a reusable profile pool across those segments, then measures decision latency and the complete decision-to-impression path. Use `SEND_IMPRESSIONS=false` to isolate decision performance. Setup traffic has named tags so it can be separated from steady-state endpoint metrics.
-Set a stable `RUN_ID`, then use `SEED_DATA=false` on later runs to reuse the same campaigns and profiles for comparable A/B measurements.
+GitHub Actions 运行 Go 格式检查、vet、race 测试，以及前端格式、lint、测试和构建。真实 MySQL / Redis / Kafka 集成测试需要独立测试环境并显式启用，见[基础设施验证](docs/integration-verification.md)。
 
-To demonstrate overload behavior, lower the admission limits and run the arrival-rate spike profile:
-
-```powershell
-$env:ADFLOW_DECISION_RATE_LIMIT = "200"
-$env:ADFLOW_DECISION_BURST = "50"
-go run ./cmd/api
-
-k6 run tests/load/decision-spike.js
+```text
+cmd/            API 与数据库迁移入口
+internal/       业务模块、基础设施适配器、可观测性
+migrations/     可重复执行并校验摘要的数据库迁移
+web/            React / TypeScript 管理台
+tests/          集成测试、k6 / JMeter 与独立基准实验
+docs/           功能设计、故障复盘、测试报告及原始证据
+ops/            本地基础设施与 API 启动脚本
 ```
 
-HTTP 429 and 503 are expected backpressure in this profile; HTTP 500 remains a failure.
-
-The script reports decision-specific P95/P99 latency and error rate. Keep the machine configuration and test parameters with any resume performance numbers.
-
-## Real infrastructure verification
-
-The default test suite remains self-contained. Real MySQL, Redis, and Kafka checks are opt-in through the `integration` build tag and environment variables; no application container image is required.
-
-```powershell
-$env:ADFLOW_IT_MYSQL_DSN = "adflow:password@tcp(127.0.0.1:3306)/adflow_it?parseTime=true&charset=utf8mb4&loc=UTC"
-$env:ADFLOW_IT_REDIS_ADDR = "127.0.0.1:6379"
-$env:ADFLOW_IT_KAFKA_BROKERS = "127.0.0.1:9092"
-$env:ADFLOW_IT_KAFKA_TOPIC = "adflow.it.events.v1"
-$env:ADFLOW_IT_KAFKA_DEAD_LETTER_TOPIC = "adflow.it.dlq.v1"
-$env:ADFLOW_IT_KAFKA_RESTART_TOPIC = "adflow.it.restart.v1"
-go test -tags=integration -v ./tests/integration
-```
-
-Create the three Kafka topics before running the suite and apply every migration to the test database. The verification covers MySQL optimistic concurrency and Outbox lease competition, Redis atomic sliding-window/budget admission, duplicate publication after a Kafka acknowledgment, and consumer replay after a side effect but before offset commit. See `docs/integration-verification.md` for the tested failure timelines.
-
-Endpoints:
-
-- `GET /livez` — process liveness
-- `GET /readyz` — MySQL and Redis readiness
-- `GET /metrics` — Prometheus HTTP, decision, event, process, and Go runtime metrics
-- `POST /v1/auth/login` — exchange credentials for a short-lived JWT
-- `GET /v1/auth/me` — read the authenticated principal and role
-- `GET /v1/audit-logs` — list append-only action records (admin only)
-- `POST /v1/campaigns` — create a draft campaign
-- `PUT /v1/campaigns/{id}` — edit a draft campaign
-- `GET /v1/campaigns` — list campaigns with status/limit/offset filters
-- `GET /v1/campaigns/{id}` — fetch a campaign
-- `POST /v1/campaigns/{id}/publish` — publish an immutable version
-- `POST /v1/campaigns/{id}/pause` — pause an active campaign
-- `POST /v1/campaigns/{id}/resume` — resume a paused campaign
-- `POST /v1/campaigns/{id}/creatives` — create an active creative
-- `GET /v1/campaigns/{id}/creatives` — list campaign creatives
-- `POST /v1/campaigns/{id}/creatives/{creativeId}/disable` — disable a creative
-- `PUT /v1/profiles/{userId}` — create or replace a simulated user profile
-- `POST /v1/decisions` — request an advertisement decision
-- `POST /v1/events` — record an impression, click, or conversion
-- `GET /v1/campaigns/{id}/metrics` — read campaign delivery metrics
-- `GET /v1/operations/outbox` — inspect Outbox records and aggregate status counts
-- `GET /v1/operations/kafka-lag` — read latest observed lag by Kafka partition
-- `POST /v1/operations/dead-letters/{eventId}/replay` — requeue a dead letter (admin only)
-- `POST /v1/agent/rule-drafts` — generate and validate a targeting rule draft without publishing it
-
-## Architecture direction
-
-The first release is a modular monolith. Gin is restricted to the HTTP transport layer; domain services use standard `context.Context` and depend on interfaces. MySQL, Redis, HTTP, and future model providers live behind adapters. Services will be split only after load tests identify a concrete scaling or isolation need.
-
-## Next milestone
-
-The real MySQL/Redis/Kafka correctness baseline is implemented. The next backend milestone is sustained load and chaos testing with production-shaped data, followed by query-plan and index regression evidence. The local synchronous path remains the default, and authentication remains opt-in until the administration UI gains a login flow.
+后续重点：减少结算和同步审计的数据库写入开销，补充更长依赖中断与多实例过载测试。已有边界和计划保存在 [Roadmap](docs/roadmap.md)。

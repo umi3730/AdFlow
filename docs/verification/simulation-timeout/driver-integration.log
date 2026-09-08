@@ -1,0 +1,4 @@
+=== RUN   TestMySQLParameterValuesAndSessionClock
+--- PASS: TestMySQLParameterValuesAndSessionClock (0.01s)
+PASS
+ok  	github.com/zhanghaiyang/adflow/internal/platform/database	0.210s

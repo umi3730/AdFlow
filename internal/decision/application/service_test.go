@@ -52,6 +52,14 @@ func (*cleanupGate) ConfirmBudget(context.Context, string, time.Time) error { re
 
 type cancelingDecisionStore struct{ cancel context.CancelFunc }
 
+func (cancelingDecisionStore) AcquireDecision(context.Context, domain.Request, string, time.Duration) error {
+	return nil
+}
+func (cancelingDecisionStore) ReleaseDecision(context.Context, string, string) error { return nil }
+func (s cancelingDecisionStore) CommitDecision(ctx context.Context, result domain.Result, _ string) error {
+	return errors.Join(domain.ErrDecisionNotCommitted, s.SaveDecision(ctx, result))
+}
+
 func (cancelingDecisionStore) FindDecision(context.Context, string) (domain.Result, bool, error) {
 	return domain.Result{}, false, nil
 }
@@ -93,6 +101,23 @@ func TestDecideMatchesAndIsIdempotent(t *testing.T) {
 	}
 	if capped.Matched || capped.Reason != domain.ReasonFrequencyCapped {
 		t.Fatalf("expected frequency cap, got %+v", capped)
+	}
+}
+
+func TestExplanationDoesNotConsumeReservations(t *testing.T) {
+	runtime := memory.NewRuntime()
+	_ = runtime.PutProfile(t.Context(), domain.NewProfile("user", []string{"anime"}, nil))
+	provider := candidateProvider{candidates: []domain.Candidate{{CampaignID: "campaign", CreativeIDs: []string{"creative"}, Targeting: domain.TargetingRule{All: []domain.Condition{{Tag: "anime"}}}, DailyBudgetFen: 1, ImpressionCostFen: 1, FrequencyLimit: 1}}}
+	explainer := NewExplanationService(runtime, provider)
+	for i := 0; i < 3; i++ {
+		report, err := explainer.Explain(t.Context(), "user", "slot")
+		if err != nil || len(report.Candidates) != 1 || !report.Candidates[0].TargetingMatched {
+			t.Fatalf("report=%+v err=%v", report, err)
+		}
+	}
+	result, err := NewService(provider, runtime, runtime, runtime, runtime).Decide(t.Context(), domain.Request{RequestID: "request", UserID: "user", SlotID: "slot"})
+	if err != nil || !result.Matched {
+		t.Fatalf("diagnostic consumed resources: result=%+v err=%v", result, err)
 	}
 }
 

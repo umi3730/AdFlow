@@ -26,9 +26,10 @@ type profilePayload struct {
 }
 
 type profileLoad struct {
-	done    chan struct{}
-	profile domain.Profile
-	err     error
+	generation string
+	done       chan struct{}
+	profile    domain.Profile
+	err        error
 }
 
 type Store struct {
@@ -50,12 +51,13 @@ func New(source domain.ProfileStore, client *redis.Client, prefix string, ttl, n
 		return nil, errors.New("profile cache requires a source, Redis client, prefix, and valid TTLs/timeouts")
 	}
 	return &Store{
-		source: source, client: client, prefix: strings.TrimSuffix(prefix, ":"), ttl: ttl,
+		source: source, client: client, prefix: strings.TrimSuffix(prefix, ":") + ":g3", ttl: ttl,
 		negativeTTL: negativeTTL, timeout: timeout, observer: observer, inFlight: make(map[string]*profileLoad),
 	}, nil
 }
 
 func (s *Store) FindProfile(ctx context.Context, userID string) (domain.Profile, error) {
+	userID = strings.TrimSpace(userID)
 	started := time.Now()
 	payload, err := s.get(ctx, s.key(userID))
 	switch {
@@ -81,29 +83,57 @@ func (s *Store) FindProfile(ctx context.Context, userID string) (domain.Profile,
 	return s.loadSource(ctx, userID)
 }
 
+func (s *Store) ListProfiles(ctx context.Context, filter domain.ProfileFilter) (domain.ProfilePage, error) {
+	catalog, ok := s.source.(domain.ProfileCatalog)
+	if !ok {
+		return domain.ProfilePage{}, errors.New("profile source does not support catalog reads")
+	}
+	// A paginated catalog must come from the source, not from Redis SCAN.
+	return catalog.ListProfiles(ctx, filter)
+}
+
 func (s *Store) PutProfile(ctx context.Context, profile domain.Profile) error {
+	profile.UserID = strings.TrimSpace(profile.UserID)
+	if profile.UserID == "" {
+		return domain.ErrInvalidRequest
+	}
 	keyLock := s.keyLock(profile.UserID)
 	keyLock.Lock()
 	defer keyLock.Unlock()
-	if err := s.source.PutProfile(ctx, profile); err != nil {
-		return err
-	}
-	payload, err := encodeProfile(profile)
-	if err != nil {
-		return err
-	}
 	started := time.Now()
-	if err := s.set(ctx, s.key(profile.UserID), payload, s.ttl); err != nil {
+	sourceErr := s.source.PutProfile(ctx, profile)
+	// Also invalidate on uncertain write errors: a DB acknowledgement may be lost.
+	if err := s.invalidate(ctx, profile.UserID); err != nil {
 		s.observe("write_error", time.Since(started))
-		return fmt.Errorf("update profile cache after persistent write: %w", err)
+		return errors.Join(sourceErr, fmt.Errorf("invalidate profile cache after persistent write: %w", err))
 	}
 	s.observe("write", time.Since(started))
-	return nil
+	return sourceErr
+}
+
+func (s *Store) DeleteProfile(ctx context.Context, userID string) error {
+	userID = strings.TrimSpace(userID)
+	deleter, ok := s.source.(domain.ProfileDeleter)
+	if !ok {
+		return errors.New("profile source does not support deletion")
+	}
+	lock := s.keyLock(userID)
+	lock.Lock()
+	defer lock.Unlock()
+	sourceErr := deleter.DeleteProfile(ctx, userID)
+	if err := s.invalidate(ctx, userID); err != nil {
+		return errors.Join(sourceErr, fmt.Errorf("invalidate profile cache after deletion: %w", err))
+	}
+	return sourceErr
 }
 
 func (s *Store) loadSource(ctx context.Context, userID string) (domain.Profile, error) {
+	generation, generationErr := s.generation(ctx, userID)
+	if generationErr != nil {
+		generation = ""
+	}
 	s.mu.Lock()
-	if load, exists := s.inFlight[userID]; exists {
+	if load, exists := s.inFlight[userID]; exists && generation != "" && load.generation == generation {
 		s.mu.Unlock()
 		select {
 		case <-ctx.Done():
@@ -113,40 +143,24 @@ func (s *Store) loadSource(ctx context.Context, userID string) (domain.Profile, 
 			return cloneProfile(load.profile), load.err
 		}
 	}
-	load := &profileLoad{done: make(chan struct{})}
+	load := &profileLoad{done: make(chan struct{}), generation: generation}
 	s.inFlight[userID] = load
 	s.mu.Unlock()
 
 	keyLock := s.keyLock(userID)
 	keyLock.Lock()
 	started := time.Now()
-	profile, err := s.source.FindProfile(ctx, userID)
-	cacheResult := "fill"
-	if errors.Is(err, domain.ErrProfileNotFound) {
-		cacheResult = "negative_fill"
-		payload, _ := json.Marshal(profilePayload{Missing: true})
-		if setErr := s.set(ctx, s.key(userID), payload, s.negativeTTL); setErr != nil {
-			cacheResult = "negative_fill_error"
-		}
-	} else if err == nil {
-		if payload, encodeErr := encodeProfile(profile); encodeErr == nil {
-			if setErr := s.set(ctx, s.key(userID), payload, s.ttl); setErr != nil {
-				cacheResult = "fill_error"
-			}
-		} else {
-			cacheResult = "fill_error"
-		}
-	}
+	profile, err, cacheResult := s.loadAndFill(ctx, userID, generation)
 	keyLock.Unlock()
 	s.mu.Lock()
 	load.profile = cloneProfile(profile)
 	load.err = err
-	delete(s.inFlight, userID)
+	if s.inFlight[userID] == load {
+		delete(s.inFlight, userID)
+	}
 	close(load.done)
 	s.mu.Unlock()
-	if err == nil {
-		s.observe(cacheResult, time.Since(started))
-	} else if errors.Is(err, domain.ErrProfileNotFound) {
+	if err == nil || errors.Is(err, domain.ErrProfileNotFound) {
 		s.observe(cacheResult, time.Since(started))
 	} else {
 		s.observe("source_error", time.Since(started))
@@ -154,7 +168,42 @@ func (s *Store) loadSource(ctx context.Context, userID string) (domain.Profile, 
 	return cloneProfile(profile), err
 }
 
-func (s *Store) key(userID string) string { return s.prefix + ":" + userID }
+func (s *Store) loadAndFill(ctx context.Context, userID, generation string) (domain.Profile, error, string) {
+	// A previous flight may have finished while this caller obtained its epoch
+	// or waited for the local key lock. Avoid another source query in that case.
+	if payload, err := s.get(ctx, s.key(userID)); err == nil {
+		if cached, err := decodeProfile(userID, payload); err == nil {
+			if cached.Missing {
+				return domain.Profile{}, domain.ErrProfileNotFound, "shared_negative_hit"
+			}
+			return domain.NewProfile(userID, cached.Tags, cached.Fields), nil, "shared_hit"
+		}
+	}
+	profile, err := s.source.FindProfile(ctx, userID)
+	cacheResult := "fill"
+	if errors.Is(err, domain.ErrProfileNotFound) {
+		cacheResult = "negative_fill"
+		payload, _ := json.Marshal(profilePayload{Missing: true})
+		if filled, setErr := s.fill(ctx, userID, generation, payload, s.negativeTTL); setErr != nil {
+			cacheResult = "negative_fill_error"
+		} else if !filled {
+			cacheResult = "stale_fill_rejected"
+		}
+	} else if err == nil {
+		if payload, encodeErr := encodeProfile(profile); encodeErr == nil {
+			if filled, setErr := s.fill(ctx, userID, generation, payload, s.ttl); setErr != nil {
+				cacheResult = "fill_error"
+			} else if !filled {
+				cacheResult = "stale_fill_rejected"
+			}
+		} else {
+			cacheResult = "fill_error"
+		}
+	}
+	return profile, err, cacheResult
+}
+
+func (s *Store) key(userID string) string { return s.prefix + ":value:" + userID }
 
 func (s *Store) keyLock(userID string) *sync.Mutex {
 	hash := fnv.New32a()
@@ -166,12 +215,6 @@ func (s *Store) get(ctx context.Context, key string) ([]byte, error) {
 	cacheCtx, cancel := context.WithTimeout(ctx, s.timeout)
 	defer cancel()
 	return s.client.Get(cacheCtx, key).Bytes()
-}
-
-func (s *Store) set(ctx context.Context, key string, payload []byte, ttl time.Duration) error {
-	cacheCtx, cancel := context.WithTimeout(ctx, s.timeout)
-	defer cancel()
-	return s.client.Set(cacheCtx, key, payload, ttl).Err()
 }
 
 func (s *Store) del(ctx context.Context, key string) error {

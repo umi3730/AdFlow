@@ -1,0 +1,33 @@
+{
+  "at": "2026-09-07T06:18:44.000Z",
+  "base": "http://127.0.0.1:18081",
+  "mode": {
+    "eventTransport": "kafka",
+    "outboxEnabled": true
+  },
+  "ready": {
+    "ready": true,
+    "dependencies": {
+      "mysql": "up",
+      "redis": "up"
+    }
+  },
+  "requestId": "switch-check-671f0993-2a92-460c-8a22-a5dfdeca8ae3",
+  "reservationToken": "rsv-bcdc5a50df7f61ebcf7089695f13f36b7668b6c4239e672b18bef3160a1a4a29",
+  "priceFen": 5,
+  "delta": {
+    "impressions": 1,
+    "clicks": 1,
+    "conversions": 1,
+    "valueFen": 500
+  },
+  "publishedEvents": 3,
+  "stats": {
+    "settling": 0,
+    "reconcile": 21,
+    "pending": 0,
+    "processing": 0,
+    "published": 6,
+    "deadLettered": 0
+  }
+}

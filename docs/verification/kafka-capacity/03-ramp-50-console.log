@@ -1,0 +1,13 @@
+Kafka complete business workload; asynchronous proof is collected separately
+iterations: {"contains":"default","values":{"count":1001,"rate":49.77938763528346},"type":"counter"}
+http_reqs: {"type":"counter","contains":"default","values":{"count":4004,"rate":199.11755054113385}}
+decision_ms: {"type":"trend","contains":"time","values":{"avg":41.225219892107866,"med":38.142398,"p(95)":60.726651,"p(99)":74.966896,"max":82.472517},"thresholds":{"p(95)<300":{"ok":true}}}
+accepted_round_ms: {"type":"trend","contains":"time","values":{"avg":126.98301698301698,"med":121,"p(95)":173,"p(99)":193,"max":223},"thresholds":{"p(95)<1000":{"ok":true}}}
+business_errors: {"type":"rate","contains":"default","values":{"rate":0,"passes":0,"fails":1001},"thresholds":{"rate<0.001":{"ok":true}}}
+matched_decisions: {"type":"counter","contains":"default","values":{"count":1001,"rate":49.77938763528346}}
+completed_rounds: {"type":"counter","contains":"default","values":{"rate":49.77938763528346,"count":1001},"thresholds":{"count>0":{"ok":true}}}
+accepted_events: {"type":"counter","contains":"default","values":{"rate":149.3381629058504,"count":3003}}
+accepted_impressions: {"type":"counter","contains":"default","values":{"count":1001,"rate":49.77938763528346}}
+accepted_clicks: {"type":"counter","contains":"default","values":{"count":1001,"rate":49.77938763528346}}
+accepted_conversions: {"type":"counter","contains":"default","values":{"count":1001,"rate":49.77938763528346}}
+dropped_iterations: {"type":"counter","contains":"default","values":{"count":0,"rate":0},"thresholds":{"count==0":{"ok":true}}}

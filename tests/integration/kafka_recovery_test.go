@@ -42,11 +42,14 @@ func TestKafkaAckBeforeOutboxMarkProducesOneMetric(t *testing.T) {
 	prefix := "adflow:it:kafka:" + newID(t)
 	reservationTTL := 10 * time.Minute
 	t.Cleanup(func() {
-		deletePrefix(context.Background(), redisClient, prefix)
+		if err := deletePrefix(context.Background(), redisClient, prefix); err != nil {
+			t.Errorf("clean Redis test keys: %v", err)
+		}
 		_, _ = db.Exec(`DELETE FROM campaign_metrics WHERE campaign_id = ?`, campaignID)
 		_, _ = db.Exec(`DELETE FROM processed_events WHERE event_id = ?`, eventID)
 		_, _ = db.Exec(`DELETE FROM event_outbox WHERE event_id = ?`, eventID)
 		_, _ = db.Exec(`DELETE FROM event_receipts WHERE event_id = ?`, eventID)
+		_, _ = db.Exec(`DELETE FROM event_settlements WHERE request_id = ?`, requestID)
 		_, _ = db.Exec(`DELETE FROM decisions WHERE request_id = ?`, requestID)
 	})
 
@@ -65,6 +68,7 @@ func TestKafkaAckBeforeOutboxMarkProducesOneMetric(t *testing.T) {
 		RequestID: requestID, UserID: userID, SlotID: "integration-slot", Matched: true,
 		CampaignID: campaignID, CreativeID: creativeID, ReservationToken: budgetToken,
 		ExpiresAt: now.Add(reservationTTL), Reason: decisiondomain.ReasonMatched,
+		Pricing: decisiondomain.Pricing{Mode: "fixed", PriceFen: 100},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -83,14 +87,20 @@ func TestKafkaAckBeforeOutboxMarkProducesOneMetric(t *testing.T) {
 	}
 	outbox := eventmysql.NewOutbox(db, "recovery-relay-"+newID(t))
 	eventStore := eventmysql.NewStore(db)
-	processor := eventapp.NewService(eventStore, decisionStore, reservations)
-	asyncService := eventapp.NewAsyncService(processor, decisionStore, outbox, reservations)
+	processor := eventapp.NewService(eventStore, decisionStore, nil)
+	asyncService := eventapp.NewAsyncService(processor, decisionStore, outbox)
 	created, err := asyncService.Record(t.Context(), event)
 	if err != nil || !created {
 		t.Fatalf("enqueue created=%v err=%v", created, err)
 	}
+	if entries, err := outbox.ClaimBatch(t.Context(), 1, time.Now(), time.Minute); err != nil || len(entries) != 0 {
+		t.Fatalf("unsettled event publishable: entries=%v err=%v", entries, err)
+	}
+	if count, err := eventapp.NewSettlementWorker(outbox, reservations, nil).RunOnce(t.Context()); err != nil || count != 1 {
+		t.Fatalf("settlement count=%d err=%v", count, err)
+	}
 	if spent, err := reservations.DebugBudgetSpent(t.Context(), campaignID, now); err != nil || spent != 100 {
-		t.Fatalf("budget was not confirmed at durable ingestion: spent=%d err=%v", spent, err)
+		t.Fatalf("budget was not confirmed by settlement worker: spent=%d err=%v", spent, err)
 	}
 	publisher, err := eventkafka.NewPublisher(brokers, topic, deadLetterTopic)
 	if err != nil {
@@ -126,6 +136,9 @@ func TestKafkaAckBeforeOutboxMarkProducesOneMetric(t *testing.T) {
 		consumerErrors <- consumer.Run(consumerContext, func(ctx context.Context, consumed eventdomain.Event) error {
 			if consumed.EventID != eventID {
 				return nil
+			}
+			if err := outbox.VerifySettledEvents(ctx, []eventdomain.Event{consumed}); err != nil {
+				return err
 			}
 			wasCreated, processErr := processor.Record(ctx, consumed)
 			if processErr == nil {
