@@ -11,7 +11,7 @@ func TestRegistrationStoreDefaultsAndSwitch(t *testing.T) {
 	t.Setenv("ADFLOW_REGISTRATION_ENABLED", "")
 	_ = os.Unsetenv("ADFLOW_REGISTRATION_ENABLED")
 	cfg, err := Load()
-	if err != nil || !cfg.RegistrationEnabled {
+	if err != nil || cfg.RegistrationEnabled {
 		t.Fatal(err)
 	}
 	t.Setenv("ADFLOW_CAMPAIGN_REPOSITORY", "mysql")

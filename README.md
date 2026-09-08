@@ -103,7 +103,7 @@ npm run dev
 
 首次体验建议：右上角 **功能说明 → 准备竞价演示 → 开始模拟**，先跑三轮，观察成交价和事件统计，再查看请求处理过程。各页面的用途见[第一次上手](docs/getting-started.md)。
 
-本地认证默认关闭。开启 `ADFLOW_AUTH_ENABLED=true` 后，登录页预填 local/test 环境的演示账号 `admin / adflow-admin`，也可点击“注册账号”。本 Demo 新注册账号统一具有管理员权限，MySQL 模式下账号持久保存。详见[注册与登录说明](docs/demo-registration-20260908.md)；其他环境应自行配置账号哈希、JWT 密钥和注册开关。
+Demo 默认直接进入管理员工作台，登录、注册和退出入口不显示，无需为访客创建账号或数据库。保持 `ADFLOW_AUTH_ENABLED=false`、`ADFLOW_REGISTRATION_ENABLED=false` 即可。详见[免登录模式](docs/direct-demo-20260908.md)。JWT、RBAC 和注册实现保留为可选功能，需要时可显式开启相应开关。
 
 ### MySQL / Redis / Kafka 模式
 

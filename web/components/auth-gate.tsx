@@ -48,10 +48,11 @@ export function RoleGate({
 export function SessionIdentity() {
   const { auth } = useAccess();
   if (!auth) return null;
+  const displayName = auth.authEnabled ? auth.principal.username : 'admin';
   return (
     <div className="flex items-center gap-2 text-sm">
-      <span className="max-w-32 truncate" title={auth.principal.username}>
-        {auth.principal.username}
+      <span className="max-w-32 truncate" title={displayName}>
+        {displayName}
       </span>
       <span className="rounded-full bg-primary/10 px-2 py-1 text-xs text-primary">
         {roleLabels[auth.principal.role]}
@@ -87,6 +88,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
   const [mode, setMode] = useState<'login' | 'register'>('login');
   const [canRegister, setCanRegister] = useState(false);
   const defaults = useRef(demoLoginDefaults(false));
+  const directDemo = useRef(false);
   const generation = useRef(0);
   const submitting = useRef(false);
 
@@ -94,7 +96,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
     let alive = true;
     const lifecycle = generation;
     const unsubscribe = subscribeSession(() => {
-      if (!sessionExpiry() && alive) {
+      if (!sessionExpiry() && alive && !directDemo.current) {
         generation.current++;
         setAuth(null);
         setMode('login');
@@ -105,21 +107,35 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
     });
     const attempt = ++generation.current;
     void api
-      .authOptions()
-      .then((options) => {
-        if (!alive || attempt !== generation.current) return null;
-        defaults.current = demoLoginDefaults(options.demoLoginPrefill);
-        setUsername(defaults.current.username);
-        setPassword(defaults.current.password);
-        setCanRegister(options.registrationEnabled);
-        return api.authMe();
-      })
+      .authMe()
       .then((info) => {
-        if (alive && attempt === generation.current) setAuth(info);
+        if (!alive || attempt !== generation.current) return;
+        directDemo.current = !info.authEnabled;
+        if (directDemo.current) clearSession();
+        setUnavailable(false);
+        setError('');
+        setAuth(info);
       })
-      .catch((cause) => {
+      .catch(async (cause) => {
         if (!alive) return;
-        if (!(cause instanceof ApiError && cause.status === 401)) {
+        if (cause instanceof ApiError && cause.status === 401) {
+          directDemo.current = false;
+          // The 401 may have cleared the previous session and advanced generation.
+          const optionsAttempt = generation.current;
+          try {
+            const options = await api.authOptions();
+            if (!alive || optionsAttempt !== generation.current) return;
+            defaults.current = demoLoginDefaults(options.demoLoginPrefill);
+            setUsername(defaults.current.username);
+            setPassword(defaults.current.password);
+            setCanRegister(options.registrationEnabled);
+          } catch {
+            if (alive) {
+              setUnavailable(true);
+              setError('无法连接后端，请确认服务已启动后重试');
+            }
+          }
+        } else {
           setUnavailable(true);
           setError('无法连接后端，请确认服务已启动后重试');
         }
@@ -195,6 +211,15 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
 
   if (auth)
     return <AuthContext.Provider value={auth}>{children}</AuthContext.Provider>;
+  if (checking)
+    return (
+      <main className="console-login grid min-h-screen place-items-center">
+        <p className="flex items-center gap-2 text-sm text-muted-foreground">
+          <LoaderCircle className="size-4 animate-spin" />
+          正在进入工作台…
+        </p>
+      </main>
+    );
   return (
     <main className="console-login grid min-h-screen place-items-center px-4 py-8 sm:px-8">
       <div className="console-login-panel w-full max-w-sm overflow-hidden rounded-xl border bg-card">
@@ -202,7 +227,11 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
           <div className="space-y-2">
             <ShieldCheck className="size-8 text-primary" />
             <h1 className="text-2xl font-semibold">
-              {mode === 'login' ? '登录 AdFlow' : '注册 AdFlow'}
+              {unavailable
+                ? '连接工作台'
+                : mode === 'login'
+                  ? '登录 AdFlow'
+                  : '注册 AdFlow'}
             </h1>
             <p className="text-sm text-muted-foreground">
               {mode === 'login'
@@ -210,12 +239,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
                 : 'Demo 新账号默认拥有管理员权限。'}
             </p>
           </div>
-          {checking ? (
-            <p className="flex items-center gap-2 text-sm">
-              <LoaderCircle className="size-4 animate-spin" />
-              正在检查登录状态…
-            </p>
-          ) : unavailable ? (
+          {unavailable ? (
             <>
               <p role="alert" className="text-sm text-destructive">
                 {error}

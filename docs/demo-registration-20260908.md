@@ -1,5 +1,7 @@
 # Demo 注册与默认登录
 
+后续调整：Demo 默认已改为[免登录进入管理员工作台](direct-demo-20260908.md)。下文保留可选认证模式的注册实现说明；注册现为默认关闭，需显式开启。
+
 按本项目 Demo 的使用方式，**新注册账号统一拥有管理员权限**。登录页默认填入公开演示账号 `admin / adflow-admin`，点击登录即可使用；切换注册时清空表单，注册成功后直接进入工作台。退出登录后恢复默认填充值。
 
 不再自动绕过登录页，确保用户可以看到注册入口。旧 `NEXT_PUBLIC_ADFLOW_DEMO_AUTO_LOGIN` 不再控制该页面。密码和 token 不写入浏览器存储，只有公开的演示密码作为表单默认值。
@@ -17,7 +19,7 @@
 
 `ADFLOW_AUTH_STORE` 可设为 `memory` 或 `mysql`；未指定时，若计划、决策或审计已使用 MySQL，则认证也选择 MySQL，否则使用内存。
 
-`ADFLOW_REGISTRATION_ENABLED` 默认在 local/test 开启，其他环境默认关闭；可以显式设置。该开关开启时沿用本 Demo 的管理员注册策略。登录/注册界面用于 `ADFLOW_AUTH_ENABLED=true` 的环境；认证关闭时仍直接使用工作台。
+`ADFLOW_REGISTRATION_ENABLED` 默认关闭，可以显式设置。该开关开启时沿用本 Demo 的管理员注册策略。登录/注册界面用于 `ADFLOW_AUTH_ENABLED=true` 的环境；认证关闭时直接使用工作台。
 
 只有 local/test 且没有自定义 `ADFLOW_AUTH_USERS` 时才预填演示账号，避免拿公开的默认密码替代自定义账号。实际新用户密码不回填到页面。
 

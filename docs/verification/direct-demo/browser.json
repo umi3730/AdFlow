@@ -1,0 +1,26 @@
+{
+  "at": "2026-09-08T09:25:02.979Z",
+  "freshPageAndReload": true,
+  "loginCalls": 0,
+  "optionCalls": 0,
+  "bearerCalls": 0,
+  "loginRegisterLogoutHidden": true,
+  "adminControlsEnabled": true,
+  "optionalAuthFormPreservedWithMock401": true,
+  "servers": [
+    {
+      "port": 18080,
+      "authEnabled": false,
+      "role": "admin",
+      "adminRead": 200,
+      "registrationEnabled": false
+    },
+    {
+      "port": 18081,
+      "authEnabled": false,
+      "role": "admin",
+      "adminRead": 200,
+      "registrationEnabled": false
+    }
+  ]
+}

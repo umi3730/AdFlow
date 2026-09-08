@@ -135,7 +135,7 @@ func Load() (Config, error) {
 	if cfg.AuthStore != "memory" && cfg.AuthStore != "mysql" {
 		return Config{}, fmt.Errorf("ADFLOW_AUTH_STORE must be memory or mysql")
 	}
-	if cfg.RegistrationEnabled, err = boolEnv("ADFLOW_REGISTRATION_ENABLED", cfg.Environment == "local" || cfg.Environment == "test"); err != nil {
+	if cfg.RegistrationEnabled, err = boolEnv("ADFLOW_REGISTRATION_ENABLED", false); err != nil {
 		return Config{}, err
 	}
 	if cfg.AsyncBackpressure, err = boolEnv("ADFLOW_ASYNC_BACKPRESSURE", cfg.AsyncBackpressure); err != nil {

@@ -137,7 +137,7 @@ const navItems = [
 ];
 
 export function AdFlowConsole() {
-  const { auth, canOperate, canAdmin } = useAccess();
+  const { canOperate, canAdmin } = useAccess();
   const visibleNav = navItems.filter((item) =>
     item.id === 'simulation'
       ? canAdmin
@@ -525,12 +525,6 @@ export function AdFlowConsole() {
                 <X className="size-3.5" />
               </button>
             </output>
-          )}
-          {auth && !auth.authEnabled && (
-            <p className="mb-5 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
-              本地免登录模式 · JWT
-              未启用，当前按管理员权限操作。请勿用于公开部署。
-            </p>
           )}
           {view === 'dashboard' && (
             <Dashboard

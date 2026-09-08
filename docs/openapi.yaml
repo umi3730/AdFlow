@@ -45,7 +45,7 @@ paths:
   /v1/auth/register:
     post:
       summary: Register a demo administrator and issue a login token
-      description: Enabled by default in local/test. Usernames are canonicalized to lowercase and unique; configured seed usernames remain reserved. The server assigns admin per the demo policy, not from request input. MySQL storage requires migration 000013.
+      description: Disabled by default; enabled explicitly with ADFLOW_REGISTRATION_ENABLED=true. Usernames are canonicalized to lowercase and unique; configured seed usernames remain reserved. The server assigns admin per the demo policy, not from request input. MySQL storage requires migration 000013.
       security: []
       requestBody:
         required: true
