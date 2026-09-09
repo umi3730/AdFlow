@@ -1,0 +1,106 @@
+- complementary:
+  - button "AdFlow · 返回总览":
+    - generic: AdFlow
+    - generic: 广告决策平台
+  - navigation "主导航":
+    - button "总览":
+      - generic: 总览
+    - button "效果报表":
+      - generic: 效果报表
+    - paragraph: 投放配置
+    - button "广告计划":
+      - generic: 广告计划
+    - button "素材管理":
+      - generic: 素材管理
+    - button "用户画像":
+      - generic: 用户画像
+    - paragraph: 投放验证
+    - button "单次投放测试":
+      - generic: 单次投放测试
+    - button "批量投放测试":
+      - generic: 批量投放测试
+    - paragraph: 系统与辅助
+    - button "事件处理":
+      - generic: 事件处理
+    - button "Agent 助手":
+      - generic: Agent 助手
+  - text: 服务已连接
+  - paragraph:
+    - text: 本地环境 · API 127.0.0.1:18380
+    - generic: 13:29 已同步
+- main:
+  - generic: 效果报表
+  - button "功能说明":
+  - button "刷新":
+  - generic "API 已连接":
+    - generic: API 已连接
+  - generic "admin"
+  - generic: 管理员
+  - heading "投放效果报表" [level=1]
+  - paragraph: 查看投放趋势、消耗与转化效果。
+  - button "导出 CSV":
+    - text: 导出 CSV
+  - button "Agent 分析":
+    - text: Agent 分析
+  - text: 开始日期
+  - textbox "开始日期": 2026-09-09
+  - text: 结束日期
+  - textbox "结束日期": 2026-09-09
+  - generic: 广告计划
+  - combobox "报表广告计划":
+    - generic: 全部计划
+    - img: ▼
+  - textbox: all
+  - generic: 聚合粒度
+  - combobox "聚合粒度":
+    - generic: 按小时
+    - img: ▼
+  - textbox: hour
+  - button "今天" [active]
+  - button "近7天"
+  - button "近30天"
+  - generic: 北京时间 · 最多31天
+  - button "查询报表":
+    - text: 查询报表
+  - paragraph: 2026-09-09 · 全部计划 · 按小时（北京时间）
+  - paragraph: 曝光
+  - paragraph: "3"
+  - paragraph: 已计入统计
+  - paragraph: 点击
+  - paragraph: "3"
+  - paragraph: CTR 100.00%
+  - paragraph: 转化
+  - paragraph: "3"
+  - paragraph: CVR 100.00%
+  - paragraph: 实际消耗
+  - paragraph: ¥0.15
+  - paragraph: 已完成曝光结算
+  - paragraph: 转化价值
+  - paragraph: ¥15.00
+  - paragraph: 平均点击成本 ¥0.05
+  - paragraph: 平均转化成本
+  - paragraph: ¥0.05
+  - paragraph: 消耗 ÷ 转化次数
+  - generic: 投放趋势
+  - generic: 曝光量 · 截至 09/09 13:29
+  - combobox "趋势指标":
+    - generic: 曝光量
+    - img: ▼
+  - textbox: impressions
+  - application:
+    - generic: 01:00
+    - generic: 03:00
+    - generic: 05:00
+    - generic: 07:00
+    - generic: 09:00
+    - generic: 11:00
+    - generic: 13:00
+    - generic: "0"
+    - generic: "1"
+    - generic: "2"
+    - generic: "3"
+    - generic: "4"
+  - generic: 时段明细
+  - button "查看明细":
+    - text: 查看明细
+- generic: 00:00

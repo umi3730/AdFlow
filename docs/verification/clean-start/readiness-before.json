@@ -1,0 +1,11 @@
+{
+  "body": {
+    "ready": false,
+    "dependencies": {
+      "mysql": "down",
+      "redis": "up"
+    }
+  },
+  "sourceCommit": "3b88ba206937add503ade7fa41d2332dd6a2d303",
+  "status": 503
+}

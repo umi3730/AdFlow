@@ -8,11 +8,15 @@ The baseline was verified on 2026-09-03 with Go on Windows, MySQL 8.0.46 in WSL,
 
 ## Preparation
 
-1. Create an empty MySQL database and a least-privilege test user. Do not run a long-lived AdFlow API or another Outbox relay against this database while the suite is running; the fault-injection tests intentionally control relay ownership and timing.
-2. Set `ADFLOW_MYSQL_DSN` and run `go run ./cmd/migrate -dir migrations` twice. The first run applies the files; the second must report an empty applied list.
-3. Create the Kafka topics configured by `ADFLOW_IT_KAFKA_TOPIC`, `ADFLOW_IT_KAFKA_DEAD_LETTER_TOPIC`, and `ADFLOW_IT_KAFKA_RESTART_TOPIC`.
-4. Export the variables shown in `.env.integration.example`, replacing the example credentials.
+1. Create an empty MySQL database named with the required `adflow_backpressure_it_` prefix, for example `adflow_backpressure_it_local`, and a test user with the schema permissions needed by migrations. The backpressure test checks this prefix and empty active queues. Do not run a long-lived AdFlow API or another Outbox relay against this database while the suite is running; the fault-injection tests intentionally control relay ownership and timing.
+2. Export the variables shown in [`.env.integration.example`](../.env.integration.example), replacing the example credentials. Go commands do not automatically load this file. Use dedicated Redis and Kafka test resources; keep the normal demo services out of this test database.
+3. Set `ADFLOW_MYSQL_DSN` to the same isolated database as `ADFLOW_IT_MYSQL_DSN` and run `go run ./cmd/migrate -dir migrations` twice. Apply all migrations through `000014_delivery_reports`; the second run must report an empty applied list.
+4. Create the Kafka topics configured by `ADFLOW_IT_KAFKA_TOPIC`, `ADFLOW_IT_KAFKA_DEAD_LETTER_TOPIC`, and `ADFLOW_IT_KAFKA_RESTART_TOPIC`.
 5. Run `go test -tags=integration -v ./tests/integration`.
+
+For the reporting SQL check, also export `ADFLOW_REPORT_IT_DSN` and run `go test -tags=integration -v ./internal/reporting/adapter/mysql`. This test uses temporary tables on one dedicated connection. Missing environment variables cause integration tests to skip, so inspect the output for `SKIP` rather than treating the process exit code alone as evidence that real services were tested.
+
+The complete local rerun on 2026-09-09 passed 15 integration tests and one reporting SQL test without skips; see [the recorded run and cleanup](test-completion-20260909.md).
 
 ## Failure timelines under test
 

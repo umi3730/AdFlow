@@ -1,7 +1,9 @@
 # ADR-0005: Use Redis/MySQL Cache-Aside for decision profiles
 
-- Status: Accepted
+- Status: Updated; the write-through strategy below describes the initial implementation.
 - Date: 2026-09-03
+
+The adapter still uses Cache-Aside, but writes now invalidate cached values and reads refill them with generation checks across instances. See [the update and stale-refill fix](../onboarding-cache-improvements-20260907.md) and [real integration verification](../test-completion-20260909.md). The remaining text preserves the original decision and its measurements.
 
 ## Context
 

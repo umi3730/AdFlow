@@ -76,7 +76,7 @@ python tests/bench/k6-lab/analyze_pool_comparison.py 实验输出目录
 
 [独立核验与汇总](verification/pool-comparison/analysis.json) · [预定顺序与执行状态](verification/pool-comparison/design.json) · [环境记录](verification/pool-comparison/environment.json) · [原始记录目录](verification/pool-comparison/) · [工具与采样源码摘要](verification/pool-comparison/source-sha256.json)
 
-源码及测试保留了失败检查，没有降低延迟/核账门槛或删掉不利试验。图表或简历引用数字时，应同时注明负载、版本及本机测试边界。
+源码及测试保留了失败检查，没有降低延迟/核账门槛或删掉不利试验。引用实验数字时，应同时注明负载、版本及本机测试边界。
 
 ## 2026-09-09 恢复与收尾
 

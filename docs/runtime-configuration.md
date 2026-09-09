@@ -11,6 +11,10 @@ go run ./cmd/api
 
 Campaign persistence defaults to the in-memory adapter so the API can be explored without MySQL. Set `ADFLOW_CAMPAIGN_REPOSITORY=mysql` after applying the migration to use the MySQL adapter.
 
+The API initializes MySQL/Redis clients and readiness probes only when a selected adapter requires them. With all default memory adapters, `/readyz` returns `{"ready":true,"dependencies":{}}`. When an enabled adapter's MySQL or Redis dependency is unavailable, readiness remains HTTP 503.
+
+Local/test CORS allows frontend origins on `localhost` or `127.0.0.1`, ports 3000 and 3001. Use those ports for local previews. If the API port differs from 18080, set `NEXT_PUBLIC_ADFLOW_API_URL` before starting or building the frontend; changing an unrelated frontend port alone does not expand the CORS allowlist.
+
 Apply all pending MySQL migrations with the repeatable migration command:
 
 ```powershell
@@ -40,7 +44,7 @@ ADFLOW_KAFKA_DEAD_LETTER_TOPIC=adflow.ad-events.dlq.v1
 ADFLOW_KAFKA_CONSUMER_GROUP=adflow-metrics-v1
 ```
 
-Kafka uses `requestId` as the record key, at-least-once delivery, manual offset commits after successful processing, and `eventId` idempotency at the consumer boundary. Apply all migrations through `000013_auth_users` on MySQL 8. Kafka mode requires MySQL decisions and Redis reservations so another worker can recover accepted events after a process restart. Profile IDs are case-sensitive; new impressions require an unexpired decision, while clicks and conversions use a seven-day window from the original impression's server acceptance. See [the core correctness fixes](core-fixes-20260907.md).
+Kafka uses `requestId` as the record key, at-least-once delivery, manual offset commits after successful processing, and `eventId` idempotency at the consumer boundary. Apply all migrations through `000014_delivery_reports` on MySQL 8. Kafka mode requires MySQL decisions and Redis reservations so another worker can recover accepted events after a process restart. Profile IDs are case-sensitive; new impressions require an unexpired decision, while clicks and conversions use a seven-day window from the original impression's server acceptance. See [the core correctness fixes](core-fixes-20260907.md).
 
 Impressions enter `SETTLING` after durable acceptance. A background worker atomically confirms the winning price and frequency in Redis, then releases the request's events for publication. Missing reservation proof enters `RECONCILE`; these events cannot be published or counted. Before upgrading, stop old API, relay and consumer processes; the migration quarantines unprocessed legacy events whose settlement cannot be proven. See [settlement recovery and verification](outbox-settlement-fix-20260907.md).
 

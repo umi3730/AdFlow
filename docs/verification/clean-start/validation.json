@@ -1,0 +1,17 @@
+{
+  "auditPassed": false,
+  "cloneCommit": "3b88ba206937add503ade7fa41d2332dd6a2d303",
+  "dependencyAlerts": 11,
+  "localWorkDirectoryPresent": false,
+  "frontendTests": 125,
+  "localEnvFilePresent": false,
+  "checkedAt": "2026-09-09T13:34:28.9073668+08:00",
+  "requiredDependenciesFailClosed": true,
+  "defaultMemoryReady": true,
+  "frontendBuildPassed": true,
+  "sourcePatchSHA256": {
+    "cmd/api/main.go": "b8b04d4c2efdd587d17dcd819448567ea2f001fdda8512ff7b4baaaf0b040bda",
+    "internal/config/dependencies.go": "4aacb47993a653b847b48a4ef400ba9abe725199d7436bafcb3d9268a6570912",
+    "internal/config/dependencies_test.go": "e79202d92b33a88383b8cb8ca94efb9845e327ba27d06a269b3d2ee85c2f371c"
+  }
+}

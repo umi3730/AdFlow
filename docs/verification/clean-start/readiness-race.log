@@ -1,0 +1,5 @@
+ok  	github.com/umi3730/adflow/internal/config	1.029s
+ok  	github.com/umi3730/adflow/internal/health	1.020s
+ok  	github.com/umi3730/adflow/internal/transport/http	1.086s
+ok  	github.com/umi3730/adflow/internal/bootstrap	1.057s
+ok  	github.com/umi3730/adflow/internal/platform/profiling	1.039s
