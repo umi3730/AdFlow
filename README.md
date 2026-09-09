@@ -2,9 +2,9 @@
 
 基于 **Go、MySQL、Redis、Kafka** 的后端实践项目，配有可操作的 React 管理台。从配置广告计划，到用户定向、内部竞价、预算预占、曝光结算，再到事件计量和异常排查，走通一条完整的广告投放链路。
 
-重点是业务约束、并发正确性和可复查的压测记录，适合作为 Go 后端学习与面试展示项目。
+关注业务约束、并发正确性，以及可复查的性能与可靠性验证。
 
-[快速启动](#快速启动) · [五分钟演示](docs/demo-walkthrough.md) · [功能说明](docs/getting-started.md) · [版本演进](docs/project-evolution.md) · [API 文档](docs/openapi.yaml) · [性能与验证](#性能与验证)
+[快速启动](#快速启动) · [功能说明](docs/getting-started.md) · [版本演进](docs/project-evolution.md) · [API 文档](docs/openapi.yaml) · [性能与验证](#性能与验证)
 
 ![投放总览](docs/images/overview.jpg)
 
@@ -59,7 +59,7 @@
 | V4 稳定性治理版 | 过载保护与瓶颈分析 | 队列背压、请求追踪、Prometheus、pprof、连接池对照 |
 | V5 运营分析版 | 效果分析与智能辅助 | 小时/天报表、实际消耗、CSV 导出、Agent 投放诊断 |
 
-查看[版本演进与面试讲解](docs/project-evolution.md)，了解每阶段的优化动机、实现、验证记录和面试表述。V1～V5 是项目能力里程碑，具体代码及实验来源在文档中对应。
+查看[版本演进](docs/project-evolution.md)，了解每阶段的优化动机、实现和验证记录。V1～V5 是项目能力里程碑，具体代码及实验来源在文档中对应。
 
 ## 技术设计
 
@@ -148,7 +148,7 @@ npm run build
 
 GitHub Actions 运行 Go 格式检查、vet、race 测试，以及前端格式、lint、测试和构建。真实 MySQL / Redis / Kafka 集成测试需要独立测试环境并显式启用，见[基础设施验证](docs/integration-verification.md)。
 
-2026-09-09 已补齐本地验证：125 项前端回归、47 个有测试 Go 包的竞态检测、15 个真实依赖集成用例及 1 个报表 SQL 用例通过；记录见 [测试补跑](docs/test-completion-20260909.md)。简历引用方式见 [面试要点](docs/resume-and-interview.md)。
+2026-09-09 已补齐本地验证：125 项前端回归、47 个有测试 Go 包的竞态检测、15 个真实依赖集成用例及 1 个报表 SQL 用例通过；记录见 [测试补跑](docs/test-completion-20260909.md)。
 
 ```text
 cmd/            API 与数据库迁移入口
