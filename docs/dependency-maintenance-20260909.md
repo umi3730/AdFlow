@@ -42,7 +42,7 @@ Vite 的 Windows 路径问题影响 8.0.0–8.0.15，本次升级至 8.2.2。公
 - 使用不含敏感内容的独立 `.env.security-probe` 文件验证开发服务器：普通路径、Windows ADS 路径分别返回 403，编码变体返回 404，均未返回测试标记；测试文件已删除。这是定向回归，不是完整渗透测试。
 - Vite 配置的 JSON 导入补充 `with { type: 'json' }`，适配原生配置加载器；没有关闭告警来隐藏兼容问题。
 - 新 Windows 检出中 `.mjs` 会被转换为 CRLF，导致格式门禁失败；新增 `.js`/`.mjs` 的 LF 属性。历史 `docs/verification/**` 仍按原始字节保留，没有修改实验快照。
-- CI 新增 `npm audit --audit-level=high`，阻止 high/critical 告警进入主分支。当前完整 audit 为零，门禁阈值不改变这次完整审计结果。
+- CI 新增 `npm audit --audit-level=high`，发现 high/critical 告警时将检查标记为失败。当前完整 audit 为零，检查阈值不改变这次完整审计结果；本轮未修改 GitHub 分支保护规则。
 
 安装脚本沿用本机 npm 的 allow-scripts 规则，没有新增授权或放开脚本执行。升级不包含 Go 业务改动、数据库迁移或新的性能压测。
 
