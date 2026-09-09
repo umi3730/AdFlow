@@ -1,0 +1,69 @@
+
+> sites-project@0.1.0 build
+> vinext build
+
+
+  vinext build  (Vite 8.2.2)
+
+[1/5] analyze client references...
+transforming...
+✓ 250 modules transformed.
+rendering chunks...
+✓ built in 3.51s
+[PLUGIN_TIMINGS] Plugin hooks ran for 3.1s of this 3.4s build (91%).
+The slowest hooks, timed inside each callback (the wait before a callback starts is excluded, the time it awaits is included):
+  - vite:css transform (41%, 1.4s, 1 call)
+Additional hook time came from the hooks below and from hooks under 1s.
+6 hooks are listed without a time. Their calls overlapped, so the time inside one call includes work from other calls. To find their cost, profile the build with `node --cpu-prof`:
+  - rsc:virtual-client-package resolveId (827 calls)
+  - vinext:og-inline-fetch-assets resolveId (835 calls)
+  - alias resolveId (917 calls)
+  … and 3 more
+See https://rolldown.rs/reference/InputOptions.checks#plugintimings for more details.
+
+[2/5] analyze server references...
+transforming...
+✓ 1060 modules transformed.
+rendering chunks...
+✓ built in 2.04s
+[3/5] build rsc environment...
+transforming...
+✓ 241 modules transformed.
+rendering chunks...
+computing gzip size...
+✓ built in 957ms
+[4/5] build client environment...
+transforming...
+✓ 2842 modules transformed.
+rendering chunks...
+computing gzip size...
+[plugin builtin:vite-reporter] 
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 3.15s
+[PLUGIN_TIMINGS] Plugin hooks ran for 2.7s of this 3.1s build (86%).
+2 hooks are listed without a time. Their calls overlapped, so the time inside one call includes work from other calls. To find their cost, profile the build with `node --cpu-prof`:
+  - vinext:og-inline-fetch-assets resolveId (9108 calls)
+  - alias resolveId (9564 calls)
+See https://rolldown.rs/reference/InputOptions.checks#plugintimings for more details.
+
+[5/5] build ssr environment...
+transforming...
+✓ 1070 modules transformed.
+rendering chunks...
+computing gzip size...
+✓ built in 1.87s
+[0m
+  Route (app)
+  ─ ? /
+
+  ? Unknown
+
+  ? Some routes could not be classified. vinext currently uses static analysis
+    and cannot detect dynamic API usage (headers(), cookies(), etc.) at build time.
+    Automatic classification will be improved in a future release.
+
+  Build complete. Run `vinext start` to start the production server.
+

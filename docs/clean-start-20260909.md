@@ -29,7 +29,9 @@
 
 最初尝试的前端 3300 端口不在开发 CORS 允许列表内，浏览器连接被阻止；改用已有允许的 3000 端口后成功，未扩展 CORS 权限。
 
-## 依赖告警（未解决）
+## 依赖告警（初次安装记录）
+
+后续已完成依赖升级并将完整 audit 降为 0，见[维护记录](dependency-maintenance-20260909.md)。下文保留初次安装时的结果。
 
 全新安装触发的 `npm audit` 报告 11 个受影响依赖条目：8 high、2 moderate、1 low，0 critical。涉及 `react-server-dom-webpack`、Vinext/Vite、Cloudflare 开发工具链及传递依赖等；这不是 11 个独立漏洞的精确计数，也没有据此证明项目中每条攻击路径均可利用。
 

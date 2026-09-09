@@ -1,0 +1,24 @@
+{
+  "checkedAt": "2026-09-09T14:24:58.3648290+08:00",
+  "npm": "11.17.0",
+  "node": "v24.19.0",
+  "auditTotal": 0,
+  "typesPassed": true,
+  "buildPassed": true,
+  "dependencyTreeValid": true,
+  "freshLockfileInstallPassed": true,
+  "manualBrowser": {
+    "impressions": 3,
+    "reportAndDetailsVerified": true,
+    "loadedImages": 19,
+    "conversions": 3,
+    "consoleErrorsWhileRunning": 0,
+    "businessRounds": 3,
+    "spendFen": 15,
+    "valueFen": 1500,
+    "clicks": 3
+  },
+  "packageLockSHA256": "1bb01d12f472300d5cd3490ea5f7d79c72e2fe80c6438fdafc49026c414ef108",
+  "scope": "Dependency maintenance and compatibility; not a full penetration test",
+  "frontendTests": 126
+}

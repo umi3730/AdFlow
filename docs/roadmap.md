@@ -23,7 +23,7 @@
 
 ## 后续优先项
 
-- **前端依赖维护。** 2026-09-09 干净安装时 `npm audit` 报告 11 个受影响依赖条目（8 high、2 moderate、1 low），涉及 React Server Components、Vinext/Vite 和 Cloudflare 工具链等。需要单独核对适用条件、升级兼容性并回归；当前通过启动/构建不代表安全审计通过。
+- **持续依赖维护。** 2026-09-09 已将此前 11 项告警降至完整 audit 为 0，并增加 high/critical CI 门禁。后续仍需跟进公告和兼容回归，适时移除针对 Miniflare 的 Sharp 临时 override；见[升级记录](dependency-maintenance-20260909.md)。
 
 1. **可复现基础设施测试。** 增加独立的 CI integration job，自动准备空库、Redis、Kafka Topic，确保没有跳过测试，并保存结果和清理状态。
 2. **更长故障与多实例验证。** 补充持续依赖中断、broker 分区调整、租约跨期、晚到曝光、多 API 同时过载等受控场景，核对最终金额、事件和恢复时间。

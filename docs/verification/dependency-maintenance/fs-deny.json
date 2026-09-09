@@ -1,0 +1,17 @@
+[
+  {
+    "path": "/.env.security-probe?raw",
+    "status": 403,
+    "markerLeaked": false
+  },
+  {
+    "path": "/.env.security-probe::$DATA?raw",
+    "status": 403,
+    "markerLeaked": false
+  },
+  {
+    "path": "/.env.security-probe%3A%3A%24DATA?raw",
+    "status": 404,
+    "markerLeaked": false
+  }
+]

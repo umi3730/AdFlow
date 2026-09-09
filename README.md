@@ -150,6 +150,8 @@ npm run build
 
 GitHub Actions 运行 Go 格式检查、vet、race 测试，以及前端格式、lint、测试和构建。真实 MySQL / Redis / Kafka 集成测试需要独立测试环境并显式启用，见[基础设施验证](docs/integration-verification.md)。
 
+前端依赖已完成安全维护：2026-09-09 完整 `npm audit` 为 0，126 项回归通过；CI 增加 high/critical 依赖告警门禁。版本选择与 Sharp 兼容回归见[维护记录](docs/dependency-maintenance-20260909.md)。
+
 2026-09-09 已补齐本地验证：125 项前端回归、47 个有测试 Go 包的竞态检测、15 个真实依赖集成用例及 1 个报表 SQL 用例通过；记录见 [测试补跑](docs/test-completion-20260909.md)。
 
 ```text

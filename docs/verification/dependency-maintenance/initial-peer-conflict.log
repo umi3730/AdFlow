@@ -1,0 +1,31 @@
+npm error code ERESOLVE
+npm error ERESOLVE could not resolve
+npm error
+npm error While resolving: wrangler@4.130.0
+npm error Found: @cloudflare/workers-types@4.20260515.1
+npm error node_modules/@cloudflare/workers-types
+npm error   dev @cloudflare/workers-types@"4.20260515.1" from the root project
+npm error
+npm error Could not resolve dependency:
+npm error peerOptional @cloudflare/workers-types@"^5.20260908.1" from wrangler@4.130.0
+npm error node_modules/wrangler
+npm error   dev wrangler@"4.130.0" from the root project
+npm error   wrangler@"4.130.0" from @cloudflare/vite-plugin@1.54.6
+npm error   node_modules/@cloudflare/vite-plugin
+npm error     dev @cloudflare/vite-plugin@"1.54.6" from the root project
+npm error
+npm error Conflicting peer dependency: @cloudflare/workers-types@5.20260908.1
+npm error node_modules/@cloudflare/workers-types
+npm error   peerOptional @cloudflare/workers-types@"^5.20260908.1" from wrangler@4.130.0
+npm error   node_modules/wrangler
+npm error     dev wrangler@"4.130.0" from the root project
+npm error     wrangler@"4.130.0" from @cloudflare/vite-plugin@1.54.6
+npm error     node_modules/@cloudflare/vite-plugin
+npm error       dev @cloudflare/vite-plugin@"1.54.6" from the root project
+npm error
+npm error Fix the upstream dependency conflict, or retry this command with --force or --legacy-peer-deps to accept an incorrect (and potentially broken) dependency resolution.
+npm error
+npm error
+npm error For a full report see:
+npm error C:\Users\zhanghaiyang\AppData\Local\npm-cache\_logs\2026-09-09T06_04_23_826Z-eresolve-report.txt
+npm error A complete log of this run can be found in: C:\Users\zhanghaiyang\AppData\Local\npm-cache\_logs\2026-09-09T06_04_23_826Z-debug-0.log

@@ -1,0 +1,9 @@
+{
+  "sharp": "0.35.4",
+  "heif": "1.23.2",
+  "vips": "8.18.6",
+  "format": "heif",
+  "width": 8,
+  "height": 8,
+  "passed": true
+}

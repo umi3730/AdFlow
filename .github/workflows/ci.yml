@@ -69,6 +69,9 @@ jobs:
       - name: Check formatting
         run: npm run format -- --check
 
+      - name: Audit dependencies
+        run: npm audit --audit-level=high
+
       - name: Lint
         run: npm run lint
 
