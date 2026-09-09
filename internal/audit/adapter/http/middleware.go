@@ -71,6 +71,7 @@ func auditedAction(method, route string) (string, string, bool) {
 		http.MethodPost + " /v1/decisions":                                   {"REQUEST_DECISION", "decision"},
 		http.MethodPost + " /v1/events":                                      {"RECORD_EVENT", "event"},
 		http.MethodPost + " /v1/agent/rule-drafts":                           {"GENERATE_RULE_DRAFT", "agent_rule"},
+		http.MethodPost + " /v1/agent/delivery-diagnoses":                    {"DIAGNOSE_DELIVERY", "agent_diagnosis"},
 		http.MethodPost + " /v1/operations/dead-letters/:eventId/replay":     {"REPLAY_DEAD_LETTER", "event"},
 	}
 	matched, ok := actions[method+" "+route]

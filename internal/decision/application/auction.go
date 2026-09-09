@@ -26,6 +26,22 @@ func auctionBefore(a, b domain.Candidate, requestID string) bool {
 	return a.CampaignID < b.CampaignID
 }
 
+// Only diagnose an empty ranking; preserve the reason in the original decision.
+func unavailableCandidateReason(candidates []domain.Candidate, profile domain.Profile, now time.Time) domain.Reason {
+	reason := domain.ReasonNoCandidate
+	evaluator := domain.Evaluator{}
+	for _, c := range candidates {
+		if (!c.StartAt.IsZero() && now.Before(c.StartAt)) || (!c.EndAt.IsZero() && !now.Before(c.EndAt)) {
+			continue
+		}
+		reason = domain.ReasonTargetingMiss
+		if evaluator.Match(profile, c.Targeting) && len(c.CreativeIDs) == 0 {
+			return domain.ReasonNoCreative
+		}
+	}
+	return reason
+}
+
 func rankCandidates(candidates []domain.Candidate, profile domain.Profile, now time.Time, requestID string) ([]domain.Candidate, int) {
 	representatives := make(map[string]domain.Candidate)
 	legacy := make([]domain.Candidate, 0)

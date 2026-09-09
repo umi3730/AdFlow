@@ -1,0 +1,61 @@
+?   	github.com/umi3730/adflow/cmd/api	[no test files]
+?   	github.com/umi3730/adflow/cmd/migrate	[no test files]
+?   	github.com/umi3730/adflow/internal/agentassistant/adapter/http	[no test files]
+ok  	github.com/umi3730/adflow/internal/agentassistant/adapter/mock	(cached)
+ok  	github.com/umi3730/adflow/internal/agentassistant/adapter/openai	(cached)
+ok  	github.com/umi3730/adflow/internal/agentassistant/application	(cached)
+?   	github.com/umi3730/adflow/internal/agentassistant/domain	[no test files]
+ok  	github.com/umi3730/adflow/internal/audit/adapter/http	(cached)
+ok  	github.com/umi3730/adflow/internal/audit/adapter/memory	(cached)
+ok  	github.com/umi3730/adflow/internal/audit/adapter/mysql	(cached)
+ok  	github.com/umi3730/adflow/internal/audit/application	(cached)
+?   	github.com/umi3730/adflow/internal/audit/domain	[no test files]
+ok  	github.com/umi3730/adflow/internal/bootstrap	(cached)
+ok  	github.com/umi3730/adflow/internal/campaign/adapter/http	(cached)
+ok  	github.com/umi3730/adflow/internal/campaign/adapter/memory	(cached)
+ok  	github.com/umi3730/adflow/internal/campaign/adapter/mysql	(cached)
+ok  	github.com/umi3730/adflow/internal/campaign/application	(cached)
+ok  	github.com/umi3730/adflow/internal/campaign/domain	(cached)
+ok  	github.com/umi3730/adflow/internal/config	(cached)
+ok  	github.com/umi3730/adflow/internal/decision/adapter/campaign	(cached)
+ok  	github.com/umi3730/adflow/internal/decision/adapter/http	(cached)
+ok  	github.com/umi3730/adflow/internal/decision/adapter/memory	(cached)
+ok  	github.com/umi3730/adflow/internal/decision/adapter/mysql	(cached)
+ok  	github.com/umi3730/adflow/internal/decision/adapter/profilecache	(cached)
+ok  	github.com/umi3730/adflow/internal/decision/adapter/redis	(cached)
+ok  	github.com/umi3730/adflow/internal/decision/adapter/requestprofile	(cached)
+ok  	github.com/umi3730/adflow/internal/decision/application	(cached)
+ok  	github.com/umi3730/adflow/internal/decision/domain	(cached)
+?   	github.com/umi3730/adflow/internal/event/adapter/http	[no test files]
+ok  	github.com/umi3730/adflow/internal/event/adapter/kafka	(cached)
+?   	github.com/umi3730/adflow/internal/event/adapter/memory	[no test files]
+ok  	github.com/umi3730/adflow/internal/event/adapter/mysql	(cached)
+ok  	github.com/umi3730/adflow/internal/event/application	(cached)
+ok  	github.com/umi3730/adflow/internal/event/domain	(cached)
+ok  	github.com/umi3730/adflow/internal/health	(cached)
+ok  	github.com/umi3730/adflow/internal/identity/adapter/http	(cached)
+ok  	github.com/umi3730/adflow/internal/identity/adapter/jwt	(cached)
+ok  	github.com/umi3730/adflow/internal/identity/adapter/memory	(cached)
+ok  	github.com/umi3730/adflow/internal/identity/adapter/mysql	(cached)
+?   	github.com/umi3730/adflow/internal/identity/adapter/password	[no test files]
+ok  	github.com/umi3730/adflow/internal/identity/application	(cached)
+ok  	github.com/umi3730/adflow/internal/identity/domain	(cached)
+ok  	github.com/umi3730/adflow/internal/observability	(cached)
+ok  	github.com/umi3730/adflow/internal/operations/adapter/http	(cached)
+ok  	github.com/umi3730/adflow/internal/operations/application	(cached)
+?   	github.com/umi3730/adflow/internal/platform/cache	[no test files]
+ok  	github.com/umi3730/adflow/internal/platform/database	(cached)
+ok  	github.com/umi3730/adflow/internal/platform/migrate	(cached)
+ok  	github.com/umi3730/adflow/internal/platform/profiling	(cached)
+ok  	github.com/umi3730/adflow/internal/profile/schema	(cached)
+ok  	github.com/umi3730/adflow/internal/transport/http	(cached)
+?   	github.com/umi3730/adflow/tests/bench/full-chain	[no test files]
+?   	github.com/umi3730/adflow/tests/bench/jmeter-profile	[no test files]
+ok  	github.com/umi3730/adflow/tests/bench/k6-lab	(cached)
+?   	github.com/umi3730/adflow/tests/bench/outbox-index	[no test files]
+?   	github.com/umi3730/adflow/tests/plan-sample-contract	[no test files]
+?   	github.com/umi3730/adflow/work	[no test files]
+?   	github.com/umi3730/adflow/work/auth-registration	[no test files]
+?   	github.com/umi3730/adflow/work/claude-review	[no test files]
+?   	github.com/umi3730/adflow/work/claude-review/pprof-fixture	[no test files]
+?   	github.com/umi3730/adflow/work/simulation-timeout	[no test files]

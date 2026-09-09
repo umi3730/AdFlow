@@ -3,6 +3,7 @@ import type { RequestTrace, TraceTarget } from './api';
 export const traceReasonLabels: Record<string, string> = {
   matched: '已命中广告',
   targeting_miss: '定向未命中',
+  no_creative: '缺少可用素材',
   profile_not_found: '用户画像不存在',
   no_candidate: '没有有效候选',
   frequency_capped: '达到每日频控',

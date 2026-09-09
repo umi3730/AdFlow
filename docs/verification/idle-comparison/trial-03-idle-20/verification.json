@@ -1,0 +1,80 @@
+{
+  "verified": false,
+  "measurementsVerified": true,
+  "sourceVerified": false,
+  "sourceMismatches": [
+    {
+      "path": "cmd/api/main.go",
+      "recordedSHA256": "764338ff347f667a94078f4d0e2aa423a326dfe4a53ff48ec308d3eb128e8651"
+    }
+  ],
+  "backpressureExperiment": true,
+  "protectionPassed": true,
+  "incompleteStages": [],
+  "confirmedBusinessRoundsPerSecond": null,
+  "measuredLoopsAllStages": 8252,
+  "acceptedEventsAllStages": 16398,
+  "confirmationLoops": 0,
+  "confirmationEvents": 0,
+  "confirmedCombinedP95Ms": null,
+  "stages": [
+    {
+      "id": "01-baseline-45",
+      "rate": 45,
+      "seconds": 20,
+      "completed": 900,
+      "events": 2700,
+      "decisionP95Ms": 65.7621128,
+      "acceptanceP95Ms": 185,
+      "committedObservedP95Ms": 1360,
+      "observationCoverage": 1.0,
+      "drainSeconds": 1.111112403,
+      "accountingPassed": true,
+      "passed": true,
+      "attempts": 900,
+      "expectedBackpressureRejections": 0,
+      "matchedDecisionP95Ms": 65.7621128,
+      "unexpectedBusinessErrorRate": 0,
+      "admittedRoundsPerConfiguredSecond": 45.0
+    },
+    {
+      "id": "02-overload-100",
+      "rate": 100,
+      "seconds": 60,
+      "completed": 3215,
+      "events": 9645,
+      "decisionP95Ms": 77.939492,
+      "acceptanceP95Ms": 273.1999999999989,
+      "committedObservedP95Ms": 3133,
+      "observationCoverage": 1.0,
+      "drainSeconds": 2.6518072889999997,
+      "accountingPassed": true,
+      "passed": true,
+      "attempts": 6001,
+      "expectedBackpressureRejections": 2786,
+      "matchedDecisionP95Ms": 95.54793469999977,
+      "unexpectedBusinessErrorRate": 0,
+      "admittedRoundsPerConfiguredSecond": 53.583333333333336
+    },
+    {
+      "id": "03-recovery-45",
+      "rate": 45,
+      "seconds": 30,
+      "completed": 1351,
+      "events": 4053,
+      "decisionP95Ms": 108.2897535,
+      "acceptanceP95Ms": 286.5,
+      "committedObservedP95Ms": 2011,
+      "observationCoverage": 1.0,
+      "drainSeconds": 1.062256581,
+      "accountingPassed": true,
+      "passed": true,
+      "attempts": 1351,
+      "expectedBackpressureRejections": 0,
+      "matchedDecisionP95Ms": 108.2897535,
+      "unexpectedBusinessErrorRate": 0,
+      "admittedRoundsPerConfiguredSecond": 45.03333333333333
+    }
+  ],
+  "rawSHA256": "dc485b4e90b45f0c58e85b7931196b5a4693c7c8f04ea50e6852537121210326"
+}

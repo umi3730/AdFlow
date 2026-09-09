@@ -1,0 +1,109 @@
+{
+  "startedAt": "2026-09-08T17:55:33.2815188+08:00",
+  "order": [
+    30,
+    60,
+    100,
+    60,
+    100,
+    30,
+    100,
+    30,
+    60
+  ],
+  "overloadSeconds": 60,
+  "baseline": {
+    "seconds": 20,
+    "rate": 45
+  },
+  "overload": {
+    "seconds": 60,
+    "rate": 100
+  },
+  "recovery": {
+    "seconds": 30,
+    "rate": 45
+  },
+  "fixedPool": {
+    "maxLifetime": "3m",
+    "maxIdleTime": "1m",
+    "maxIdle": 10
+  },
+  "cpuProfiling": "20 seconds during each overload phase",
+  "apiSHA256": "99cbc0c368c0bce7caf833dd6cfb8fd5935247963f158d7c7fa12406029ff5d9",
+  "trials": [
+    {
+      "exitCode": 0,
+      "round": 1.0,
+      "passed": true,
+      "error": null,
+      "name": "trial-01-pool-30",
+      "pool": 30
+    },
+    {
+      "exitCode": 0,
+      "round": 1.0,
+      "passed": true,
+      "error": null,
+      "name": "trial-02-pool-60",
+      "pool": 60
+    },
+    {
+      "exitCode": 0,
+      "round": 1.0,
+      "passed": true,
+      "error": null,
+      "name": "trial-03-pool-100",
+      "pool": 100
+    },
+    {
+      "exitCode": 0,
+      "round": 2.0,
+      "passed": true,
+      "error": null,
+      "name": "trial-04-pool-60",
+      "pool": 60
+    },
+    {
+      "exitCode": 0,
+      "round": 2.0,
+      "passed": true,
+      "error": null,
+      "name": "trial-05-pool-100",
+      "pool": 100
+    },
+    {
+      "exitCode": 0,
+      "round": 2.0,
+      "passed": true,
+      "error": null,
+      "name": "trial-06-pool-30",
+      "pool": 30
+    },
+    {
+      "exitCode": 0,
+      "round": 3.0,
+      "passed": true,
+      "error": null,
+      "name": "trial-07-pool-100",
+      "pool": 100
+    },
+    {
+      "exitCode": 0,
+      "round": 3.0,
+      "passed": true,
+      "error": null,
+      "name": "trial-08-pool-30",
+      "pool": 30
+    },
+    {
+      "exitCode": 0,
+      "round": 3.0,
+      "passed": true,
+      "error": null,
+      "name": "trial-09-pool-60",
+      "pool": 60
+    }
+  ],
+  "finishedAt": "2026-09-08T18:19:11.2654301+08:00"
+}

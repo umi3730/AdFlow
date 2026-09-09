@@ -1,0 +1,971 @@
+{
+  "note": "Hashes were read from the live workspace during each trial, not at API build. cmd/api/main.go drifted; trial 3 intermediate bytes are unavailable. Recovered hashes do not prove a full source-to-binary mapping. All six recorded API binary hashes agree. Raw reports are unchanged.",
+  "entries": [
+    {
+      "trial": "trial-01-idle-10",
+      "path": "cmd/api/main.go",
+      "recordedSHA256": "838bdad4d8feb231a735f2ac04501e969f048df328df17427a4a9bcf85014f95",
+      "snapshotFound": true,
+      "recoveredFrom": "docs\\verification\\idle-comparison-clock-failure\\source\\cmd\\api\\main.go.txt"
+    },
+    {
+      "trial": "trial-01-idle-10",
+      "path": "internal/config/config.go",
+      "recordedSHA256": "4f7d88c74b5291c568713e416779366e3ba0ed18fa255076348a099bfbb6bbaa",
+      "snapshotFound": true,
+      "recoveredFrom": "internal\\config\\config.go"
+    },
+    {
+      "trial": "trial-01-idle-10",
+      "path": "internal/decision/application/backpressure.go",
+      "recordedSHA256": "550d6f4355f21ebf55e56e16613ae6546eea3b2bc5c04a019acaeaf7c28110fe",
+      "snapshotFound": true,
+      "recoveredFrom": "internal\\decision\\application\\backpressure.go"
+    },
+    {
+      "trial": "trial-01-idle-10",
+      "path": "internal/decision/application/service.go",
+      "recordedSHA256": "43fb4f6ed03a64aced7d861566dd48e130b9e3942bb44e82462ba7e27934dafd",
+      "snapshotFound": true,
+      "recoveredFrom": "internal\\decision\\application\\service.go"
+    },
+    {
+      "trial": "trial-01-idle-10",
+      "path": "internal/event/adapter/kafka/client.go",
+      "recordedSHA256": "fae080b40540925eddf04e81236f13b2205e4be00ce24b81ba2b41be224881a5",
+      "snapshotFound": true,
+      "recoveredFrom": "internal\\event\\adapter\\kafka\\client.go"
+    },
+    {
+      "trial": "trial-01-idle-10",
+      "path": "internal/event/adapter/mysql/backpressure.go",
+      "recordedSHA256": "b7fb2b42833ffacc88c14f751eb25a10eba6cb20368e26542030dd08f56fef1b",
+      "snapshotFound": true,
+      "recoveredFrom": "internal\\event\\adapter\\mysql\\backpressure.go"
+    },
+    {
+      "trial": "trial-01-idle-10",
+      "path": "internal/event/adapter/mysql/outbox.go",
+      "recordedSHA256": "9b9749d52fec379b4303bbdc824074f3ae6a3b4144ac526bf9461972d6002fcd",
+      "snapshotFound": true,
+      "recoveredFrom": "internal\\event\\adapter\\mysql\\outbox.go"
+    },
+    {
+      "trial": "trial-01-idle-10",
+      "path": "internal/event/adapter/mysql/settlement.go",
+      "recordedSHA256": "d5c64a848bc6ede0377dd099e045a1032793ca83ca50dab4e488e891a157d97b",
+      "snapshotFound": true,
+      "recoveredFrom": "internal\\event\\adapter\\mysql\\settlement.go"
+    },
+    {
+      "trial": "trial-01-idle-10",
+      "path": "internal/event/adapter/mysql/settlement_transaction.go",
+      "recordedSHA256": "80b1177781cbf0b2d9b5f516357dd41e93a7f4c37ddd6495678369ce0f7209cc",
+      "snapshotFound": true,
+      "recoveredFrom": "internal\\event\\adapter\\mysql\\settlement_transaction.go"
+    },
+    {
+      "trial": "trial-01-idle-10",
+      "path": "internal/event/application/outbox_relay.go",
+      "recordedSHA256": "c0072411cc199858abb9605a29e5cb639bbef44c0b0fec88432eb074c265e60f",
+      "snapshotFound": true,
+      "recoveredFrom": "internal\\event\\application\\outbox_relay.go"
+    },
+    {
+      "trial": "trial-01-idle-10",
+      "path": "internal/event/application/settlement_worker.go",
+      "recordedSHA256": "525c0d7e791f32a1c94978f410c5ca921aa088f5de961508856033400269ef89",
+      "snapshotFound": true,
+      "recoveredFrom": "internal\\event\\application\\settlement_worker.go"
+    },
+    {
+      "trial": "trial-01-idle-10",
+      "path": "internal/event/domain/settlement.go",
+      "recordedSHA256": "bd66451b50e1f747040629d0cea081284fb43e023d60121ac037b725e152039e",
+      "snapshotFound": true,
+      "recoveredFrom": "internal\\event\\domain\\settlement.go"
+    },
+    {
+      "trial": "trial-01-idle-10",
+      "path": "internal/observability/metrics.go",
+      "recordedSHA256": "31d1fdc7932ba7636ab7d9f764913ef7bf867c3a00ca61ec046f0eb7623dcf9b",
+      "snapshotFound": true,
+      "recoveredFrom": "internal\\observability\\metrics.go"
+    },
+    {
+      "trial": "trial-01-idle-10",
+      "path": "internal/platform/database/mysql.go",
+      "recordedSHA256": "19b08687a8c5a74e1d16e0a8b4a5f327358e44229b1e23b24e08a1efacca75d8",
+      "snapshotFound": true,
+      "recoveredFrom": "internal\\platform\\database\\mysql.go"
+    },
+    {
+      "trial": "trial-01-idle-10",
+      "path": "internal/platform/profiling/server.go",
+      "recordedSHA256": "ca2ff0769bba54449abb4479083dd1f4bafbd6aa8bb7d1df154c1539b6607fa7",
+      "snapshotFound": true,
+      "recoveredFrom": "internal\\platform\\profiling\\server.go"
+    },
+    {
+      "trial": "trial-01-idle-10",
+      "path": "tests/bench/k6-lab/clock_guard.go",
+      "recordedSHA256": "a1469c3169c22726df47a07e099ea023584812d9ba1718290902f04399290d26",
+      "snapshotFound": true,
+      "recoveredFrom": "tests\\bench\\k6-lab\\clock_guard.go"
+    },
+    {
+      "trial": "trial-01-idle-10",
+      "path": "tests/bench/k6-lab/kafka_capacity.go",
+      "recordedSHA256": "f8fd200307869f8474bfd7eb0b97f617bc2ea7903d128031a668a7b0204d2e0f",
+      "snapshotFound": true,
+      "recoveredFrom": "tests\\bench\\k6-lab\\kafka_capacity.go"
+    },
+    {
+      "trial": "trial-01-idle-10",
+      "path": "tests/bench/k6-lab/main.go",
+      "recordedSHA256": "1e80b34e3d99d4a7f738b79778b9be05e1b0880e443edafdb44353a41859af6e",
+      "snapshotFound": true,
+      "recoveredFrom": "tests\\bench\\k6-lab\\main.go"
+    },
+    {
+      "trial": "trial-01-idle-10",
+      "path": "tests/bench/k6-lab/pool_flags.go",
+      "recordedSHA256": "60750394679b5753d38915b3bb73616a54affd7a66c46007196156e2f849b1a6",
+      "snapshotFound": true,
+      "recoveredFrom": "tests\\bench\\k6-lab\\pool_flags.go"
+    },
+    {
+      "trial": "trial-01-idle-10",
+      "path": "tests/bench/k6-lab/pool_observation.go",
+      "recordedSHA256": "df877ce8f7e7ad11b6fcbf6c3b8332a5e8852be7ad6cf9cd25b4f5c21f13faaf",
+      "snapshotFound": true,
+      "recoveredFrom": "tests\\bench\\k6-lab\\pool_observation.go"
+    },
+    {
+      "trial": "trial-01-idle-10",
+      "path": "tests/load/k6-walkthrough.js",
+      "recordedSHA256": "73aec517bfa170b5ebe185c9de34813ae5cdc3b8d2c67efad728ee7cd583001e",
+      "snapshotFound": true,
+      "recoveredFrom": "tests\\load\\k6-walkthrough.js"
+    },
+    {
+      "trial": "trial-01-idle-10",
+      "path": "tests/load/kafka-backpressure.js",
+      "recordedSHA256": "fa227ab65b9ba79443ebbe4731bb10293f9183c44124b1c5012661aefb8098dd",
+      "snapshotFound": true,
+      "recoveredFrom": "tests\\load\\kafka-backpressure.js"
+    },
+    {
+      "trial": "trial-01-idle-10",
+      "path": "tests/load/kafka-capacity.js",
+      "recordedSHA256": "c30ab54cfcf22305f2fb2f561fa241fb71a9fcf8caccbb60686575192d22194c",
+      "snapshotFound": true,
+      "recoveredFrom": "tests\\load\\kafka-capacity.js"
+    },
+    {
+      "trial": "trial-02-idle-20",
+      "path": "cmd/api/main.go",
+      "recordedSHA256": "838bdad4d8feb231a735f2ac04501e969f048df328df17427a4a9bcf85014f95",
+      "snapshotFound": true,
+      "recoveredFrom": "docs\\verification\\idle-comparison-clock-failure\\source\\cmd\\api\\main.go.txt"
+    },
+    {
+      "trial": "trial-02-idle-20",
+      "path": "internal/config/config.go",
+      "recordedSHA256": "4f7d88c74b5291c568713e416779366e3ba0ed18fa255076348a099bfbb6bbaa",
+      "snapshotFound": true,
+      "recoveredFrom": "internal\\config\\config.go"
+    },
+    {
+      "trial": "trial-02-idle-20",
+      "path": "internal/decision/application/backpressure.go",
+      "recordedSHA256": "550d6f4355f21ebf55e56e16613ae6546eea3b2bc5c04a019acaeaf7c28110fe",
+      "snapshotFound": true,
+      "recoveredFrom": "internal\\decision\\application\\backpressure.go"
+    },
+    {
+      "trial": "trial-02-idle-20",
+      "path": "internal/decision/application/service.go",
+      "recordedSHA256": "43fb4f6ed03a64aced7d861566dd48e130b9e3942bb44e82462ba7e27934dafd",
+      "snapshotFound": true,
+      "recoveredFrom": "internal\\decision\\application\\service.go"
+    },
+    {
+      "trial": "trial-02-idle-20",
+      "path": "internal/event/adapter/kafka/client.go",
+      "recordedSHA256": "fae080b40540925eddf04e81236f13b2205e4be00ce24b81ba2b41be224881a5",
+      "snapshotFound": true,
+      "recoveredFrom": "internal\\event\\adapter\\kafka\\client.go"
+    },
+    {
+      "trial": "trial-02-idle-20",
+      "path": "internal/event/adapter/mysql/backpressure.go",
+      "recordedSHA256": "b7fb2b42833ffacc88c14f751eb25a10eba6cb20368e26542030dd08f56fef1b",
+      "snapshotFound": true,
+      "recoveredFrom": "internal\\event\\adapter\\mysql\\backpressure.go"
+    },
+    {
+      "trial": "trial-02-idle-20",
+      "path": "internal/event/adapter/mysql/outbox.go",
+      "recordedSHA256": "9b9749d52fec379b4303bbdc824074f3ae6a3b4144ac526bf9461972d6002fcd",
+      "snapshotFound": true,
+      "recoveredFrom": "internal\\event\\adapter\\mysql\\outbox.go"
+    },
+    {
+      "trial": "trial-02-idle-20",
+      "path": "internal/event/adapter/mysql/settlement.go",
+      "recordedSHA256": "d5c64a848bc6ede0377dd099e045a1032793ca83ca50dab4e488e891a157d97b",
+      "snapshotFound": true,
+      "recoveredFrom": "internal\\event\\adapter\\mysql\\settlement.go"
+    },
+    {
+      "trial": "trial-02-idle-20",
+      "path": "internal/event/adapter/mysql/settlement_transaction.go",
+      "recordedSHA256": "80b1177781cbf0b2d9b5f516357dd41e93a7f4c37ddd6495678369ce0f7209cc",
+      "snapshotFound": true,
+      "recoveredFrom": "internal\\event\\adapter\\mysql\\settlement_transaction.go"
+    },
+    {
+      "trial": "trial-02-idle-20",
+      "path": "internal/event/application/outbox_relay.go",
+      "recordedSHA256": "c0072411cc199858abb9605a29e5cb639bbef44c0b0fec88432eb074c265e60f",
+      "snapshotFound": true,
+      "recoveredFrom": "internal\\event\\application\\outbox_relay.go"
+    },
+    {
+      "trial": "trial-02-idle-20",
+      "path": "internal/event/application/settlement_worker.go",
+      "recordedSHA256": "525c0d7e791f32a1c94978f410c5ca921aa088f5de961508856033400269ef89",
+      "snapshotFound": true,
+      "recoveredFrom": "internal\\event\\application\\settlement_worker.go"
+    },
+    {
+      "trial": "trial-02-idle-20",
+      "path": "internal/event/domain/settlement.go",
+      "recordedSHA256": "bd66451b50e1f747040629d0cea081284fb43e023d60121ac037b725e152039e",
+      "snapshotFound": true,
+      "recoveredFrom": "internal\\event\\domain\\settlement.go"
+    },
+    {
+      "trial": "trial-02-idle-20",
+      "path": "internal/observability/metrics.go",
+      "recordedSHA256": "31d1fdc7932ba7636ab7d9f764913ef7bf867c3a00ca61ec046f0eb7623dcf9b",
+      "snapshotFound": true,
+      "recoveredFrom": "internal\\observability\\metrics.go"
+    },
+    {
+      "trial": "trial-02-idle-20",
+      "path": "internal/platform/database/mysql.go",
+      "recordedSHA256": "19b08687a8c5a74e1d16e0a8b4a5f327358e44229b1e23b24e08a1efacca75d8",
+      "snapshotFound": true,
+      "recoveredFrom": "internal\\platform\\database\\mysql.go"
+    },
+    {
+      "trial": "trial-02-idle-20",
+      "path": "internal/platform/profiling/server.go",
+      "recordedSHA256": "ca2ff0769bba54449abb4479083dd1f4bafbd6aa8bb7d1df154c1539b6607fa7",
+      "snapshotFound": true,
+      "recoveredFrom": "internal\\platform\\profiling\\server.go"
+    },
+    {
+      "trial": "trial-02-idle-20",
+      "path": "tests/bench/k6-lab/clock_guard.go",
+      "recordedSHA256": "a1469c3169c22726df47a07e099ea023584812d9ba1718290902f04399290d26",
+      "snapshotFound": true,
+      "recoveredFrom": "tests\\bench\\k6-lab\\clock_guard.go"
+    },
+    {
+      "trial": "trial-02-idle-20",
+      "path": "tests/bench/k6-lab/kafka_capacity.go",
+      "recordedSHA256": "f8fd200307869f8474bfd7eb0b97f617bc2ea7903d128031a668a7b0204d2e0f",
+      "snapshotFound": true,
+      "recoveredFrom": "tests\\bench\\k6-lab\\kafka_capacity.go"
+    },
+    {
+      "trial": "trial-02-idle-20",
+      "path": "tests/bench/k6-lab/main.go",
+      "recordedSHA256": "1e80b34e3d99d4a7f738b79778b9be05e1b0880e443edafdb44353a41859af6e",
+      "snapshotFound": true,
+      "recoveredFrom": "tests\\bench\\k6-lab\\main.go"
+    },
+    {
+      "trial": "trial-02-idle-20",
+      "path": "tests/bench/k6-lab/pool_flags.go",
+      "recordedSHA256": "60750394679b5753d38915b3bb73616a54affd7a66c46007196156e2f849b1a6",
+      "snapshotFound": true,
+      "recoveredFrom": "tests\\bench\\k6-lab\\pool_flags.go"
+    },
+    {
+      "trial": "trial-02-idle-20",
+      "path": "tests/bench/k6-lab/pool_observation.go",
+      "recordedSHA256": "df877ce8f7e7ad11b6fcbf6c3b8332a5e8852be7ad6cf9cd25b4f5c21f13faaf",
+      "snapshotFound": true,
+      "recoveredFrom": "tests\\bench\\k6-lab\\pool_observation.go"
+    },
+    {
+      "trial": "trial-02-idle-20",
+      "path": "tests/load/k6-walkthrough.js",
+      "recordedSHA256": "73aec517bfa170b5ebe185c9de34813ae5cdc3b8d2c67efad728ee7cd583001e",
+      "snapshotFound": true,
+      "recoveredFrom": "tests\\load\\k6-walkthrough.js"
+    },
+    {
+      "trial": "trial-02-idle-20",
+      "path": "tests/load/kafka-backpressure.js",
+      "recordedSHA256": "fa227ab65b9ba79443ebbe4731bb10293f9183c44124b1c5012661aefb8098dd",
+      "snapshotFound": true,
+      "recoveredFrom": "tests\\load\\kafka-backpressure.js"
+    },
+    {
+      "trial": "trial-02-idle-20",
+      "path": "tests/load/kafka-capacity.js",
+      "recordedSHA256": "c30ab54cfcf22305f2fb2f561fa241fb71a9fcf8caccbb60686575192d22194c",
+      "snapshotFound": true,
+      "recoveredFrom": "tests\\load\\kafka-capacity.js"
+    },
+    {
+      "trial": "trial-03-idle-20",
+      "path": "cmd/api/main.go",
+      "recordedSHA256": "764338ff347f667a94078f4d0e2aa423a326dfe4a53ff48ec308d3eb128e8651",
+      "snapshotFound": false,
+      "recoveredFrom": null
+    },
+    {
+      "trial": "trial-03-idle-20",
+      "path": "internal/config/config.go",
+      "recordedSHA256": "4f7d88c74b5291c568713e416779366e3ba0ed18fa255076348a099bfbb6bbaa",
+      "snapshotFound": true,
+      "recoveredFrom": "internal\\config\\config.go"
+    },
+    {
+      "trial": "trial-03-idle-20",
+      "path": "internal/decision/application/backpressure.go",
+      "recordedSHA256": "550d6f4355f21ebf55e56e16613ae6546eea3b2bc5c04a019acaeaf7c28110fe",
+      "snapshotFound": true,
+      "recoveredFrom": "internal\\decision\\application\\backpressure.go"
+    },
+    {
+      "trial": "trial-03-idle-20",
+      "path": "internal/decision/application/service.go",
+      "recordedSHA256": "43fb4f6ed03a64aced7d861566dd48e130b9e3942bb44e82462ba7e27934dafd",
+      "snapshotFound": true,
+      "recoveredFrom": "internal\\decision\\application\\service.go"
+    },
+    {
+      "trial": "trial-03-idle-20",
+      "path": "internal/event/adapter/kafka/client.go",
+      "recordedSHA256": "fae080b40540925eddf04e81236f13b2205e4be00ce24b81ba2b41be224881a5",
+      "snapshotFound": true,
+      "recoveredFrom": "internal\\event\\adapter\\kafka\\client.go"
+    },
+    {
+      "trial": "trial-03-idle-20",
+      "path": "internal/event/adapter/mysql/backpressure.go",
+      "recordedSHA256": "b7fb2b42833ffacc88c14f751eb25a10eba6cb20368e26542030dd08f56fef1b",
+      "snapshotFound": true,
+      "recoveredFrom": "internal\\event\\adapter\\mysql\\backpressure.go"
+    },
+    {
+      "trial": "trial-03-idle-20",
+      "path": "internal/event/adapter/mysql/outbox.go",
+      "recordedSHA256": "9b9749d52fec379b4303bbdc824074f3ae6a3b4144ac526bf9461972d6002fcd",
+      "snapshotFound": true,
+      "recoveredFrom": "internal\\event\\adapter\\mysql\\outbox.go"
+    },
+    {
+      "trial": "trial-03-idle-20",
+      "path": "internal/event/adapter/mysql/settlement.go",
+      "recordedSHA256": "d5c64a848bc6ede0377dd099e045a1032793ca83ca50dab4e488e891a157d97b",
+      "snapshotFound": true,
+      "recoveredFrom": "internal\\event\\adapter\\mysql\\settlement.go"
+    },
+    {
+      "trial": "trial-03-idle-20",
+      "path": "internal/event/adapter/mysql/settlement_transaction.go",
+      "recordedSHA256": "80b1177781cbf0b2d9b5f516357dd41e93a7f4c37ddd6495678369ce0f7209cc",
+      "snapshotFound": true,
+      "recoveredFrom": "internal\\event\\adapter\\mysql\\settlement_transaction.go"
+    },
+    {
+      "trial": "trial-03-idle-20",
+      "path": "internal/event/application/outbox_relay.go",
+      "recordedSHA256": "c0072411cc199858abb9605a29e5cb639bbef44c0b0fec88432eb074c265e60f",
+      "snapshotFound": true,
+      "recoveredFrom": "internal\\event\\application\\outbox_relay.go"
+    },
+    {
+      "trial": "trial-03-idle-20",
+      "path": "internal/event/application/settlement_worker.go",
+      "recordedSHA256": "525c0d7e791f32a1c94978f410c5ca921aa088f5de961508856033400269ef89",
+      "snapshotFound": true,
+      "recoveredFrom": "internal\\event\\application\\settlement_worker.go"
+    },
+    {
+      "trial": "trial-03-idle-20",
+      "path": "internal/event/domain/settlement.go",
+      "recordedSHA256": "bd66451b50e1f747040629d0cea081284fb43e023d60121ac037b725e152039e",
+      "snapshotFound": true,
+      "recoveredFrom": "internal\\event\\domain\\settlement.go"
+    },
+    {
+      "trial": "trial-03-idle-20",
+      "path": "internal/observability/metrics.go",
+      "recordedSHA256": "31d1fdc7932ba7636ab7d9f764913ef7bf867c3a00ca61ec046f0eb7623dcf9b",
+      "snapshotFound": true,
+      "recoveredFrom": "internal\\observability\\metrics.go"
+    },
+    {
+      "trial": "trial-03-idle-20",
+      "path": "internal/platform/database/mysql.go",
+      "recordedSHA256": "19b08687a8c5a74e1d16e0a8b4a5f327358e44229b1e23b24e08a1efacca75d8",
+      "snapshotFound": true,
+      "recoveredFrom": "internal\\platform\\database\\mysql.go"
+    },
+    {
+      "trial": "trial-03-idle-20",
+      "path": "internal/platform/profiling/server.go",
+      "recordedSHA256": "ca2ff0769bba54449abb4479083dd1f4bafbd6aa8bb7d1df154c1539b6607fa7",
+      "snapshotFound": true,
+      "recoveredFrom": "internal\\platform\\profiling\\server.go"
+    },
+    {
+      "trial": "trial-03-idle-20",
+      "path": "tests/bench/k6-lab/clock_guard.go",
+      "recordedSHA256": "a1469c3169c22726df47a07e099ea023584812d9ba1718290902f04399290d26",
+      "snapshotFound": true,
+      "recoveredFrom": "tests\\bench\\k6-lab\\clock_guard.go"
+    },
+    {
+      "trial": "trial-03-idle-20",
+      "path": "tests/bench/k6-lab/kafka_capacity.go",
+      "recordedSHA256": "f8fd200307869f8474bfd7eb0b97f617bc2ea7903d128031a668a7b0204d2e0f",
+      "snapshotFound": true,
+      "recoveredFrom": "tests\\bench\\k6-lab\\kafka_capacity.go"
+    },
+    {
+      "trial": "trial-03-idle-20",
+      "path": "tests/bench/k6-lab/main.go",
+      "recordedSHA256": "1e80b34e3d99d4a7f738b79778b9be05e1b0880e443edafdb44353a41859af6e",
+      "snapshotFound": true,
+      "recoveredFrom": "tests\\bench\\k6-lab\\main.go"
+    },
+    {
+      "trial": "trial-03-idle-20",
+      "path": "tests/bench/k6-lab/pool_flags.go",
+      "recordedSHA256": "60750394679b5753d38915b3bb73616a54affd7a66c46007196156e2f849b1a6",
+      "snapshotFound": true,
+      "recoveredFrom": "tests\\bench\\k6-lab\\pool_flags.go"
+    },
+    {
+      "trial": "trial-03-idle-20",
+      "path": "tests/bench/k6-lab/pool_observation.go",
+      "recordedSHA256": "df877ce8f7e7ad11b6fcbf6c3b8332a5e8852be7ad6cf9cd25b4f5c21f13faaf",
+      "snapshotFound": true,
+      "recoveredFrom": "tests\\bench\\k6-lab\\pool_observation.go"
+    },
+    {
+      "trial": "trial-03-idle-20",
+      "path": "tests/load/k6-walkthrough.js",
+      "recordedSHA256": "73aec517bfa170b5ebe185c9de34813ae5cdc3b8d2c67efad728ee7cd583001e",
+      "snapshotFound": true,
+      "recoveredFrom": "tests\\load\\k6-walkthrough.js"
+    },
+    {
+      "trial": "trial-03-idle-20",
+      "path": "tests/load/kafka-backpressure.js",
+      "recordedSHA256": "fa227ab65b9ba79443ebbe4731bb10293f9183c44124b1c5012661aefb8098dd",
+      "snapshotFound": true,
+      "recoveredFrom": "tests\\load\\kafka-backpressure.js"
+    },
+    {
+      "trial": "trial-03-idle-20",
+      "path": "tests/load/kafka-capacity.js",
+      "recordedSHA256": "c30ab54cfcf22305f2fb2f561fa241fb71a9fcf8caccbb60686575192d22194c",
+      "snapshotFound": true,
+      "recoveredFrom": "tests\\load\\kafka-capacity.js"
+    },
+    {
+      "trial": "trial-04-idle-10",
+      "path": "cmd/api/main.go",
+      "recordedSHA256": "ffa3a41fba36b0fd01b75fcfb2304628d191de02fcd86db9250172249f0e841c",
+      "snapshotFound": true,
+      "recoveredFrom": "cmd\\api\\main.go"
+    },
+    {
+      "trial": "trial-04-idle-10",
+      "path": "internal/config/config.go",
+      "recordedSHA256": "4f7d88c74b5291c568713e416779366e3ba0ed18fa255076348a099bfbb6bbaa",
+      "snapshotFound": true,
+      "recoveredFrom": "internal\\config\\config.go"
+    },
+    {
+      "trial": "trial-04-idle-10",
+      "path": "internal/decision/application/backpressure.go",
+      "recordedSHA256": "550d6f4355f21ebf55e56e16613ae6546eea3b2bc5c04a019acaeaf7c28110fe",
+      "snapshotFound": true,
+      "recoveredFrom": "internal\\decision\\application\\backpressure.go"
+    },
+    {
+      "trial": "trial-04-idle-10",
+      "path": "internal/decision/application/service.go",
+      "recordedSHA256": "43fb4f6ed03a64aced7d861566dd48e130b9e3942bb44e82462ba7e27934dafd",
+      "snapshotFound": true,
+      "recoveredFrom": "internal\\decision\\application\\service.go"
+    },
+    {
+      "trial": "trial-04-idle-10",
+      "path": "internal/event/adapter/kafka/client.go",
+      "recordedSHA256": "fae080b40540925eddf04e81236f13b2205e4be00ce24b81ba2b41be224881a5",
+      "snapshotFound": true,
+      "recoveredFrom": "internal\\event\\adapter\\kafka\\client.go"
+    },
+    {
+      "trial": "trial-04-idle-10",
+      "path": "internal/event/adapter/mysql/backpressure.go",
+      "recordedSHA256": "b7fb2b42833ffacc88c14f751eb25a10eba6cb20368e26542030dd08f56fef1b",
+      "snapshotFound": true,
+      "recoveredFrom": "internal\\event\\adapter\\mysql\\backpressure.go"
+    },
+    {
+      "trial": "trial-04-idle-10",
+      "path": "internal/event/adapter/mysql/outbox.go",
+      "recordedSHA256": "9b9749d52fec379b4303bbdc824074f3ae6a3b4144ac526bf9461972d6002fcd",
+      "snapshotFound": true,
+      "recoveredFrom": "internal\\event\\adapter\\mysql\\outbox.go"
+    },
+    {
+      "trial": "trial-04-idle-10",
+      "path": "internal/event/adapter/mysql/settlement.go",
+      "recordedSHA256": "d5c64a848bc6ede0377dd099e045a1032793ca83ca50dab4e488e891a157d97b",
+      "snapshotFound": true,
+      "recoveredFrom": "internal\\event\\adapter\\mysql\\settlement.go"
+    },
+    {
+      "trial": "trial-04-idle-10",
+      "path": "internal/event/adapter/mysql/settlement_transaction.go",
+      "recordedSHA256": "80b1177781cbf0b2d9b5f516357dd41e93a7f4c37ddd6495678369ce0f7209cc",
+      "snapshotFound": true,
+      "recoveredFrom": "internal\\event\\adapter\\mysql\\settlement_transaction.go"
+    },
+    {
+      "trial": "trial-04-idle-10",
+      "path": "internal/event/application/outbox_relay.go",
+      "recordedSHA256": "c0072411cc199858abb9605a29e5cb639bbef44c0b0fec88432eb074c265e60f",
+      "snapshotFound": true,
+      "recoveredFrom": "internal\\event\\application\\outbox_relay.go"
+    },
+    {
+      "trial": "trial-04-idle-10",
+      "path": "internal/event/application/settlement_worker.go",
+      "recordedSHA256": "525c0d7e791f32a1c94978f410c5ca921aa088f5de961508856033400269ef89",
+      "snapshotFound": true,
+      "recoveredFrom": "internal\\event\\application\\settlement_worker.go"
+    },
+    {
+      "trial": "trial-04-idle-10",
+      "path": "internal/event/domain/settlement.go",
+      "recordedSHA256": "bd66451b50e1f747040629d0cea081284fb43e023d60121ac037b725e152039e",
+      "snapshotFound": true,
+      "recoveredFrom": "internal\\event\\domain\\settlement.go"
+    },
+    {
+      "trial": "trial-04-idle-10",
+      "path": "internal/observability/metrics.go",
+      "recordedSHA256": "31d1fdc7932ba7636ab7d9f764913ef7bf867c3a00ca61ec046f0eb7623dcf9b",
+      "snapshotFound": true,
+      "recoveredFrom": "internal\\observability\\metrics.go"
+    },
+    {
+      "trial": "trial-04-idle-10",
+      "path": "internal/platform/database/mysql.go",
+      "recordedSHA256": "19b08687a8c5a74e1d16e0a8b4a5f327358e44229b1e23b24e08a1efacca75d8",
+      "snapshotFound": true,
+      "recoveredFrom": "internal\\platform\\database\\mysql.go"
+    },
+    {
+      "trial": "trial-04-idle-10",
+      "path": "internal/platform/profiling/server.go",
+      "recordedSHA256": "ca2ff0769bba54449abb4479083dd1f4bafbd6aa8bb7d1df154c1539b6607fa7",
+      "snapshotFound": true,
+      "recoveredFrom": "internal\\platform\\profiling\\server.go"
+    },
+    {
+      "trial": "trial-04-idle-10",
+      "path": "tests/bench/k6-lab/clock_guard.go",
+      "recordedSHA256": "a1469c3169c22726df47a07e099ea023584812d9ba1718290902f04399290d26",
+      "snapshotFound": true,
+      "recoveredFrom": "tests\\bench\\k6-lab\\clock_guard.go"
+    },
+    {
+      "trial": "trial-04-idle-10",
+      "path": "tests/bench/k6-lab/kafka_capacity.go",
+      "recordedSHA256": "f8fd200307869f8474bfd7eb0b97f617bc2ea7903d128031a668a7b0204d2e0f",
+      "snapshotFound": true,
+      "recoveredFrom": "tests\\bench\\k6-lab\\kafka_capacity.go"
+    },
+    {
+      "trial": "trial-04-idle-10",
+      "path": "tests/bench/k6-lab/main.go",
+      "recordedSHA256": "1e80b34e3d99d4a7f738b79778b9be05e1b0880e443edafdb44353a41859af6e",
+      "snapshotFound": true,
+      "recoveredFrom": "tests\\bench\\k6-lab\\main.go"
+    },
+    {
+      "trial": "trial-04-idle-10",
+      "path": "tests/bench/k6-lab/pool_flags.go",
+      "recordedSHA256": "60750394679b5753d38915b3bb73616a54affd7a66c46007196156e2f849b1a6",
+      "snapshotFound": true,
+      "recoveredFrom": "tests\\bench\\k6-lab\\pool_flags.go"
+    },
+    {
+      "trial": "trial-04-idle-10",
+      "path": "tests/bench/k6-lab/pool_observation.go",
+      "recordedSHA256": "df877ce8f7e7ad11b6fcbf6c3b8332a5e8852be7ad6cf9cd25b4f5c21f13faaf",
+      "snapshotFound": true,
+      "recoveredFrom": "tests\\bench\\k6-lab\\pool_observation.go"
+    },
+    {
+      "trial": "trial-04-idle-10",
+      "path": "tests/load/k6-walkthrough.js",
+      "recordedSHA256": "73aec517bfa170b5ebe185c9de34813ae5cdc3b8d2c67efad728ee7cd583001e",
+      "snapshotFound": true,
+      "recoveredFrom": "tests\\load\\k6-walkthrough.js"
+    },
+    {
+      "trial": "trial-04-idle-10",
+      "path": "tests/load/kafka-backpressure.js",
+      "recordedSHA256": "fa227ab65b9ba79443ebbe4731bb10293f9183c44124b1c5012661aefb8098dd",
+      "snapshotFound": true,
+      "recoveredFrom": "tests\\load\\kafka-backpressure.js"
+    },
+    {
+      "trial": "trial-04-idle-10",
+      "path": "tests/load/kafka-capacity.js",
+      "recordedSHA256": "c30ab54cfcf22305f2fb2f561fa241fb71a9fcf8caccbb60686575192d22194c",
+      "snapshotFound": true,
+      "recoveredFrom": "tests\\load\\kafka-capacity.js"
+    },
+    {
+      "trial": "trial-05-idle-10",
+      "path": "cmd/api/main.go",
+      "recordedSHA256": "ffa3a41fba36b0fd01b75fcfb2304628d191de02fcd86db9250172249f0e841c",
+      "snapshotFound": true,
+      "recoveredFrom": "cmd\\api\\main.go"
+    },
+    {
+      "trial": "trial-05-idle-10",
+      "path": "internal/config/config.go",
+      "recordedSHA256": "4f7d88c74b5291c568713e416779366e3ba0ed18fa255076348a099bfbb6bbaa",
+      "snapshotFound": true,
+      "recoveredFrom": "internal\\config\\config.go"
+    },
+    {
+      "trial": "trial-05-idle-10",
+      "path": "internal/decision/application/backpressure.go",
+      "recordedSHA256": "550d6f4355f21ebf55e56e16613ae6546eea3b2bc5c04a019acaeaf7c28110fe",
+      "snapshotFound": true,
+      "recoveredFrom": "internal\\decision\\application\\backpressure.go"
+    },
+    {
+      "trial": "trial-05-idle-10",
+      "path": "internal/decision/application/service.go",
+      "recordedSHA256": "43fb4f6ed03a64aced7d861566dd48e130b9e3942bb44e82462ba7e27934dafd",
+      "snapshotFound": true,
+      "recoveredFrom": "internal\\decision\\application\\service.go"
+    },
+    {
+      "trial": "trial-05-idle-10",
+      "path": "internal/event/adapter/kafka/client.go",
+      "recordedSHA256": "fae080b40540925eddf04e81236f13b2205e4be00ce24b81ba2b41be224881a5",
+      "snapshotFound": true,
+      "recoveredFrom": "internal\\event\\adapter\\kafka\\client.go"
+    },
+    {
+      "trial": "trial-05-idle-10",
+      "path": "internal/event/adapter/mysql/backpressure.go",
+      "recordedSHA256": "b7fb2b42833ffacc88c14f751eb25a10eba6cb20368e26542030dd08f56fef1b",
+      "snapshotFound": true,
+      "recoveredFrom": "internal\\event\\adapter\\mysql\\backpressure.go"
+    },
+    {
+      "trial": "trial-05-idle-10",
+      "path": "internal/event/adapter/mysql/outbox.go",
+      "recordedSHA256": "9b9749d52fec379b4303bbdc824074f3ae6a3b4144ac526bf9461972d6002fcd",
+      "snapshotFound": true,
+      "recoveredFrom": "internal\\event\\adapter\\mysql\\outbox.go"
+    },
+    {
+      "trial": "trial-05-idle-10",
+      "path": "internal/event/adapter/mysql/settlement.go",
+      "recordedSHA256": "d5c64a848bc6ede0377dd099e045a1032793ca83ca50dab4e488e891a157d97b",
+      "snapshotFound": true,
+      "recoveredFrom": "internal\\event\\adapter\\mysql\\settlement.go"
+    },
+    {
+      "trial": "trial-05-idle-10",
+      "path": "internal/event/adapter/mysql/settlement_transaction.go",
+      "recordedSHA256": "80b1177781cbf0b2d9b5f516357dd41e93a7f4c37ddd6495678369ce0f7209cc",
+      "snapshotFound": true,
+      "recoveredFrom": "internal\\event\\adapter\\mysql\\settlement_transaction.go"
+    },
+    {
+      "trial": "trial-05-idle-10",
+      "path": "internal/event/application/outbox_relay.go",
+      "recordedSHA256": "c0072411cc199858abb9605a29e5cb639bbef44c0b0fec88432eb074c265e60f",
+      "snapshotFound": true,
+      "recoveredFrom": "internal\\event\\application\\outbox_relay.go"
+    },
+    {
+      "trial": "trial-05-idle-10",
+      "path": "internal/event/application/settlement_worker.go",
+      "recordedSHA256": "525c0d7e791f32a1c94978f410c5ca921aa088f5de961508856033400269ef89",
+      "snapshotFound": true,
+      "recoveredFrom": "internal\\event\\application\\settlement_worker.go"
+    },
+    {
+      "trial": "trial-05-idle-10",
+      "path": "internal/event/domain/settlement.go",
+      "recordedSHA256": "bd66451b50e1f747040629d0cea081284fb43e023d60121ac037b725e152039e",
+      "snapshotFound": true,
+      "recoveredFrom": "internal\\event\\domain\\settlement.go"
+    },
+    {
+      "trial": "trial-05-idle-10",
+      "path": "internal/observability/metrics.go",
+      "recordedSHA256": "31d1fdc7932ba7636ab7d9f764913ef7bf867c3a00ca61ec046f0eb7623dcf9b",
+      "snapshotFound": true,
+      "recoveredFrom": "internal\\observability\\metrics.go"
+    },
+    {
+      "trial": "trial-05-idle-10",
+      "path": "internal/platform/database/mysql.go",
+      "recordedSHA256": "19b08687a8c5a74e1d16e0a8b4a5f327358e44229b1e23b24e08a1efacca75d8",
+      "snapshotFound": true,
+      "recoveredFrom": "internal\\platform\\database\\mysql.go"
+    },
+    {
+      "trial": "trial-05-idle-10",
+      "path": "internal/platform/profiling/server.go",
+      "recordedSHA256": "ca2ff0769bba54449abb4479083dd1f4bafbd6aa8bb7d1df154c1539b6607fa7",
+      "snapshotFound": true,
+      "recoveredFrom": "internal\\platform\\profiling\\server.go"
+    },
+    {
+      "trial": "trial-05-idle-10",
+      "path": "tests/bench/k6-lab/clock_guard.go",
+      "recordedSHA256": "a1469c3169c22726df47a07e099ea023584812d9ba1718290902f04399290d26",
+      "snapshotFound": true,
+      "recoveredFrom": "tests\\bench\\k6-lab\\clock_guard.go"
+    },
+    {
+      "trial": "trial-05-idle-10",
+      "path": "tests/bench/k6-lab/kafka_capacity.go",
+      "recordedSHA256": "f8fd200307869f8474bfd7eb0b97f617bc2ea7903d128031a668a7b0204d2e0f",
+      "snapshotFound": true,
+      "recoveredFrom": "tests\\bench\\k6-lab\\kafka_capacity.go"
+    },
+    {
+      "trial": "trial-05-idle-10",
+      "path": "tests/bench/k6-lab/main.go",
+      "recordedSHA256": "1e80b34e3d99d4a7f738b79778b9be05e1b0880e443edafdb44353a41859af6e",
+      "snapshotFound": true,
+      "recoveredFrom": "tests\\bench\\k6-lab\\main.go"
+    },
+    {
+      "trial": "trial-05-idle-10",
+      "path": "tests/bench/k6-lab/pool_flags.go",
+      "recordedSHA256": "60750394679b5753d38915b3bb73616a54affd7a66c46007196156e2f849b1a6",
+      "snapshotFound": true,
+      "recoveredFrom": "tests\\bench\\k6-lab\\pool_flags.go"
+    },
+    {
+      "trial": "trial-05-idle-10",
+      "path": "tests/bench/k6-lab/pool_observation.go",
+      "recordedSHA256": "df877ce8f7e7ad11b6fcbf6c3b8332a5e8852be7ad6cf9cd25b4f5c21f13faaf",
+      "snapshotFound": true,
+      "recoveredFrom": "tests\\bench\\k6-lab\\pool_observation.go"
+    },
+    {
+      "trial": "trial-05-idle-10",
+      "path": "tests/load/k6-walkthrough.js",
+      "recordedSHA256": "73aec517bfa170b5ebe185c9de34813ae5cdc3b8d2c67efad728ee7cd583001e",
+      "snapshotFound": true,
+      "recoveredFrom": "tests\\load\\k6-walkthrough.js"
+    },
+    {
+      "trial": "trial-05-idle-10",
+      "path": "tests/load/kafka-backpressure.js",
+      "recordedSHA256": "fa227ab65b9ba79443ebbe4731bb10293f9183c44124b1c5012661aefb8098dd",
+      "snapshotFound": true,
+      "recoveredFrom": "tests\\load\\kafka-backpressure.js"
+    },
+    {
+      "trial": "trial-05-idle-10",
+      "path": "tests/load/kafka-capacity.js",
+      "recordedSHA256": "c30ab54cfcf22305f2fb2f561fa241fb71a9fcf8caccbb60686575192d22194c",
+      "snapshotFound": true,
+      "recoveredFrom": "tests\\load\\kafka-capacity.js"
+    },
+    {
+      "trial": "trial-06-idle-20",
+      "path": "cmd/api/main.go",
+      "recordedSHA256": "ffa3a41fba36b0fd01b75fcfb2304628d191de02fcd86db9250172249f0e841c",
+      "snapshotFound": true,
+      "recoveredFrom": "cmd\\api\\main.go"
+    },
+    {
+      "trial": "trial-06-idle-20",
+      "path": "internal/config/config.go",
+      "recordedSHA256": "4f7d88c74b5291c568713e416779366e3ba0ed18fa255076348a099bfbb6bbaa",
+      "snapshotFound": true,
+      "recoveredFrom": "internal\\config\\config.go"
+    },
+    {
+      "trial": "trial-06-idle-20",
+      "path": "internal/decision/application/backpressure.go",
+      "recordedSHA256": "550d6f4355f21ebf55e56e16613ae6546eea3b2bc5c04a019acaeaf7c28110fe",
+      "snapshotFound": true,
+      "recoveredFrom": "internal\\decision\\application\\backpressure.go"
+    },
+    {
+      "trial": "trial-06-idle-20",
+      "path": "internal/decision/application/service.go",
+      "recordedSHA256": "43fb4f6ed03a64aced7d861566dd48e130b9e3942bb44e82462ba7e27934dafd",
+      "snapshotFound": true,
+      "recoveredFrom": "internal\\decision\\application\\service.go"
+    },
+    {
+      "trial": "trial-06-idle-20",
+      "path": "internal/event/adapter/kafka/client.go",
+      "recordedSHA256": "fae080b40540925eddf04e81236f13b2205e4be00ce24b81ba2b41be224881a5",
+      "snapshotFound": true,
+      "recoveredFrom": "internal\\event\\adapter\\kafka\\client.go"
+    },
+    {
+      "trial": "trial-06-idle-20",
+      "path": "internal/event/adapter/mysql/backpressure.go",
+      "recordedSHA256": "b7fb2b42833ffacc88c14f751eb25a10eba6cb20368e26542030dd08f56fef1b",
+      "snapshotFound": true,
+      "recoveredFrom": "internal\\event\\adapter\\mysql\\backpressure.go"
+    },
+    {
+      "trial": "trial-06-idle-20",
+      "path": "internal/event/adapter/mysql/outbox.go",
+      "recordedSHA256": "9b9749d52fec379b4303bbdc824074f3ae6a3b4144ac526bf9461972d6002fcd",
+      "snapshotFound": true,
+      "recoveredFrom": "internal\\event\\adapter\\mysql\\outbox.go"
+    },
+    {
+      "trial": "trial-06-idle-20",
+      "path": "internal/event/adapter/mysql/settlement.go",
+      "recordedSHA256": "d5c64a848bc6ede0377dd099e045a1032793ca83ca50dab4e488e891a157d97b",
+      "snapshotFound": true,
+      "recoveredFrom": "internal\\event\\adapter\\mysql\\settlement.go"
+    },
+    {
+      "trial": "trial-06-idle-20",
+      "path": "internal/event/adapter/mysql/settlement_transaction.go",
+      "recordedSHA256": "80b1177781cbf0b2d9b5f516357dd41e93a7f4c37ddd6495678369ce0f7209cc",
+      "snapshotFound": true,
+      "recoveredFrom": "internal\\event\\adapter\\mysql\\settlement_transaction.go"
+    },
+    {
+      "trial": "trial-06-idle-20",
+      "path": "internal/event/application/outbox_relay.go",
+      "recordedSHA256": "c0072411cc199858abb9605a29e5cb639bbef44c0b0fec88432eb074c265e60f",
+      "snapshotFound": true,
+      "recoveredFrom": "internal\\event\\application\\outbox_relay.go"
+    },
+    {
+      "trial": "trial-06-idle-20",
+      "path": "internal/event/application/settlement_worker.go",
+      "recordedSHA256": "525c0d7e791f32a1c94978f410c5ca921aa088f5de961508856033400269ef89",
+      "snapshotFound": true,
+      "recoveredFrom": "internal\\event\\application\\settlement_worker.go"
+    },
+    {
+      "trial": "trial-06-idle-20",
+      "path": "internal/event/domain/settlement.go",
+      "recordedSHA256": "bd66451b50e1f747040629d0cea081284fb43e023d60121ac037b725e152039e",
+      "snapshotFound": true,
+      "recoveredFrom": "internal\\event\\domain\\settlement.go"
+    },
+    {
+      "trial": "trial-06-idle-20",
+      "path": "internal/observability/metrics.go",
+      "recordedSHA256": "31d1fdc7932ba7636ab7d9f764913ef7bf867c3a00ca61ec046f0eb7623dcf9b",
+      "snapshotFound": true,
+      "recoveredFrom": "internal\\observability\\metrics.go"
+    },
+    {
+      "trial": "trial-06-idle-20",
+      "path": "internal/platform/database/mysql.go",
+      "recordedSHA256": "19b08687a8c5a74e1d16e0a8b4a5f327358e44229b1e23b24e08a1efacca75d8",
+      "snapshotFound": true,
+      "recoveredFrom": "internal\\platform\\database\\mysql.go"
+    },
+    {
+      "trial": "trial-06-idle-20",
+      "path": "internal/platform/profiling/server.go",
+      "recordedSHA256": "ca2ff0769bba54449abb4479083dd1f4bafbd6aa8bb7d1df154c1539b6607fa7",
+      "snapshotFound": true,
+      "recoveredFrom": "internal\\platform\\profiling\\server.go"
+    },
+    {
+      "trial": "trial-06-idle-20",
+      "path": "tests/bench/k6-lab/clock_guard.go",
+      "recordedSHA256": "a1469c3169c22726df47a07e099ea023584812d9ba1718290902f04399290d26",
+      "snapshotFound": true,
+      "recoveredFrom": "tests\\bench\\k6-lab\\clock_guard.go"
+    },
+    {
+      "trial": "trial-06-idle-20",
+      "path": "tests/bench/k6-lab/kafka_capacity.go",
+      "recordedSHA256": "f8fd200307869f8474bfd7eb0b97f617bc2ea7903d128031a668a7b0204d2e0f",
+      "snapshotFound": true,
+      "recoveredFrom": "tests\\bench\\k6-lab\\kafka_capacity.go"
+    },
+    {
+      "trial": "trial-06-idle-20",
+      "path": "tests/bench/k6-lab/main.go",
+      "recordedSHA256": "1e80b34e3d99d4a7f738b79778b9be05e1b0880e443edafdb44353a41859af6e",
+      "snapshotFound": true,
+      "recoveredFrom": "tests\\bench\\k6-lab\\main.go"
+    },
+    {
+      "trial": "trial-06-idle-20",
+      "path": "tests/bench/k6-lab/pool_flags.go",
+      "recordedSHA256": "60750394679b5753d38915b3bb73616a54affd7a66c46007196156e2f849b1a6",
+      "snapshotFound": true,
+      "recoveredFrom": "tests\\bench\\k6-lab\\pool_flags.go"
+    },
+    {
+      "trial": "trial-06-idle-20",
+      "path": "tests/bench/k6-lab/pool_observation.go",
+      "recordedSHA256": "df877ce8f7e7ad11b6fcbf6c3b8332a5e8852be7ad6cf9cd25b4f5c21f13faaf",
+      "snapshotFound": true,
+      "recoveredFrom": "tests\\bench\\k6-lab\\pool_observation.go"
+    },
+    {
+      "trial": "trial-06-idle-20",
+      "path": "tests/load/k6-walkthrough.js",
+      "recordedSHA256": "73aec517bfa170b5ebe185c9de34813ae5cdc3b8d2c67efad728ee7cd583001e",
+      "snapshotFound": true,
+      "recoveredFrom": "tests\\load\\k6-walkthrough.js"
+    },
+    {
+      "trial": "trial-06-idle-20",
+      "path": "tests/load/kafka-backpressure.js",
+      "recordedSHA256": "fa227ab65b9ba79443ebbe4731bb10293f9183c44124b1c5012661aefb8098dd",
+      "snapshotFound": true,
+      "recoveredFrom": "tests\\load\\kafka-backpressure.js"
+    },
+    {
+      "trial": "trial-06-idle-20",
+      "path": "tests/load/kafka-capacity.js",
+      "recordedSHA256": "c30ab54cfcf22305f2fb2f561fa241fb71a9fcf8caccbb60686575192d22194c",
+      "snapshotFound": true,
+      "recoveredFrom": "tests\\load\\kafka-capacity.js"
+    }
+  ]
+}

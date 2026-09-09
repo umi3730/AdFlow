@@ -1,0 +1,32 @@
+{
+  "schema": "adflow_check_c5b39f75ce",
+  "topics": [
+    "adflow-check-c5b39f75ce",
+    "adflow-check-c5b39f75ce-dlq",
+    "adflow-check-c5b39f75ce-restart"
+  ],
+  "redisPort": 40931,
+  "stages": {
+    "integration": {
+      "exitCode": 1,
+      "passedTests": 13,
+      "skippedTests": 0
+    },
+    "report-sql": {
+      "exitCode": 0,
+      "passedTests": 1,
+      "skippedTests": 0
+    }
+  },
+  "cleanup": {
+    "consumerGroupsRemoved": [
+      "adflow-it-a079888d7a1f55c47b7c8dc46626592b",
+      "adflow-it-restart-89d46456519764c97583cedc9328fc7c"
+    ],
+    "adflow-check-c5b39f75ce": true,
+    "adflow-check-c5b39f75ce-dlq": true,
+    "adflow-check-c5b39f75ce-restart": true,
+    "redisStopped": true,
+    "databaseDropped": true
+  }
+}

@@ -1,0 +1,40 @@
+=== RUN   TestBackpressureCountsActiveStatesAndCapsWithMySQL
+--- PASS: TestBackpressureCountsActiveStatesAndCapsWithMySQL (3.28s)
+=== RUN   TestMySQLCampaignOptimisticConcurrency
+--- PASS: TestMySQLCampaignOptimisticConcurrency (0.09s)
+=== RUN   TestMySQLOutboxLeaseAllowsOneRelayOwner
+--- PASS: TestMySQLOutboxLeaseAllowsOneRelayOwner (0.12s)
+=== RUN   TestMySQLEventBatchIsAtomicAndIdempotent
+--- PASS: TestMySQLEventBatchIsAtomicAndIdempotent (0.10s)
+=== RUN   TestRedisSlidingWindowAndBudgetReservationAreAtomic
+--- PASS: TestRedisSlidingWindowAndBudgetReservationAreAtomic (0.02s)
+=== RUN   TestRedisMySQLProfileCacheAsideReturnsWrittenProfile
+--- PASS: TestRedisMySQLProfileCacheAsideReturnsWrittenProfile (0.09s)
+=== RUN   TestKafkaAckBeforeOutboxMarkProducesOneMetric
+--- PASS: TestKafkaAckBeforeOutboxMarkProducesOneMetric (0.29s)
+=== RUN   TestKafkaConsumerRestartReplaysUncommittedSideEffectSafely
+--- PASS: TestKafkaConsumerRestartReplaysUncommittedSideEffectSafely (3.63s)
+=== RUN   TestProfileGenerationRejectsCrossInstanceStaleRefill
+=== RUN   TestProfileGenerationRejectsCrossInstanceStaleRefill/update
+=== RUN   TestProfileGenerationRejectsCrossInstanceStaleRefill/delete
+=== RUN   TestProfileGenerationRejectsCrossInstanceStaleRefill/recreate
+--- PASS: TestProfileGenerationRejectsCrossInstanceStaleRefill (0.19s)
+    --- PASS: TestProfileGenerationRejectsCrossInstanceStaleRefill/update (0.02s)
+    --- PASS: TestProfileGenerationRejectsCrossInstanceStaleRefill/delete (0.02s)
+    --- PASS: TestProfileGenerationRejectsCrossInstanceStaleRefill/recreate (0.03s)
+=== RUN   TestOpaqueProfileIDsAgreeAcrossMySQLCacheAndFrequency
+--- PASS: TestOpaqueProfileIDsAgreeAcrossMySQLCacheAndFrequency (0.15s)
+=== RUN   TestProfileIDsPreserveAccentsAndNormalizeSurroundingWhitespace
+--- PASS: TestProfileIDsPreserveAccentsAndNormalizeSurroundingWhitespace (0.07s)
+=== RUN   TestRedisFixtureCleanupFinishesBeforeClientClose
+=== RUN   TestRedisFixtureCleanupFinishesBeforeClientClose/owned-fixture
+--- PASS: TestRedisFixtureCleanupFinishesBeforeClientClose (0.00s)
+    --- PASS: TestRedisFixtureCleanupFinishesBeforeClientClose/owned-fixture (0.00s)
+=== RUN   TestRequestTraceReadsDurableStagesWithoutAdvancingThem
+--- PASS: TestRequestTraceReadsDurableStagesWithoutAdvancingThem (1.19s)
+=== RUN   TestSettlementBatchReleaseAndFencingWithRealStores
+--- PASS: TestSettlementBatchReleaseAndFencingWithRealStores (0.31s)
+=== RUN   TestSettlementRestartFencesOldWorkerAndReleasesDependentEvents
+redis: 2026/09/09 11:44:18 redis.go:478: auto mode fallback: maintnotifications disabled due to handshake error: ERR unknown subcommand 'maint_notifications'. Try CLIENT HELP.
+--- PASS: TestSettlementRestartFencesOldWorkerAndReleasesDependentEvents (0.17s)
+PASS

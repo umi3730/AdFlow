@@ -33,6 +33,7 @@ const (
 	ReasonMatched               Reason = "matched"
 	ReasonProfileNotFound       Reason = "profile_not_found"
 	ReasonNoCandidate           Reason = "no_candidate"
+	ReasonNoCreative            Reason = "no_creative"
 	ReasonTargetingMiss         Reason = "targeting_miss"
 	ReasonFrequencyCapped       Reason = "frequency_capped"
 	ReasonBudgetExhausted       Reason = "budget_exhausted"

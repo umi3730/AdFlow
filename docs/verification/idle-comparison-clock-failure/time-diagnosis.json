@@ -1,0 +1,17 @@
+{
+  "observedBeforePause": {
+    "offsetMilliseconds": -783.363,
+    "server": "185.125.190.57",
+    "jitterMilliseconds": 25.302,
+    "pollSeconds": 32,
+    "source": "timedatectl timesync-status read before approved pause",
+    "service": "systemd-timesyncd"
+  },
+  "observedFailure": {
+    "status": 422,
+    "nextLogTime": "2026-09-09T09:35:24.026352655+08:00",
+    "maxPriorLogTime": "2026-09-09T09:35:24.74411058+08:00",
+    "affectedEndpoint": "/v1/events"
+  },
+  "poolComparisonUsable": false
+}

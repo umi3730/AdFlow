@@ -3,11 +3,13 @@ import type { Campaign } from './api';
 export type CampaignDisplayStatus =
   | Campaign['status']
   | 'SCHEDULED'
+  | 'NEEDS_CREATIVE'
   | 'INVALID_PERIOD'
   | 'CHECKING';
 export const campaignDisplayLabels: Record<CampaignDisplayStatus, string> = {
   DRAFT: '草稿',
   ACTIVE: '投放中',
+  NEEDS_CREATIVE: '待添加素材',
   PAUSED: '已暂停',
   ENDED: '已结束',
   SCHEDULED: '待开始',
@@ -17,7 +19,10 @@ export const campaignDisplayLabels: Record<CampaignDisplayStatus, string> = {
 
 // Display state is derived; never replace the persisted lifecycle status.
 export function campaignDisplayStatus(
-  campaign: Pick<Campaign, 'status' | 'startAt' | 'endAt'>,
+  campaign: Pick<
+    Campaign,
+    'status' | 'startAt' | 'endAt' | 'activeCreativeCount'
+  >,
   now: number | null,
 ): CampaignDisplayStatus {
   if (campaign.status === 'DRAFT' || campaign.status === 'ENDED')
@@ -30,7 +35,9 @@ export function campaignDisplayStatus(
     return campaign.status === 'PAUSED' ? 'PAUSED' : 'CHECKING';
   if (now >= end) return 'ENDED';
   if (campaign.status === 'PAUSED') return 'PAUSED';
-  return now < start ? 'SCHEDULED' : 'ACTIVE';
+  if (now < start) return 'SCHEDULED';
+  if (campaign.activeCreativeCount === null) return 'CHECKING';
+  return campaign.activeCreativeCount === 0 ? 'NEEDS_CREATIVE' : 'ACTIVE';
 }
 
 export function nextCampaignClockDelay(

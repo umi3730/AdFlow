@@ -1,0 +1,29 @@
+File: api-linux
+Build ID: 72ca8faeb1daf3ca96efb3da5a744390aa021576
+Type: cpu
+Time: 2026-09-09 09:57:13 CST
+Duration: 20s, Total samples = 10.75s (53.75%)
+Showing nodes accounting for 7.28s, 67.72% of 10.75s total
+Dropped 530 nodes (cum <= 0.05s)
+Showing top 20 nodes out of 289
+      flat  flat%   sum%        cum   cum%
+     3.55s 33.02% 33.02%      3.55s 33.02%  internal/runtime/syscall/linux.Syscall6
+     2.64s 24.56% 57.58%      2.64s 24.56%  runtime.futex
+     0.18s  1.67% 59.26%      0.53s  4.93%  runtime.stealWork
+     0.13s  1.21% 60.47%      0.13s  1.21%  runtime.usleep
+     0.13s  1.21% 61.67%      0.13s  1.21%  runtime.write1
+     0.08s  0.74% 62.42%      0.08s  0.74%  runtime.nextFreeFast (inline)
+     0.06s  0.56% 62.98%      0.20s  1.86%  runtime.runqgrab
+     0.06s  0.56% 63.53%      0.31s  2.88%  runtime.selectgo
+     0.05s  0.47% 64.00%      2.78s 25.86%  runtime.findRunnable
+     0.05s  0.47% 64.47%      0.58s  5.40%  runtime.netpoll
+     0.05s  0.47% 64.93%      0.26s  2.42%  runtime.unlock2
+     0.04s  0.37% 65.30%      0.45s  4.19%  runtime.futexsleep
+     0.04s  0.37% 65.67%      0.06s  0.56%  runtime.mallocgcSmallScanNoHeaderSC2
+     0.04s  0.37% 66.05%      0.24s  2.23%  runtime.runqsteal
+     0.03s  0.28% 66.33%      5.08s 47.26%  github.com/gin-gonic/gin.(*Context).Next
+     0.03s  0.28% 66.60%      0.08s  0.74%  github.com/go-sql-driver/mysql.(*mysqlConn).startWatcher.func1
+     0.03s  0.28% 66.88%      0.06s  0.56%  runtime.(*mcache).prepareForSweep
+     0.03s  0.28% 67.16%      0.09s  0.84%  runtime.chansend
+     0.03s  0.28% 67.44%      0.33s  3.07%  runtime.mallocgc
+     0.03s  0.28% 67.72%      0.07s  0.65%  runtime.newobject

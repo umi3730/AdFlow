@@ -1,0 +1,15 @@
+Intentional overload test: explicit backlog rejections counted separately; NOT capacity acceptance
+backpressure_rejections: {"type":"counter","contains":"default","values":{"count":0,"rate":0}}
+matched_decision_ms: {"type":"trend","contains":"time","values":{"avg":44.054838189999984,"med":39.3830935,"p(95)":62.72432474999999,"p(99)":185.89122808999997,"max":238.370655},"thresholds":{"p(95)<300":{"ok":true}}}
+iterations: {"values":{"count":900,"rate":44.72277874502713},"type":"counter","contains":"default"}
+http_reqs: {"values":{"count":3600,"rate":178.8911149801085},"type":"counter","contains":"default"}
+decision_ms: {"type":"trend","contains":"time","values":{"p(95)":62.72432474999999,"p(99)":185.89122808999997,"max":238.370655,"avg":44.054838189999984,"med":39.3830935},"thresholds":{"p(95)<300":{"ok":true}}}
+accepted_round_ms: {"type":"trend","contains":"time","values":{"avg":133.26888888888888,"med":123,"p(95)":183.04999999999995,"p(99)":330.03999999999996,"max":378},"thresholds":{"p(95)<1000":{"ok":true}}}
+business_errors: {"type":"rate","contains":"default","values":{"rate":0,"passes":0,"fails":900},"thresholds":{"rate<0.001":{"ok":true}}}
+matched_decisions: {"contains":"default","values":{"count":900,"rate":44.72277874502713},"type":"counter"}
+completed_rounds: {"thresholds":{"count>0":{"ok":true}},"type":"counter","contains":"default","values":{"count":900,"rate":44.72277874502713}}
+accepted_events: {"contains":"default","values":{"rate":134.1683362350814,"count":2700},"type":"counter"}
+accepted_impressions: {"type":"counter","contains":"default","values":{"count":900,"rate":44.72277874502713}}
+accepted_clicks: {"contains":"default","values":{"count":900,"rate":44.72277874502713},"type":"counter"}
+accepted_conversions: {"values":{"count":900,"rate":44.72277874502713},"type":"counter","contains":"default"}
+dropped_iterations: {"contains":"default","values":{"count":0,"rate":0},"thresholds":{"count==0":{"ok":true}},"type":"counter"}

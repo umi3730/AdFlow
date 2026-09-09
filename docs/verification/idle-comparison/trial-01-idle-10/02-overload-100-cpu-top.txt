@@ -1,0 +1,29 @@
+File: api-linux
+Build ID: 72ca8faeb1daf3ca96efb3da5a744390aa021576
+Type: cpu
+Time: 2026-09-09 09:51:55 CST
+Duration: 20s, Total samples = 10.93s (54.65%)
+Showing nodes accounting for 7.39s, 67.61% of 10.93s total
+Dropped 533 nodes (cum <= 0.05s)
+Showing top 20 nodes out of 294
+      flat  flat%   sum%        cum   cum%
+     3.75s 34.31% 34.31%      3.75s 34.31%  internal/runtime/syscall/linux.Syscall6
+     2.46s 22.51% 56.82%      2.46s 22.51%  runtime.futex
+     0.18s  1.65% 58.46%      0.18s  1.65%  runtime.write1
+     0.11s  1.01% 59.47%      0.38s  3.48%  runtime.stealWork
+     0.11s  1.01% 60.48%      0.11s  1.01%  runtime.usleep
+     0.09s  0.82% 61.30%      0.09s  0.82%  runtime.memmove
+     0.08s  0.73% 62.03%      0.78s  7.14%  runtime.netpoll
+     0.07s  0.64% 62.67%      2.92s 26.72%  runtime.findRunnable
+     0.07s  0.64% 63.31%      0.33s  3.02%  runtime.selectgo
+     0.06s  0.55% 63.86%      0.93s  8.51%  github.com/go-sql-driver/mysql.(*okHandler).readResultSetHeaderPacket
+     0.06s  0.55% 64.41%      0.06s  0.55%  runtime.findfunc
+     0.05s  0.46% 64.87%      0.06s  0.55%  runtime.(*mcache).prepareForSweep
+     0.05s  0.46% 65.32%      0.06s  0.55%  runtime.tryDeferToSpanScan
+     0.04s  0.37% 65.69%      2.96s 27.08%  database/sql.withLock
+     0.04s  0.37% 66.06%      0.89s  8.14%  github.com/go-sql-driver/mysql.(*mysqlConn).readPacket
+     0.04s  0.37% 66.42%      0.16s  1.46%  runtime.lock2
+     0.04s  0.37% 66.79%      0.35s  3.20%  runtime.reentersyscall
+     0.03s  0.27% 67.06%      0.23s  2.10%  bufio.(*Reader).fill
+     0.03s  0.27% 67.34%      0.06s  0.55%  database/sql.driverArgsConnLocked
+     0.03s  0.27% 67.61%      0.85s  7.78%  github.com/go-sql-driver/mysql.(*buffer).fill

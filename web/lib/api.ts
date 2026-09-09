@@ -6,6 +6,12 @@ import {
   type IssuedToken,
 } from './auth-session.ts';
 import { collectNumberingPages } from './available-number.ts';
+import {
+  reportQuery,
+  type DeliveryFilter,
+  type DeliveryReport,
+  type DeliveryDiagnosis,
+} from './delivery-report.ts';
 
 const API_BASE =
   process.env.NEXT_PUBLIC_ADFLOW_API_URL ?? 'http://127.0.0.1:18080';
@@ -67,6 +73,8 @@ export interface Condition {
 }
 
 export interface Campaign {
+  // Console read model: undefined before loading, null when unavailable.
+  activeCreativeCount?: number | null;
   auctionSupported?: boolean;
   id: string;
   name: string;
@@ -235,6 +243,7 @@ async function request<T>(
   path: string,
   init?: RequestInit,
   authenticated = true,
+  format: 'json' | 'blob' = 'json',
 ): Promise<T> {
   const headers = new Headers(init?.headers);
   headers.set('Content-Type', 'application/json');
@@ -263,10 +272,31 @@ async function request<T>(
     );
   }
   if (response.status === 204) return undefined as T;
+  if (format === 'blob') return response.blob() as Promise<T>;
   return response.json() as Promise<T>;
 }
 
 export const api = {
+  deliveryReport: (filter: DeliveryFilter, signal?: AbortSignal) =>
+    request<DeliveryReport>(`/v1/reports/delivery?${reportQuery(filter)}`, {
+      signal,
+    }),
+  exportDeliveryReport: (filter: DeliveryFilter, signal?: AbortSignal) =>
+    request<Blob>(
+      `/v1/reports/delivery/export?${reportQuery(filter)}`,
+      { signal },
+      true,
+      'blob',
+    ),
+  diagnoseDelivery: (
+    input: DeliveryFilter & { question: string; requestId?: string },
+    signal?: AbortSignal,
+  ) =>
+    request<DeliveryDiagnosis>('/v1/agent/delivery-diagnoses', {
+      method: 'POST',
+      body: JSON.stringify(input),
+      signal,
+    }),
   authOptions: () =>
     request<{
       registrationEnabled: boolean;

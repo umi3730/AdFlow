@@ -1,0 +1,29 @@
+File: api-linux
+Build ID: 72ca8faeb1daf3ca96efb3da5a744390aa021576
+Type: cpu
+Time: 2026-09-09 09:59:53 CST
+Duration: 20s, Total samples = 11.58s (57.90%)
+Showing nodes accounting for 7.48s, 64.59% of 11.58s total
+Dropped 622 nodes (cum <= 0.06s)
+Showing top 20 nodes out of 307
+      flat  flat%   sum%        cum   cum%
+     3.94s 34.02% 34.02%      3.94s 34.02%  internal/runtime/syscall/linux.Syscall6
+     2.51s 21.68% 55.70%      2.51s 21.68%  runtime.futex
+     0.14s  1.21% 56.91%      0.14s  1.21%  runtime.usleep
+     0.14s  1.21% 58.12%      0.14s  1.21%  runtime.write1
+     0.08s  0.69% 58.81%      2.89s 24.96%  runtime.findRunnable
+     0.07s   0.6% 59.41%      0.47s  4.06%  runtime.mallocgc
+     0.07s   0.6% 60.02%      0.07s   0.6%  runtime.mallocgcSmallScanNoHeaderSC2
+     0.06s  0.52% 60.54%      0.06s  0.52%  memeqbody
+     0.06s  0.52% 61.05%      0.06s  0.52%  runtime.mallocgcSmallScanNoHeaderSC4
+     0.05s  0.43% 61.49%      0.51s  4.40%  runtime.futexsleep
+     0.05s  0.43% 61.92%      0.11s  0.95%  runtime.scanObject
+     0.05s  0.43% 62.35%      0.32s  2.76%  runtime.stealWork
+     0.04s  0.35% 62.69%      0.82s  7.08%  runtime.netpoll
+     0.04s  0.35% 63.04%      0.07s   0.6%  runtime.scanObjectsSmall
+     0.04s  0.35% 63.39%      0.36s  3.11%  runtime.selectgo
+     0.03s  0.26% 63.64%      1.23s 10.62%  database/sql.(*DB).execDC
+     0.03s  0.26% 63.90%      0.06s  0.52%  encoding/json/jsontext.(*decoderState).ReadToken
+     0.03s  0.26% 64.16%      1.40s 12.09%  github.com/go-sql-driver/mysql.(*mysqlConn).writePacket
+     0.03s  0.26% 64.42%      0.06s  0.52%  runtime.(*mcache).prepareForSweep
+     0.02s  0.17% 64.59%      0.25s  2.16%  database/sql.(*DB).conn

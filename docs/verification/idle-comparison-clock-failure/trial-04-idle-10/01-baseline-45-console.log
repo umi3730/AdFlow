@@ -1,0 +1,16 @@
+Intentional overload test: explicit backlog rejections counted separately; NOT capacity acceptance
+backpressure_rejections: {"contains":"default","values":{"rate":0,"count":0},"type":"counter"}
+matched_decision_ms: {"contains":"time","values":{"avg":44.88035627635959,"med":42.644433,"p(95)":64.051529,"p(99)":77.999681,"max":168.566374},"thresholds":{"p(95)<300":{"ok":true}},"type":"trend"}
+iterations: {"type":"counter","contains":"default","values":{"count":901,"rate":46.649354042418246}}
+http_reqs: {"type":"counter","contains":"default","values":{"count":3602,"rate":186.4938659942181}}
+decision_ms: {"type":"trend","contains":"time","values":{"avg":44.88035627635959,"med":42.644433,"p(95)":64.051529,"p(99)":77.999681,"max":168.566374},"thresholds":{"p(95)<300":{"ok":true}}}
+accepted_round_ms: {"values":{"max":282,"avg":134.9164810690423,"med":134,"p(95)":186.14999999999998,"p(99)":235.05999999999995},"thresholds":{"p(95)<1000":{"ok":true}},"type":"trend","contains":"time"}
+business_errors: {"type":"rate","contains":"default","values":{"rate":0.003329633740288568,"passes":3,"fails":898},"thresholds":{"rate<0.001":{"ok":false}}}
+matched_decisions: {"type":"counter","contains":"default","values":{"count":901,"rate":46.649354042418246}}
+completed_rounds: {"type":"counter","contains":"default","values":{"count":898,"rate":46.49402877923595},"thresholds":{"count>0":{"ok":true}}}
+accepted_events: {"type":"counter","contains":"default","values":{"rate":139.68918668861758,"count":2698}}
+accepted_impressions: {"type":"counter","contains":"default","values":{"count":901,"rate":46.649354042418246}}
+accepted_clicks: {"type":"counter","contains":"default","values":{"count":899,"rate":46.545803866963375}}
+accepted_conversions: {"type":"counter","contains":"default","values":{"count":898,"rate":46.49402877923595}}
+dropped_iterations: {"type":"counter","contains":"default","values":{"count":0,"rate":0},"thresholds":{"count==0":{"ok":true}}}
+time="2026-09-09T09:39:12+08:00" level=error msg="thresholds on metrics 'business_errors' have been crossed"

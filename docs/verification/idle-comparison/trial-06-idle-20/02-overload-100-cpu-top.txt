@@ -1,0 +1,29 @@
+File: api-linux
+Build ID: 72ca8faeb1daf3ca96efb3da5a744390aa021576
+Type: cpu
+Time: 2026-09-09 10:04:41 CST
+Duration: 20s, Total samples = 11s (55.00%)
+Showing nodes accounting for 7.20s, 65.45% of 11s total
+Dropped 552 nodes (cum <= 0.06s)
+Showing top 20 nodes out of 288
+      flat  flat%   sum%        cum   cum%
+     3.59s 32.64% 32.64%      3.59s 32.64%  internal/runtime/syscall/linux.Syscall6
+     2.48s 22.55% 55.18%      2.48s 22.55%  runtime.futex
+     0.21s  1.91% 57.09%      0.21s  1.91%  runtime.write1
+     0.12s  1.09% 58.18%      0.40s  3.64%  runtime.stealWork
+     0.11s  1.00% 59.18%      0.11s  1.00%  runtime.usleep
+     0.07s  0.64% 59.82%      0.07s  0.64%  runtime.memmove
+     0.06s  0.55% 60.36%      2.69s 24.45%  runtime.findRunnable
+     0.06s  0.55% 60.91%      0.06s  0.55%  runtime.nextFreeFast (inline)
+     0.06s  0.55% 61.45%      0.06s  0.55%  runtime.osyield
+     0.06s  0.55% 62.00%      0.32s  2.91%  runtime.selectgo
+     0.05s  0.45% 62.45%      1.09s  9.91%  github.com/go-sql-driver/mysql.(*buffer).fill
+     0.05s  0.45% 62.91%      0.70s  6.36%  runtime.netpoll
+     0.04s  0.36% 63.27%      1.68s 15.27%  github.com/go-sql-driver/mysql.(*mysqlConn).writePacket
+     0.04s  0.36% 63.64%      0.07s  0.64%  runtime.execute
+     0.04s  0.36% 64.00%      0.40s  3.64%  runtime.futexsleep
+     0.04s  0.36% 64.36%      0.06s  0.55%  runtime.scanObjectsSmall
+     0.03s  0.27% 64.64%      3.39s 30.82%  database/sql.withLock
+     0.03s  0.27% 64.91%      1.16s 10.55%  internal/poll.(*FD).Read
+     0.03s  0.27% 65.18%      0.12s  1.09%  runtime.lock2
+     0.03s  0.27% 65.45%      0.15s  1.36%  runtime.mallocgcSmallScanNoHeader

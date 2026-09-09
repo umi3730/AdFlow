@@ -1,0 +1,15 @@
+# github.com/umi3730/adflow/internal/config [github.com/umi3730/adflow/internal/config.test]
+internal\config\profiling_test.go:9:35: cfg.PprofAddr undefined (type Config has no field or method PprofAddr)
+internal\config\profiling_test.go:9:68: cfg.MySQLMaxOpenConns undefined (type Config has no field or method MySQLMaxOpenConns)
+# github.com/umi3730/adflow/internal/platform/profiling [github.com/umi3730/adflow/internal/platform/profiling.test]
+internal\platform\profiling\server_test.go:14:9: undefined: Start
+internal\platform\profiling\server_test.go:17:11: undefined: InstanceInfo
+internal\platform\profiling\server_test.go:25:9: undefined: Start
+internal\platform\profiling\server_test.go:27:13: undefined: Start
+FAIL	github.com/umi3730/adflow/internal/platform/profiling [build failed]
+--- FAIL: TestPoolConfigurationRejectsUnboundedOrInconsistentLimits (0.00s)
+    pool_config_test.go:7: invalid pool accepted
+FAIL
+FAIL	github.com/umi3730/adflow/internal/platform/database	0.302s
+FAIL	github.com/umi3730/adflow/internal/config [build failed]
+FAIL

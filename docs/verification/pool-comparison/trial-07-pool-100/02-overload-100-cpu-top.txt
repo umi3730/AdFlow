@@ -1,0 +1,29 @@
+File: api-linux
+Build ID: 928b80bcfe978921b8133a95ba318310d86fc329
+Type: cpu
+Time: 2026-09-08 18:12:08 CST
+Duration: 20s, Total samples = 11.47s (57.35%)
+Showing nodes accounting for 7.75s, 67.57% of 11.47s total
+Dropped 484 nodes (cum <= 0.06s)
+Showing top 20 nodes out of 333
+      flat  flat%   sum%        cum   cum%
+     3.68s 32.08% 32.08%      3.68s 32.08%  internal/runtime/syscall/linux.Syscall6
+     2.87s 25.02% 57.11%      2.87s 25.02%  runtime.futex
+     0.10s  0.87% 57.98%      0.10s  0.87%  runtime.nextFreeFast (inline)
+     0.10s  0.87% 58.85%      0.38s  3.31%  runtime.selectgo
+     0.09s  0.78% 59.63%      0.32s  2.79%  runtime.stealWork
+     0.09s  0.78% 60.42%      0.09s  0.78%  runtime.usleep
+     0.08s   0.7% 61.12%      0.08s   0.7%  runtime.memmove
+     0.08s   0.7% 61.81%      0.08s   0.7%  runtime.osyield
+     0.08s   0.7% 62.51%      0.08s   0.7%  runtime.write1
+     0.07s  0.61% 63.12%      0.95s  8.28%  internal/poll.(*FD).Read
+     0.07s  0.61% 63.73%      0.21s  1.83%  runtime.lock2
+     0.07s  0.61% 64.34%      0.07s  0.61%  runtime.mallocgcSmallScanNoHeaderSC5
+     0.07s  0.61% 64.95%      0.07s  0.61%  runtime.nanotime (inline)
+     0.05s  0.44% 65.39%      2.87s 25.02%  runtime.findRunnable
+     0.05s  0.44% 65.82%      0.06s  0.52%  runtime.findfunc
+     0.05s  0.44% 66.26%      0.42s  3.66%  runtime.notesleep
+     0.04s  0.35% 66.61%      0.48s  4.18%  runtime.mallocgc
+     0.04s  0.35% 66.96%      0.82s  7.15%  runtime.netpoll
+     0.04s  0.35% 67.31%      0.06s  0.52%  runtime.tryDeferToSpanScan
+     0.03s  0.26% 67.57%      0.06s  0.52%  runtime.(*unwinder).resolveInternal

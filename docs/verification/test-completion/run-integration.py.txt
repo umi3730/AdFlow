@@ -1,0 +1,64 @@
+import json, os, re, socket, subprocess, time, uuid
+from pathlib import Path
+
+root=Path('/mnt/d/AdFlow')
+out=root/'work/test-completion'
+suffix=uuid.uuid4().hex[:10]
+schema='adflow_backpressure_it_'+suffix
+topics=['adflow-check-'+suffix+s for s in ['', '-dlq', '-restart']]
+kafka='/opt/adflow-runtime/kafka_2.13-4.3.1/bin/'
+env=os.environ.copy();env['KAFKA_HEAP_OPTS']='-Xmx128m -Xms64m'
+def run(command, **kw):
+    return subprocess.run(command, env=env, text=True, capture_output=True, timeout=45, **kw)
+def kc(script,*args):
+    result=run([kafka+script,'--bootstrap-server','127.0.0.1:9092',*args])
+    if result.returncode:raise RuntimeError(result.stderr or result.stdout)
+    return result.stdout
+before=set(kc('kafka-consumer-groups.sh','--list').splitlines())
+sock=socket.socket();sock.bind(('127.0.0.1',0));port=sock.getsockname()[1];sock.close()
+record={'schema':schema,'topics':topics,'redisPort':port,'stages':{},'cleanup':{}}
+created=[];redis=None;db_created=False
+try:
+    assert re.fullmatch('adflow_backpressure_it_[a-f0-9]{10}',schema)
+    run(['mysql','-e',f'CREATE DATABASE `{schema}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci'],check=True)
+    db_created=True
+    redislog=open(out/'integration-redis.log','w')
+    redis=subprocess.Popen(['redis-server','--bind','127.0.0.1','--port',str(port),'--save','','--appendonly','no'],stdout=redislog,stderr=subprocess.STDOUT)
+    for _ in range(30):
+        if run(['redis-cli','-p',str(port),'ping']).stdout.strip()=='PONG':break
+        time.sleep(.1)
+    else:raise RuntimeError('isolated Redis did not start')
+    for topic in topics:
+        kc('kafka-topics.sh','--create','--topic',topic,'--partitions','3','--replication-factor','1');created.append(topic)
+    env.update(ADFLOW_IT_MYSQL_DSN=f'root@unix(/var/run/mysqld/mysqld.sock)/{schema}?parseTime=true&charset=utf8mb4', ADFLOW_IT_REDIS_ADDR=f'127.0.0.1:{port}', ADFLOW_IT_KAFKA_BROKERS='127.0.0.1:9092', ADFLOW_IT_KAFKA_TOPIC=topics[0], ADFLOW_IT_KAFKA_DEAD_LETTER_TOPIC=topics[1], ADFLOW_IT_KAFKA_RESTART_TOPIC=topics[2])
+    env['ADFLOW_REPORT_IT_DSN']=env['ADFLOW_IT_MYSQL_DSN']
+    for name,binary,cwd in [('integration','integration-linux',root/'tests/integration'),('report-sql','report-sql-linux',root/'internal/reporting/adapter/mysql')]:
+        print('START '+name,flush=True)
+        with open(out/(name+'.log'),'w') as log:
+            result=subprocess.run([str(out/binary),'-test.v','-test.count=1','-test.timeout=180s'],cwd=cwd,env=env,stdout=log,stderr=subprocess.STDOUT,timeout=200)
+        content=(out/(name+'.log')).read_text()
+        record['stages'][name]={'exitCode':result.returncode,'passedTests':len(re.findall(r'^--- PASS:',content,re.M)),'skippedTests':len(re.findall(r'--- SKIP:',content))}
+        print(name+': '+json.dumps(record['stages'][name]),flush=True)
+finally:
+    try:
+        after=set(kc('kafka-consumer-groups.sh','--list').splitlines())
+        removed=[]
+        for group in after-before:
+            if not group.startswith('adflow-it-'):continue
+            description=kc('kafka-consumer-groups.sh','--describe','--group',group)
+            rows=[line.split() for line in description.splitlines() if line.startswith(group+' ')]
+            if rows and all(row[1] in topics for row in rows):
+                kc('kafka-consumer-groups.sh','--delete','--group',group);removed.append(group)
+        record['cleanup']['consumerGroupsRemoved']=removed
+    except Exception as e:record['cleanup']['consumerGroupError']=str(e)
+    for topic in created:
+        try:kc('kafka-topics.sh','--delete','--topic',topic);record['cleanup'][topic]=True
+        except Exception as e:record['cleanup'][topic]=str(e)
+    if redis:
+        redis.terminate();redis.wait(timeout=10);redislog.close();record['cleanup']['redisStopped']=True
+    if db_created:
+        result=run(['mysql','-e',f'DROP DATABASE `{schema}`'])
+        record['cleanup']['databaseDropped']=result.returncode==0
+    (out/'integration-result.json').write_text(json.dumps(record,indent=2))
+print(json.dumps(record,indent=2),flush=True)
+if any(s['exitCode'] or s['skippedTests'] for s in record['stages'].values()):raise SystemExit(1)

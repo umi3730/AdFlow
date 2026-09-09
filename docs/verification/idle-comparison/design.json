@@ -1,0 +1,89 @@
+{
+  "dimension": "idle",
+  "startedAt": "2026-09-09T09:50:58.0546141+08:00",
+  "order": [
+    10,
+    20,
+    20,
+    10,
+    10,
+    20
+  ],
+  "overloadSeconds": 60,
+  "baseline": {
+    "seconds": 20,
+    "rate": 45
+  },
+  "overload": {
+    "seconds": 60,
+    "rate": 100
+  },
+  "recovery": {
+    "seconds": 30,
+    "rate": 45
+  },
+  "fixedPool": {
+    "maxLifetime": "3m",
+    "maxIdleTime": "1m",
+    "maxOpen": 30
+  },
+  "cpuProfiling": "20 seconds during each overload phase",
+  "apiSHA256": "064f7038c887d1ce80e43a16eb8533af139297d1edef27d1f59ed7ca33f1dec1",
+  "trials": [
+    {
+      "name": "trial-01-idle-10",
+      "round": 1.0,
+      "error": null,
+      "passed": true,
+      "idle": 10,
+      "pool": 30,
+      "exitCode": 0
+    },
+    {
+      "name": "trial-02-idle-20",
+      "round": 1.0,
+      "error": null,
+      "passed": true,
+      "idle": 20,
+      "pool": 30,
+      "exitCode": 0
+    },
+    {
+      "name": "trial-03-idle-20",
+      "round": 2.0,
+      "error": null,
+      "passed": true,
+      "idle": 20,
+      "pool": 30,
+      "exitCode": 0
+    },
+    {
+      "name": "trial-04-idle-10",
+      "round": 2.0,
+      "error": null,
+      "passed": true,
+      "idle": 10,
+      "pool": 30,
+      "exitCode": 0
+    },
+    {
+      "name": "trial-05-idle-10",
+      "round": 3.0,
+      "error": "backpressure overload verification failed",
+      "passed": false,
+      "idle": 10,
+      "pool": 30,
+      "exitCode": 1
+    },
+    {
+      "name": "trial-06-idle-20",
+      "round": 3.0,
+      "error": null,
+      "passed": true,
+      "idle": 20,
+      "pool": 30,
+      "exitCode": 0
+    }
+  ],
+  "finishedAt": "2026-09-09T10:06:29.6305849+08:00"
+}

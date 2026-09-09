@@ -1,0 +1,29 @@
+File: api-linux
+Build ID: 928b80bcfe978921b8133a95ba318310d86fc329
+Type: cpu
+Time: 2026-09-08 17:59:02 CST
+Duration: 20s, Total samples = 11.72s (58.60%)
+Showing nodes accounting for 7.68s, 65.53% of 11.72s total
+Dropped 559 nodes (cum <= 0.06s)
+Showing top 20 nodes out of 312
+      flat  flat%   sum%        cum   cum%
+     4.03s 34.39% 34.39%      4.03s 34.39%  internal/runtime/syscall/linux.Syscall6
+     2.59s 22.10% 56.48%      2.59s 22.10%  runtime.futex
+     0.13s  1.11% 57.59%      0.13s  1.11%  runtime.write1
+     0.10s  0.85% 58.45%      0.10s  0.85%  runtime.usleep
+     0.09s  0.77% 59.22%      0.32s  2.73%  runtime.stealWork
+     0.07s   0.6% 59.81%      0.07s   0.6%  runtime.findfunc
+     0.07s   0.6% 60.41%      0.07s   0.6%  runtime.memmove
+     0.06s  0.51% 60.92%      0.07s   0.6%  internal/sync.(*HashTrieMap[go.shape.interface {},go.shape.interface {}]).Load
+     0.06s  0.51% 61.43%      0.06s  0.51%  memeqbody
+     0.06s  0.51% 61.95%      0.10s  0.85%  runtime.scanObjectsSmall
+     0.05s  0.43% 62.37%      0.09s  0.77%  runtime.(*stkframe).getStackMap
+     0.05s  0.43% 62.80%      2.84s 24.23%  runtime.findRunnable
+     0.05s  0.43% 63.23%      0.75s  6.40%  runtime.netpoll
+     0.05s  0.43% 63.65%      0.06s  0.51%  runtime.step
+     0.04s  0.34% 63.99%      0.08s  0.68%  runtime.(*timers).check
+     0.04s  0.34% 64.33%      0.06s  0.51%  runtime.mallocgcSmallScanNoHeaderSC2
+     0.04s  0.34% 64.68%      0.14s  1.19%  runtime.runqgrab
+     0.04s  0.34% 65.02%      0.27s  2.30%  runtime.unlock2
+     0.03s  0.26% 65.27%      0.42s  3.58%  encoding/json/v2.unmarshalDecode
+     0.03s  0.26% 65.53%      0.07s   0.6%  runtime.(*unwinder).resolveInternal

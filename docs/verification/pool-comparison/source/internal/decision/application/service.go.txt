@@ -1,0 +1,215 @@
+package application
+
+import (
+	"context"
+	"errors"
+	"hash/fnv"
+	"strings"
+	"time"
+
+	"github.com/umi3730/adflow/internal/decision/domain"
+)
+
+const reservationTTL = 30 * time.Second
+const reservationCleanupTimeout = 250 * time.Millisecond
+
+type Service struct {
+	candidates      domain.CandidateProvider
+	profiles        domain.ProfileStore
+	frequency       domain.FrequencyGate
+	budget          domain.BudgetGate
+	decisions       domain.DecisionStore
+	evaluator       domain.Evaluator
+	now             func() time.Time
+	newDecisionGate domain.NewDecisionGate
+}
+
+func NewService(candidates domain.CandidateProvider, profiles domain.ProfileStore, frequency domain.FrequencyGate, budget domain.BudgetGate, decisions domain.DecisionStore) *Service {
+	return &Service{
+		candidates: candidates, profiles: profiles, frequency: frequency, budget: budget,
+		decisions: decisions, evaluator: domain.Evaluator{}, now: time.Now,
+	}
+}
+
+func (s *Service) Decide(ctx context.Context, request domain.Request) (domain.Result, error) {
+	request.RequestID = strings.TrimSpace(request.RequestID)
+	request.UserID = strings.TrimSpace(request.UserID)
+	request.SlotID = strings.TrimSpace(request.SlotID)
+	if request.RequestID == "" || request.UserID == "" || request.SlotID == "" {
+		return domain.Result{}, domain.ErrInvalidRequest
+	}
+	if err := ctx.Err(); err != nil {
+		return domain.Result{}, err
+	}
+	if existing, found, err := s.decisions.FindDecision(ctx, request.RequestID); err != nil {
+		return domain.Result{}, err
+	} else if found {
+		if !domain.MatchesRequest(existing, request) {
+			return domain.Result{}, domain.ErrRequestConflict
+		}
+		return existing, nil
+	}
+
+	if s.newDecisionGate != nil {
+		if err := s.newDecisionGate.Check(ctx); err != nil {
+			return domain.Result{}, err
+		}
+	}
+
+	owner, err := newExecutionID()
+	if err != nil {
+		return domain.Result{}, err
+	}
+	waitCtx, waitCancel := context.WithTimeout(ctx, 250*time.Millisecond)
+	defer waitCancel()
+	for {
+		if err := ctx.Err(); err != nil {
+			return domain.Result{}, err
+		}
+		err = s.decisions.AcquireDecision(waitCtx, request, owner, time.Minute)
+		if !errors.Is(err, domain.ErrDecisionInProgress) {
+			break
+		}
+		select {
+		case <-waitCtx.Done():
+			if ctx.Err() != nil {
+				return domain.Result{}, ctx.Err()
+			}
+			return domain.Result{}, domain.ErrDecisionInProgress
+		case <-time.After(2 * time.Millisecond):
+		}
+	}
+	if err != nil {
+		cleanup, cancel := context.WithTimeout(context.WithoutCancel(ctx), reservationCleanupTimeout)
+		_ = s.decisions.ReleaseDecision(cleanup, request.RequestID, owner)
+		cancel()
+		if errors.Is(err, context.DeadlineExceeded) && ctx.Err() == nil {
+			return domain.Result{}, domain.ErrDecisionInProgress
+		}
+		return domain.Result{}, err
+	}
+	defer func() {
+		cleanup, cancel := context.WithTimeout(context.WithoutCancel(ctx), reservationCleanupTimeout)
+		defer cancel()
+		_ = s.decisions.ReleaseDecision(cleanup, request.RequestID, owner)
+	}()
+	// A previous owner may have committed between our fast lookup and acquisition.
+	if existing, found, err := s.decisions.FindDecision(ctx, request.RequestID); err != nil {
+		return domain.Result{}, err
+	} else if found {
+		if !domain.MatchesRequest(existing, request) {
+			return domain.Result{}, domain.ErrRequestConflict
+		}
+		return existing, nil
+	}
+
+	now := request.Now
+	if now.IsZero() {
+		now = s.now().UTC()
+	}
+	now = now.UTC().Truncate(time.Millisecond)
+	profile, err := s.profiles.FindProfile(ctx, request.UserID)
+	if err != nil {
+		if err == domain.ErrProfileNotFound {
+			return s.noAd(ctx, request, owner, domain.ReasonProfileNotFound)
+		}
+		return s.noAd(ctx, request, owner, domain.ReasonDependencyUnavailable)
+	}
+	candidates, err := s.candidates.ActiveCandidates(ctx, request.SlotID, now)
+	if err != nil {
+		return s.noAd(ctx, request, owner, domain.ReasonDependencyUnavailable)
+	}
+	if len(candidates) == 0 {
+		return s.noAd(ctx, request, owner, domain.ReasonNoCandidate)
+	}
+	candidates, advertiserCount := rankCandidates(candidates, profile, now, request.RequestID)
+	budgetRejected, frequencyRejected := 0, 0
+
+	reason := domain.ReasonTargetingMiss
+	for rank, candidate := range candidates {
+		if len(candidate.CreativeIDs) == 0 || !s.evaluator.Match(profile, candidate.Targeting) {
+			continue
+		}
+		reservationID := executionReservationID(owner, candidate.CampaignID)
+		frequencyToken, allowed, reserveErr := s.frequency.ReserveFrequency(
+			ctx, request.UserID, candidate.CampaignID, reservationID, candidate.FrequencyLimit, now, reservationTTL,
+		)
+		if reserveErr != nil {
+			return s.noAd(ctx, request, owner, domain.ReasonDependencyUnavailable)
+		}
+		if !allowed {
+			frequencyRejected++
+			reason = domain.ReasonFrequencyCapped
+			continue
+		}
+		if err := ctx.Err(); err != nil {
+			s.releaseFrequency(ctx, frequencyToken)
+			return domain.Result{}, err
+		}
+		price := candidate.ImpressionCostFen
+		mode := "fixed"
+		if candidate.BidFen > 0 && candidate.AdvertiserID != "" {
+			price = candidate.BidFen
+			mode = "first_price"
+		}
+		budgetToken, allowed, reserveErr := s.budget.ReserveBudget(
+			ctx, candidate.CampaignID, candidate.DailyBudgetFen, price, reservationID, now, reservationTTL,
+		)
+		if reserveErr != nil {
+			s.releaseFrequency(ctx, frequencyToken)
+			return s.noAd(ctx, request, owner, domain.ReasonDependencyUnavailable)
+		}
+		if !allowed {
+			budgetRejected++
+			s.releaseFrequency(ctx, frequencyToken)
+			reason = domain.ReasonBudgetExhausted
+			continue
+		}
+		if err := ctx.Err(); err != nil {
+			s.releaseReservations(ctx, frequencyToken, budgetToken)
+			return domain.Result{}, err
+		}
+
+		result := domain.Result{
+			Pricing:   domain.Pricing{Mode: mode, AdvertiserID: candidate.AdvertiserID, AdvertiserName: candidate.AdvertiserName, BidFen: candidate.BidFen, PriceFen: price, Version: candidate.Version, Advertisers: advertiserCount, Rank: rank + 1, BudgetRejected: budgetRejected, FrequencyRejected: frequencyRejected},
+			RequestID: request.RequestID, UserID: request.UserID, SlotID: request.SlotID,
+			Matched: true, CampaignID: candidate.CampaignID,
+			CreativeID:       chooseCreative(request.RequestID, candidate.CreativeIDs),
+			ReservationToken: budgetToken, ExpiresAt: now.Add(reservationTTL), Reason: domain.ReasonMatched,
+		}
+		return s.commitDecision(ctx, request, result, owner, frequencyToken, budgetToken)
+	}
+	return s.noAd(ctx, request, owner, reason)
+}
+
+// Configure before serving requests. Existing decisions bypass this gate.
+func (s *Service) SetNewDecisionGate(gate domain.NewDecisionGate) {
+	s.newDecisionGate = gate
+}
+
+func (s *Service) releaseFrequency(ctx context.Context, token string) {
+	cleanupCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), reservationCleanupTimeout)
+	defer cancel()
+	_ = s.frequency.ReleaseFrequency(cleanupCtx, token)
+}
+
+func (s *Service) releaseReservations(ctx context.Context, frequencyToken, budgetToken string) {
+	cleanupCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), reservationCleanupTimeout)
+	defer cancel()
+	_ = s.frequency.ReleaseFrequency(cleanupCtx, frequencyToken)
+	_ = s.budget.ReleaseBudget(cleanupCtx, budgetToken)
+}
+
+func (s *Service) noAd(ctx context.Context, request domain.Request, owner string, reason domain.Reason) (domain.Result, error) {
+	result := domain.Result{RequestID: request.RequestID, UserID: request.UserID, SlotID: request.SlotID, Matched: false, Reason: reason}
+	if err := ctx.Err(); err != nil {
+		return domain.Result{}, err
+	}
+	return s.commitDecision(ctx, request, result, owner, "", "")
+}
+
+func chooseCreative(requestID string, creativeIDs []string) string {
+	hash := fnv.New32a()
+	_, _ = hash.Write([]byte(requestID))
+	return creativeIDs[int(hash.Sum32())%len(creativeIDs)]
+}

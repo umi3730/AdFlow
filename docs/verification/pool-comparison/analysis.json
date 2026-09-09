@@ -1,0 +1,1023 @@
+{
+  "verified": true,
+  "design": "three cyclic orders; fresh resources per trial; only max-open changes; 20s CPU profile in every overload phase",
+  "rows": [
+    {
+      "trial": "trial-01-pool-30",
+      "round": 1.0,
+      "pool": 30,
+      "phase": "baseline",
+      "seconds": 20,
+      "attempts": 901,
+      "admitted": 901,
+      "rejected": 0,
+      "admittedPerSecond": 45.05,
+      "matchedDecisionP95Ms": 56.216996,
+      "acceptanceP95Ms": 167,
+      "committedP95Ms": 1354,
+      "waitCount": 0,
+      "waitSeconds": 0.0,
+      "sampledPeakInUse": 9,
+      "maxIdleClosedDelta": 22,
+      "maxLifetimeClosedDelta": 0,
+      "httpRequests": 3604,
+      "unexpectedErrorRate": 0,
+      "drainSeconds": 1.1305839,
+      "passed": true
+    },
+    {
+      "trial": "trial-01-pool-30",
+      "round": 1.0,
+      "pool": 30,
+      "phase": "overload",
+      "seconds": 60,
+      "attempts": 6001,
+      "admitted": 3421,
+      "rejected": 2580,
+      "admittedPerSecond": 57.016666666666666,
+      "matchedDecisionP95Ms": 78.332097,
+      "acceptanceP95Ms": 231,
+      "committedP95Ms": 2727,
+      "waitCount": 170,
+      "waitSeconds": 0.457936058,
+      "sampledPeakInUse": 26,
+      "maxIdleClosedDelta": 1374,
+      "maxLifetimeClosedDelta": 0,
+      "httpRequests": 16264,
+      "unexpectedErrorRate": 0,
+      "drainSeconds": 2.288557265,
+      "passed": true,
+      "cpuProfileSHA256": "65146739095ca2b0bb909cb86c487339def7de8cdf630c8fa605c12745498e68"
+    },
+    {
+      "trial": "trial-01-pool-30",
+      "round": 1.0,
+      "pool": 30,
+      "phase": "recovery",
+      "seconds": 30,
+      "attempts": 1351,
+      "admitted": 1351,
+      "rejected": 0,
+      "admittedPerSecond": 45.03333333333333,
+      "matchedDecisionP95Ms": 58.801843,
+      "acceptanceP95Ms": 173,
+      "committedP95Ms": 1450,
+      "waitCount": 0,
+      "waitSeconds": 0.0,
+      "sampledPeakInUse": 11,
+      "maxIdleClosedDelta": 40,
+      "maxLifetimeClosedDelta": 0,
+      "httpRequests": 5404,
+      "unexpectedErrorRate": 0,
+      "drainSeconds": 1.373358233,
+      "passed": true
+    },
+    {
+      "trial": "trial-02-pool-60",
+      "round": 1.0,
+      "pool": 60,
+      "phase": "baseline",
+      "seconds": 20,
+      "attempts": 901,
+      "admitted": 901,
+      "rejected": 0,
+      "admittedPerSecond": 45.05,
+      "matchedDecisionP95Ms": 69.496672,
+      "acceptanceP95Ms": 202,
+      "committedP95Ms": 1348,
+      "waitCount": 0,
+      "waitSeconds": 0.0,
+      "sampledPeakInUse": 11,
+      "maxIdleClosedDelta": 43,
+      "maxLifetimeClosedDelta": 0,
+      "httpRequests": 3604,
+      "unexpectedErrorRate": 0,
+      "drainSeconds": 1.092566133,
+      "passed": true
+    },
+    {
+      "trial": "trial-02-pool-60",
+      "round": 1.0,
+      "pool": 60,
+      "phase": "overload",
+      "seconds": 60,
+      "attempts": 6001,
+      "admitted": 3369,
+      "rejected": 2632,
+      "admittedPerSecond": 56.15,
+      "matchedDecisionP95Ms": 85.8276836,
+      "acceptanceP95Ms": 248,
+      "committedP95Ms": 2807,
+      "waitCount": 0,
+      "waitSeconds": 0.0,
+      "sampledPeakInUse": 26,
+      "maxIdleClosedDelta": 1348,
+      "maxLifetimeClosedDelta": 0,
+      "httpRequests": 16108,
+      "unexpectedErrorRate": 0,
+      "drainSeconds": 2.291260509,
+      "passed": true,
+      "cpuProfileSHA256": "67482b90d2514c9a5f44ab0c0b64f436f70db72f36497d4e1d52711c9fbf900b"
+    },
+    {
+      "trial": "trial-02-pool-60",
+      "round": 1.0,
+      "pool": 60,
+      "phase": "recovery",
+      "seconds": 30,
+      "attempts": 1351,
+      "admitted": 1351,
+      "rejected": 0,
+      "admittedPerSecond": 45.03333333333333,
+      "matchedDecisionP95Ms": 61.590751999999995,
+      "acceptanceP95Ms": 177,
+      "committedP95Ms": 1365,
+      "waitCount": 0,
+      "waitSeconds": 0.0,
+      "sampledPeakInUse": 10,
+      "maxIdleClosedDelta": 22,
+      "maxLifetimeClosedDelta": 0,
+      "httpRequests": 5404,
+      "unexpectedErrorRate": 0,
+      "drainSeconds": 1.04399046,
+      "passed": true
+    },
+    {
+      "trial": "trial-03-pool-100",
+      "round": 1.0,
+      "pool": 100,
+      "phase": "baseline",
+      "seconds": 20,
+      "attempts": 901,
+      "admitted": 901,
+      "rejected": 0,
+      "admittedPerSecond": 45.05,
+      "matchedDecisionP95Ms": 64.086988,
+      "acceptanceP95Ms": 179,
+      "committedP95Ms": 1318,
+      "waitCount": 0,
+      "waitSeconds": 0.0,
+      "sampledPeakInUse": 8,
+      "maxIdleClosedDelta": 28,
+      "maxLifetimeClosedDelta": 0,
+      "httpRequests": 3604,
+      "unexpectedErrorRate": 0,
+      "drainSeconds": 1.082686416,
+      "passed": true
+    },
+    {
+      "trial": "trial-03-pool-100",
+      "round": 1.0,
+      "pool": 100,
+      "phase": "overload",
+      "seconds": 60,
+      "attempts": 6000,
+      "admitted": 3372,
+      "rejected": 2628,
+      "admittedPerSecond": 56.2,
+      "matchedDecisionP95Ms": 84.89519469999999,
+      "acceptanceP95Ms": 234,
+      "committedP95Ms": 2852,
+      "waitCount": 0,
+      "waitSeconds": 0.0,
+      "sampledPeakInUse": 26,
+      "maxIdleClosedDelta": 1300,
+      "maxLifetimeClosedDelta": 0,
+      "httpRequests": 16116,
+      "unexpectedErrorRate": 0,
+      "drainSeconds": 1.996834723,
+      "passed": true,
+      "cpuProfileSHA256": "74c500bf01e81eefb2fc34078a65b870ba92e21a1ee2f6f6e7b4245647e4714a"
+    },
+    {
+      "trial": "trial-03-pool-100",
+      "round": 1.0,
+      "pool": 100,
+      "phase": "recovery",
+      "seconds": 30,
+      "attempts": 1350,
+      "admitted": 1350,
+      "rejected": 0,
+      "admittedPerSecond": 45.0,
+      "matchedDecisionP95Ms": 62.606232999999996,
+      "acceptanceP95Ms": 179,
+      "committedP95Ms": 1393,
+      "waitCount": 0,
+      "waitSeconds": 0.0,
+      "sampledPeakInUse": 8,
+      "maxIdleClosedDelta": 69,
+      "maxLifetimeClosedDelta": 0,
+      "httpRequests": 5400,
+      "unexpectedErrorRate": 0,
+      "drainSeconds": 0.744538668,
+      "passed": true
+    },
+    {
+      "trial": "trial-04-pool-60",
+      "round": 2.0,
+      "pool": 60,
+      "phase": "baseline",
+      "seconds": 20,
+      "attempts": 901,
+      "admitted": 901,
+      "rejected": 0,
+      "admittedPerSecond": 45.05,
+      "matchedDecisionP95Ms": 60.770783,
+      "acceptanceP95Ms": 182,
+      "committedP95Ms": 1329,
+      "waitCount": 0,
+      "waitSeconds": 0.0,
+      "sampledPeakInUse": 9,
+      "maxIdleClosedDelta": 20,
+      "maxLifetimeClosedDelta": 0,
+      "httpRequests": 3604,
+      "unexpectedErrorRate": 0,
+      "drainSeconds": 1.104809849,
+      "passed": true
+    },
+    {
+      "trial": "trial-04-pool-60",
+      "round": 2.0,
+      "pool": 60,
+      "phase": "overload",
+      "seconds": 60,
+      "attempts": 6000,
+      "admitted": 3468,
+      "rejected": 2532,
+      "admittedPerSecond": 57.8,
+      "matchedDecisionP95Ms": 70.73299,
+      "acceptanceP95Ms": 201,
+      "committedP95Ms": 2862,
+      "waitCount": 0,
+      "waitSeconds": 0.0,
+      "sampledPeakInUse": 22,
+      "maxIdleClosedDelta": 1093,
+      "maxLifetimeClosedDelta": 0,
+      "httpRequests": 16404,
+      "unexpectedErrorRate": 0,
+      "drainSeconds": 2.308313846,
+      "passed": true,
+      "cpuProfileSHA256": "d97f02342a4e27607c50beebd9dbf3e8196eea1cb770d6faf589cf1c1cf3d0b5"
+    },
+    {
+      "trial": "trial-04-pool-60",
+      "round": 2.0,
+      "pool": 60,
+      "phase": "recovery",
+      "seconds": 30,
+      "attempts": 1351,
+      "admitted": 1351,
+      "rejected": 0,
+      "admittedPerSecond": 45.03333333333333,
+      "matchedDecisionP95Ms": 64.59805,
+      "acceptanceP95Ms": 184,
+      "committedP95Ms": 1376,
+      "waitCount": 0,
+      "waitSeconds": 0.0,
+      "sampledPeakInUse": 11,
+      "maxIdleClosedDelta": 30,
+      "maxLifetimeClosedDelta": 0,
+      "httpRequests": 5404,
+      "unexpectedErrorRate": 0,
+      "drainSeconds": 1.065810684,
+      "passed": true
+    },
+    {
+      "trial": "trial-05-pool-100",
+      "round": 2.0,
+      "pool": 100,
+      "phase": "baseline",
+      "seconds": 20,
+      "attempts": 901,
+      "admitted": 901,
+      "rejected": 0,
+      "admittedPerSecond": 45.05,
+      "matchedDecisionP95Ms": 71.078889,
+      "acceptanceP95Ms": 192,
+      "committedP95Ms": 1466,
+      "waitCount": 0,
+      "waitSeconds": 0.0,
+      "sampledPeakInUse": 12,
+      "maxIdleClosedDelta": 61,
+      "maxLifetimeClosedDelta": 0,
+      "httpRequests": 3604,
+      "unexpectedErrorRate": 0,
+      "drainSeconds": 1.107644133,
+      "passed": true
+    },
+    {
+      "trial": "trial-05-pool-100",
+      "round": 2.0,
+      "pool": 100,
+      "phase": "overload",
+      "seconds": 60,
+      "attempts": 6001,
+      "admitted": 3252,
+      "rejected": 2749,
+      "admittedPerSecond": 54.2,
+      "matchedDecisionP95Ms": 99.33082624999993,
+      "acceptanceP95Ms": 271,
+      "committedP95Ms": 2924,
+      "waitCount": 0,
+      "waitSeconds": 0.0,
+      "sampledPeakInUse": 24,
+      "maxIdleClosedDelta": 1596,
+      "maxLifetimeClosedDelta": 0,
+      "httpRequests": 15757,
+      "unexpectedErrorRate": 0,
+      "drainSeconds": 1.030052032,
+      "passed": true,
+      "cpuProfileSHA256": "6adeca15fc2654c6428b91835140a9d556bb0559f58ef95b63e168eed81bdf25"
+    },
+    {
+      "trial": "trial-05-pool-100",
+      "round": 2.0,
+      "pool": 100,
+      "phase": "recovery",
+      "seconds": 30,
+      "attempts": 1351,
+      "admitted": 1351,
+      "rejected": 0,
+      "admittedPerSecond": 45.03333333333333,
+      "matchedDecisionP95Ms": 64.59123,
+      "acceptanceP95Ms": 183,
+      "committedP95Ms": 1346,
+      "waitCount": 0,
+      "waitSeconds": 0.0,
+      "sampledPeakInUse": 9,
+      "maxIdleClosedDelta": 82,
+      "maxLifetimeClosedDelta": 0,
+      "httpRequests": 5404,
+      "unexpectedErrorRate": 0,
+      "drainSeconds": 1.351784739,
+      "passed": true
+    },
+    {
+      "trial": "trial-06-pool-30",
+      "round": 2.0,
+      "pool": 30,
+      "phase": "baseline",
+      "seconds": 20,
+      "attempts": 900,
+      "admitted": 900,
+      "rejected": 0,
+      "admittedPerSecond": 45.0,
+      "matchedDecisionP95Ms": 62.32906669999998,
+      "acceptanceP95Ms": 181,
+      "committedP95Ms": 1394,
+      "waitCount": 0,
+      "waitSeconds": 0.0,
+      "sampledPeakInUse": 13,
+      "maxIdleClosedDelta": 27,
+      "maxLifetimeClosedDelta": 0,
+      "httpRequests": 3600,
+      "unexpectedErrorRate": 0,
+      "drainSeconds": 0.81777016,
+      "passed": true
+    },
+    {
+      "trial": "trial-06-pool-30",
+      "round": 2.0,
+      "pool": 30,
+      "phase": "overload",
+      "seconds": 60,
+      "attempts": 6001,
+      "admitted": 3460,
+      "rejected": 2541,
+      "admittedPerSecond": 57.666666666666664,
+      "matchedDecisionP95Ms": 71.51230479999998,
+      "acceptanceP95Ms": 204,
+      "committedP95Ms": 2838,
+      "waitCount": 62,
+      "waitSeconds": 0.133402799,
+      "sampledPeakInUse": 23,
+      "maxIdleClosedDelta": 1071,
+      "maxLifetimeClosedDelta": 0,
+      "httpRequests": 16381,
+      "unexpectedErrorRate": 0,
+      "drainSeconds": 2.297339551,
+      "passed": true,
+      "cpuProfileSHA256": "ac4b21ef7baad45636f9bb481bf1965d5d812a9ce71da7bd999313042e134717"
+    },
+    {
+      "trial": "trial-06-pool-30",
+      "round": 2.0,
+      "pool": 30,
+      "phase": "recovery",
+      "seconds": 30,
+      "attempts": 1351,
+      "admitted": 1351,
+      "rejected": 0,
+      "admittedPerSecond": 45.03333333333333,
+      "matchedDecisionP95Ms": 59.2560045,
+      "acceptanceP95Ms": 174,
+      "committedP95Ms": 1407,
+      "waitCount": 0,
+      "waitSeconds": 0.0,
+      "sampledPeakInUse": 10,
+      "maxIdleClosedDelta": 53,
+      "maxLifetimeClosedDelta": 0,
+      "httpRequests": 5404,
+      "unexpectedErrorRate": 0,
+      "drainSeconds": 1.086250192,
+      "passed": true
+    },
+    {
+      "trial": "trial-07-pool-100",
+      "round": 3.0,
+      "pool": 100,
+      "phase": "baseline",
+      "seconds": 20,
+      "attempts": 901,
+      "admitted": 901,
+      "rejected": 0,
+      "admittedPerSecond": 45.05,
+      "matchedDecisionP95Ms": 73.945265,
+      "acceptanceP95Ms": 207,
+      "committedP95Ms": 1472,
+      "waitCount": 0,
+      "waitSeconds": 0.0,
+      "sampledPeakInUse": 10,
+      "maxIdleClosedDelta": 28,
+      "maxLifetimeClosedDelta": 0,
+      "httpRequests": 3604,
+      "unexpectedErrorRate": 0,
+      "drainSeconds": 0.848112213,
+      "passed": true
+    },
+    {
+      "trial": "trial-07-pool-100",
+      "round": 3.0,
+      "pool": 100,
+      "phase": "overload",
+      "seconds": 60,
+      "attempts": 6000,
+      "admitted": 3462,
+      "rejected": 2538,
+      "admittedPerSecond": 57.7,
+      "matchedDecisionP95Ms": 75.3442874,
+      "acceptanceP95Ms": 214,
+      "committedP95Ms": 2875,
+      "waitCount": 0,
+      "waitSeconds": 0.0,
+      "sampledPeakInUse": 24,
+      "maxIdleClosedDelta": 1273,
+      "maxLifetimeClosedDelta": 0,
+      "httpRequests": 16386,
+      "unexpectedErrorRate": 0,
+      "drainSeconds": 2.275423926,
+      "passed": true,
+      "cpuProfileSHA256": "fb539b55e1458d0243f80549a52319e6107c4755b33650bd5db89e621ab195ce"
+    },
+    {
+      "trial": "trial-07-pool-100",
+      "round": 3.0,
+      "pool": 100,
+      "phase": "recovery",
+      "seconds": 30,
+      "attempts": 1351,
+      "admitted": 1351,
+      "rejected": 0,
+      "admittedPerSecond": 45.03333333333333,
+      "matchedDecisionP95Ms": 58.935422,
+      "acceptanceP95Ms": 172.5,
+      "committedP95Ms": 1402,
+      "waitCount": 0,
+      "waitSeconds": 0.0,
+      "sampledPeakInUse": 8,
+      "maxIdleClosedDelta": 60,
+      "maxLifetimeClosedDelta": 0,
+      "httpRequests": 5404,
+      "unexpectedErrorRate": 0,
+      "drainSeconds": 1.051733649,
+      "passed": true
+    },
+    {
+      "trial": "trial-08-pool-30",
+      "round": 3.0,
+      "pool": 30,
+      "phase": "baseline",
+      "seconds": 20,
+      "attempts": 900,
+      "admitted": 900,
+      "rejected": 0,
+      "admittedPerSecond": 45.0,
+      "matchedDecisionP95Ms": 62.72432474999999,
+      "acceptanceP95Ms": 183.04999999999995,
+      "committedP95Ms": 1401,
+      "waitCount": 0,
+      "waitSeconds": 0.0,
+      "sampledPeakInUse": 12,
+      "maxIdleClosedDelta": 30,
+      "maxLifetimeClosedDelta": 0,
+      "httpRequests": 3600,
+      "unexpectedErrorRate": 0,
+      "drainSeconds": 1.3829619,
+      "passed": true
+    },
+    {
+      "trial": "trial-08-pool-30",
+      "round": 3.0,
+      "pool": 30,
+      "phase": "overload",
+      "seconds": 60,
+      "attempts": 6001,
+      "admitted": 3445,
+      "rejected": 2556,
+      "admittedPerSecond": 57.416666666666664,
+      "matchedDecisionP95Ms": 72.99331579999999,
+      "acceptanceP95Ms": 204,
+      "committedP95Ms": 2779,
+      "waitCount": 0,
+      "waitSeconds": 0.0,
+      "sampledPeakInUse": 27,
+      "maxIdleClosedDelta": 1117,
+      "maxLifetimeClosedDelta": 0,
+      "httpRequests": 16336,
+      "unexpectedErrorRate": 0,
+      "drainSeconds": 2.308725207,
+      "passed": true,
+      "cpuProfileSHA256": "6136474559b953ca24b3afe9646cf4debc325bd6bdb7b32d5329f22b4289d125"
+    },
+    {
+      "trial": "trial-08-pool-30",
+      "round": 3.0,
+      "pool": 30,
+      "phase": "recovery",
+      "seconds": 30,
+      "attempts": 1350,
+      "admitted": 1350,
+      "rejected": 0,
+      "admittedPerSecond": 45.0,
+      "matchedDecisionP95Ms": 59.524864949999994,
+      "acceptanceP95Ms": 178,
+      "committedP95Ms": 1446,
+      "waitCount": 0,
+      "waitSeconds": 0.0,
+      "sampledPeakInUse": 13,
+      "maxIdleClosedDelta": 58,
+      "maxLifetimeClosedDelta": 0,
+      "httpRequests": 5400,
+      "unexpectedErrorRate": 0,
+      "drainSeconds": 0.783113709,
+      "passed": true
+    },
+    {
+      "trial": "trial-09-pool-60",
+      "round": 3.0,
+      "pool": 60,
+      "phase": "baseline",
+      "seconds": 20,
+      "attempts": 900,
+      "admitted": 900,
+      "rejected": 0,
+      "admittedPerSecond": 45.0,
+      "matchedDecisionP95Ms": 62.23066779999999,
+      "acceptanceP95Ms": 186,
+      "committedP95Ms": 1364,
+      "waitCount": 0,
+      "waitSeconds": 0.0,
+      "sampledPeakInUse": 11,
+      "maxIdleClosedDelta": 17,
+      "maxLifetimeClosedDelta": 0,
+      "httpRequests": 3600,
+      "unexpectedErrorRate": 0,
+      "drainSeconds": 0.816817195,
+      "passed": true
+    },
+    {
+      "trial": "trial-09-pool-60",
+      "round": 3.0,
+      "pool": 60,
+      "phase": "overload",
+      "seconds": 60,
+      "attempts": 6001,
+      "admitted": 3277,
+      "rejected": 2724,
+      "admittedPerSecond": 54.61666666666667,
+      "matchedDecisionP95Ms": 84.83664839999997,
+      "acceptanceP95Ms": 236,
+      "committedP95Ms": 2882,
+      "waitCount": 0,
+      "waitSeconds": 0.0,
+      "sampledPeakInUse": 24,
+      "maxIdleClosedDelta": 1361,
+      "maxLifetimeClosedDelta": 0,
+      "httpRequests": 15832,
+      "unexpectedErrorRate": 0,
+      "drainSeconds": 1.677936986,
+      "passed": true,
+      "cpuProfileSHA256": "c75747269eff77a665c9ed31b1f81caa1ebe36fd0895ed464dadf84ef3ee1131"
+    },
+    {
+      "trial": "trial-09-pool-60",
+      "round": 3.0,
+      "pool": 60,
+      "phase": "recovery",
+      "seconds": 30,
+      "attempts": 1351,
+      "admitted": 1351,
+      "rejected": 0,
+      "admittedPerSecond": 45.03333333333333,
+      "matchedDecisionP95Ms": 61.746784500000004,
+      "acceptanceP95Ms": 181,
+      "committedP95Ms": 1320,
+      "waitCount": 0,
+      "waitSeconds": 0.0,
+      "sampledPeakInUse": 9,
+      "maxIdleClosedDelta": 25,
+      "maxLifetimeClosedDelta": 0,
+      "httpRequests": 5404,
+      "unexpectedErrorRate": 0,
+      "drainSeconds": 1.364438616,
+      "passed": true
+    }
+  ],
+  "groups": [
+    {
+      "phase": "baseline",
+      "pool": 30,
+      "measuredTrials": 3,
+      "allPassed": true,
+      "admittedPerSecond": {
+        "median": 45.0,
+        "min": 45.0,
+        "max": 45.05
+      },
+      "matchedDecisionP95Ms": {
+        "median": 62.32906669999998,
+        "min": 56.216996,
+        "max": 62.72432474999999
+      },
+      "acceptanceP95Ms": {
+        "median": 181,
+        "min": 167,
+        "max": 183.04999999999995
+      },
+      "committedP95Ms": {
+        "median": 1394,
+        "min": 1354,
+        "max": 1401
+      },
+      "waitCount": {
+        "median": 0,
+        "min": 0,
+        "max": 0
+      },
+      "waitSeconds": {
+        "median": 0.0,
+        "min": 0.0,
+        "max": 0.0
+      },
+      "maxIdleClosedDelta": {
+        "median": 27,
+        "min": 22,
+        "max": 30
+      },
+      "sampledPeakInUse": 13
+    },
+    {
+      "phase": "baseline",
+      "pool": 60,
+      "measuredTrials": 3,
+      "allPassed": true,
+      "admittedPerSecond": {
+        "median": 45.05,
+        "min": 45.0,
+        "max": 45.05
+      },
+      "matchedDecisionP95Ms": {
+        "median": 62.23066779999999,
+        "min": 60.770783,
+        "max": 69.496672
+      },
+      "acceptanceP95Ms": {
+        "median": 186,
+        "min": 182,
+        "max": 202
+      },
+      "committedP95Ms": {
+        "median": 1348,
+        "min": 1329,
+        "max": 1364
+      },
+      "waitCount": {
+        "median": 0,
+        "min": 0,
+        "max": 0
+      },
+      "waitSeconds": {
+        "median": 0.0,
+        "min": 0.0,
+        "max": 0.0
+      },
+      "maxIdleClosedDelta": {
+        "median": 20,
+        "min": 17,
+        "max": 43
+      },
+      "sampledPeakInUse": 11
+    },
+    {
+      "phase": "baseline",
+      "pool": 100,
+      "measuredTrials": 3,
+      "allPassed": true,
+      "admittedPerSecond": {
+        "median": 45.05,
+        "min": 45.05,
+        "max": 45.05
+      },
+      "matchedDecisionP95Ms": {
+        "median": 71.078889,
+        "min": 64.086988,
+        "max": 73.945265
+      },
+      "acceptanceP95Ms": {
+        "median": 192,
+        "min": 179,
+        "max": 207
+      },
+      "committedP95Ms": {
+        "median": 1466,
+        "min": 1318,
+        "max": 1472
+      },
+      "waitCount": {
+        "median": 0,
+        "min": 0,
+        "max": 0
+      },
+      "waitSeconds": {
+        "median": 0.0,
+        "min": 0.0,
+        "max": 0.0
+      },
+      "maxIdleClosedDelta": {
+        "median": 28,
+        "min": 28,
+        "max": 61
+      },
+      "sampledPeakInUse": 12
+    },
+    {
+      "phase": "overload",
+      "pool": 30,
+      "measuredTrials": 3,
+      "allPassed": true,
+      "admittedPerSecond": {
+        "median": 57.416666666666664,
+        "min": 57.016666666666666,
+        "max": 57.666666666666664
+      },
+      "matchedDecisionP95Ms": {
+        "median": 72.99331579999999,
+        "min": 71.51230479999998,
+        "max": 78.332097
+      },
+      "acceptanceP95Ms": {
+        "median": 204,
+        "min": 204,
+        "max": 231
+      },
+      "committedP95Ms": {
+        "median": 2779,
+        "min": 2727,
+        "max": 2838
+      },
+      "waitCount": {
+        "median": 62,
+        "min": 0,
+        "max": 170
+      },
+      "waitSeconds": {
+        "median": 0.133402799,
+        "min": 0.0,
+        "max": 0.457936058
+      },
+      "maxIdleClosedDelta": {
+        "median": 1117,
+        "min": 1071,
+        "max": 1374
+      },
+      "sampledPeakInUse": 27
+    },
+    {
+      "phase": "overload",
+      "pool": 60,
+      "measuredTrials": 3,
+      "allPassed": true,
+      "admittedPerSecond": {
+        "median": 56.15,
+        "min": 54.61666666666667,
+        "max": 57.8
+      },
+      "matchedDecisionP95Ms": {
+        "median": 84.83664839999997,
+        "min": 70.73299,
+        "max": 85.8276836
+      },
+      "acceptanceP95Ms": {
+        "median": 236,
+        "min": 201,
+        "max": 248
+      },
+      "committedP95Ms": {
+        "median": 2862,
+        "min": 2807,
+        "max": 2882
+      },
+      "waitCount": {
+        "median": 0,
+        "min": 0,
+        "max": 0
+      },
+      "waitSeconds": {
+        "median": 0.0,
+        "min": 0.0,
+        "max": 0.0
+      },
+      "maxIdleClosedDelta": {
+        "median": 1348,
+        "min": 1093,
+        "max": 1361
+      },
+      "sampledPeakInUse": 26
+    },
+    {
+      "phase": "overload",
+      "pool": 100,
+      "measuredTrials": 3,
+      "allPassed": true,
+      "admittedPerSecond": {
+        "median": 56.2,
+        "min": 54.2,
+        "max": 57.7
+      },
+      "matchedDecisionP95Ms": {
+        "median": 84.89519469999999,
+        "min": 75.3442874,
+        "max": 99.33082624999993
+      },
+      "acceptanceP95Ms": {
+        "median": 234,
+        "min": 214,
+        "max": 271
+      },
+      "committedP95Ms": {
+        "median": 2875,
+        "min": 2852,
+        "max": 2924
+      },
+      "waitCount": {
+        "median": 0,
+        "min": 0,
+        "max": 0
+      },
+      "waitSeconds": {
+        "median": 0.0,
+        "min": 0.0,
+        "max": 0.0
+      },
+      "maxIdleClosedDelta": {
+        "median": 1300,
+        "min": 1273,
+        "max": 1596
+      },
+      "sampledPeakInUse": 26
+    },
+    {
+      "phase": "recovery",
+      "pool": 30,
+      "measuredTrials": 3,
+      "allPassed": true,
+      "admittedPerSecond": {
+        "median": 45.03333333333333,
+        "min": 45.0,
+        "max": 45.03333333333333
+      },
+      "matchedDecisionP95Ms": {
+        "median": 59.2560045,
+        "min": 58.801843,
+        "max": 59.524864949999994
+      },
+      "acceptanceP95Ms": {
+        "median": 174,
+        "min": 173,
+        "max": 178
+      },
+      "committedP95Ms": {
+        "median": 1446,
+        "min": 1407,
+        "max": 1450
+      },
+      "waitCount": {
+        "median": 0,
+        "min": 0,
+        "max": 0
+      },
+      "waitSeconds": {
+        "median": 0.0,
+        "min": 0.0,
+        "max": 0.0
+      },
+      "maxIdleClosedDelta": {
+        "median": 53,
+        "min": 40,
+        "max": 58
+      },
+      "sampledPeakInUse": 13
+    },
+    {
+      "phase": "recovery",
+      "pool": 60,
+      "measuredTrials": 3,
+      "allPassed": true,
+      "admittedPerSecond": {
+        "median": 45.03333333333333,
+        "min": 45.03333333333333,
+        "max": 45.03333333333333
+      },
+      "matchedDecisionP95Ms": {
+        "median": 61.746784500000004,
+        "min": 61.590751999999995,
+        "max": 64.59805
+      },
+      "acceptanceP95Ms": {
+        "median": 181,
+        "min": 177,
+        "max": 184
+      },
+      "committedP95Ms": {
+        "median": 1365,
+        "min": 1320,
+        "max": 1376
+      },
+      "waitCount": {
+        "median": 0,
+        "min": 0,
+        "max": 0
+      },
+      "waitSeconds": {
+        "median": 0.0,
+        "min": 0.0,
+        "max": 0.0
+      },
+      "maxIdleClosedDelta": {
+        "median": 25,
+        "min": 22,
+        "max": 30
+      },
+      "sampledPeakInUse": 11
+    },
+    {
+      "phase": "recovery",
+      "pool": 100,
+      "measuredTrials": 3,
+      "allPassed": true,
+      "admittedPerSecond": {
+        "median": 45.03333333333333,
+        "min": 45.0,
+        "max": 45.03333333333333
+      },
+      "matchedDecisionP95Ms": {
+        "median": 62.606232999999996,
+        "min": 58.935422,
+        "max": 64.59123
+      },
+      "acceptanceP95Ms": {
+        "median": 179,
+        "min": 172.5,
+        "max": 183
+      },
+      "committedP95Ms": {
+        "median": 1393,
+        "min": 1346,
+        "max": 1402
+      },
+      "waitCount": {
+        "median": 0,
+        "min": 0,
+        "max": 0
+      },
+      "waitSeconds": {
+        "median": 0.0,
+        "min": 0.0,
+        "max": 0.0
+      },
+      "maxIdleClosedDelta": {
+        "median": 69,
+        "min": 60,
+        "max": 82
+      },
+      "sampledPeakInUse": 9
+    }
+  ],
+  "allTrialsPassed": true,
+  "notes": [
+    "Rejected attempts are not accepted throughput.",
+    "DB wait counts describe connection acquisitions, including background work, not unique HTTP requests.",
+    "Peak occupancy is sampled, not an exact maximum.",
+    "Three trials on shared local hardware do not establish production capacity or statistical significance."
+  ]
+}

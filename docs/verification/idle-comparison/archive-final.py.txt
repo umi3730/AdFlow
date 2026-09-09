@@ -1,0 +1,43 @@
+import gzip, hashlib, json, shutil, subprocess, sys
+from pathlib import Path
+
+root=Path('work/idle-comparison/run-20260909-095045')
+dest=Path('docs/verification/idle-comparison');dest.mkdir(parents=True,exist_ok=True)
+design=json.loads((root/'design.json').read_text(encoding='utf-8-sig'))
+provenance=[]
+for trial in design['trials']:
+    src=root/trial['name'];out=dest/trial['name'];out.mkdir(exist_ok=True)
+    raw=(src/'proof.json').read_bytes();report=json.loads(raw)
+    assert all(report['cleanup'].values()) and report['clockObservation']['stable']
+    assert report['apiBinarySHA256']==design['apiSHA256']
+    for name in ['proof.json','api.log','redis.log']:
+        (out/(name+'.gz')).write_bytes(gzip.compress((src/name).read_bytes(),mtime=0))
+    for pattern in ['*-k6.json','*-console.log','*.pprof']:
+        for file in src.glob(pattern):shutil.copy2(file,out/file.name)
+    for file in out.glob('*.pprof'):
+        top=subprocess.run(['go','tool','pprof','-top','-nodecount=20',str(file)],capture_output=True,text=True,check=True)
+        (out/(file.stem+'-top.txt')).write_text(top.stdout+top.stderr,encoding='utf-8')
+    for name,digest in report['sourceSHA256'].items():
+        candidates=[Path(name),Path('docs/verification/idle-comparison-clock-failure/source')/(name+'.txt'),Path('docs/verification/pool-comparison/source')/(name+'.txt')]
+        match=next((p for p in candidates if p.exists() and hashlib.sha256(p.read_bytes()).hexdigest()==digest),None)
+        provenance.append({'trial':trial['name'],'path':name,'recordedSHA256':digest,'snapshotFound':match is not None,'recoveredFrom':str(match) if match else None})
+        if match:
+            target=(out if name=='cmd/api/main.go' else dest)/'source'/(name+'.txt')
+            target.parent.mkdir(parents=True,exist_ok=True)
+            if target.exists():assert target.read_bytes()==match.read_bytes()
+            target.write_bytes(match.read_bytes())
+    # Also make recovered sources available for the uncompressed working evidence.
+    for base in [dest/'source',out/'source']:
+        if base.exists():shutil.copytree(base,src/'source',dirs_exist_ok=True)
+for name in ['design.json','environment.json']:
+    shutil.copy2(root/name,dest/name)
+for name in ['ntp-control.json','clock-preflight.json']:
+    shutil.copy2(Path('work/idle-comparison')/name,dest/name)
+for name in ['run-stable.ps1','clock-preflight.py','archive-final.py']:
+    shutil.copy2(Path('work/idle-comparison')/name,dest/(name+'.txt'))
+(dest/'source-recovery.json').write_text(json.dumps({'note':'Hashes were read from the live workspace during each trial, not at API build. cmd/api/main.go drifted; trial 3 intermediate bytes are unavailable. Recovered hashes do not prove a full source-to-binary mapping. All six recorded API binary hashes agree. Raw reports are unchanged.','entries':provenance},indent=2),encoding='utf-8')
+for name in ['tests/bench/k6-lab/verify_capacity.py','tests/bench/k6-lab/analyze_pool_comparison.py','scripts/compare-pools.ps1']:
+    target=dest/'post-run-tools'/(name+'.txt');target.parent.mkdir(parents=True,exist_ok=True);target.write_bytes(Path(name).read_bytes())
+for path in [dest,root]:
+    subprocess.run([sys.executable,'tests/bench/k6-lab/analyze_pool_comparison.py',str(path),'--measurements-only'],check=True)
+print('Archived six trials without altering raw proofs; incomplete source provenance remains explicit.')

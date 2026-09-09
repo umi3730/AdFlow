@@ -50,6 +50,9 @@ export function CampaignRuleDialog({
   onChanged,
   initialValue,
   onPublished,
+  activeCreativeCount,
+  onAddMaterials,
+  onTest,
 }: {
   now: number | null;
   campaign: Campaign;
@@ -57,6 +60,9 @@ export function CampaignRuleDialog({
   onChanged: () => Promise<void>;
   initialValue?: RuleEditorValue;
   onPublished?: (campaign: Campaign) => void;
+  activeCreativeCount?: number | null;
+  onAddMaterials?: () => void;
+  onTest?: () => void;
 }) {
   const { canAdmin, canOperate } = useAccess();
   const [current, setCurrent] = useState(campaign);
@@ -131,7 +137,7 @@ export function CampaignRuleDialog({
       setValue(editorFromCampaign(published));
       setPreview(null);
       setSuccess(
-        `版本 v${published.activeVersion?.number ?? version + 1} 已发布；候选快照按缓存 TTL 刷新，默认约 5 秒。`,
+        `版本 v${published.activeVersion?.number ?? version + 1} 已发布。`,
       );
       await onChanged();
     } catch (cause) {
@@ -171,8 +177,12 @@ export function CampaignRuleDialog({
         </DialogHeader>
         <div className="border-b pb-3 text-sm leading-6 text-muted-foreground">
           <p>
-            {campaignDisplayLabels[campaignDisplayStatus(current, now)]} ·
-            投放时间（北京时间）
+            {
+              campaignDisplayLabels[
+                campaignDisplayStatus({ ...current, activeCreativeCount }, now)
+              ]
+            }{' '}
+            · 投放时间（北京时间）
           </p>
           <p>
             {formatCampaignDate(current.startAt)} 至{' '}
@@ -190,6 +200,28 @@ export function CampaignRuleDialog({
             <CheckCircle2 className="mt-0.5 size-4 shrink-0" />
             {success}
           </output>
+        )}
+        {current.status === 'ACTIVE' && canOperate && (
+          <div className="flex flex-wrap items-center gap-3 rounded-lg border p-3">
+            <p className="flex-1 text-sm">
+              {activeCreativeCount === 0
+                ? '还缺一份素材，添加后即可试投。'
+                : activeCreativeCount == null
+                  ? '正在检查素材…'
+                  : '素材已就绪，可以试投。'}
+            </p>
+            <Button
+              disabled={busy || activeCreativeCount == null}
+              onClick={activeCreativeCount === 0 ? onAddMaterials : onTest}
+            >
+              {activeCreativeCount === 0 ? '添加素材' : '测试此计划'}
+            </Button>
+          </div>
+        )}
+        {preview && activeCreativeCount === 0 && (
+          <p className="text-sm text-amber-800">
+            发布规则后还需添加素材，计划才会参与投放。
+          </p>
         )}
         {error && (
           <p
@@ -298,7 +330,7 @@ export function CampaignRuleDialog({
                   htmlFor="rule-advertiser-id"
                   className="space-y-1.5 text-sm"
                 >
-                  广告主标识
+                  广告主编号
                   <Input
                     id="rule-advertiser-id"
                     value={value.auction.advertiserId}
@@ -339,7 +371,7 @@ export function CampaignRuleDialog({
                   />
                 </label>
                 <p className="text-xs leading-5 text-muted-foreground sm:col-span-2">
-                  同一广告主标识只提交一条代表计划；中标后按自己的出价计费。
+                  同一家广告主使用相同编号，名称用于展示。中标后按出价计费。
                 </p>
               </div>
             )}

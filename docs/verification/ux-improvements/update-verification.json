@@ -1,0 +1,19 @@
+{
+  "binary": "D:\\AdFlow\\work\\native-api\\adflow-api-20260909-110014-305.exe",
+  "oldProcesses": [
+    33688,
+    34560
+  ],
+  "databaseRecreated": false,
+  "processIds": [
+    3508,
+    27240
+  ],
+  "ports": [
+    18080,
+    18081
+  ],
+  "reportVerified": true,
+  "updatedAt": "2026-09-09T11:01:27.7532346+08:00",
+  "csvVerified": true
+}

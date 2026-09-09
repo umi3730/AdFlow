@@ -1,0 +1,578 @@
+package main
+
+import (
+	"bytes"
+	"context"
+	"crypto/sha256"
+	"database/sql"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"github.com/redis/go-redis/v9"
+	"io"
+	"net/http"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"sort"
+	"strconv"
+	"strings"
+	"time"
+)
+
+type chainCapacity struct {
+	db                          *sql.DB
+	rc                          *redis.Client
+	base, token, group, dir, k6 string
+	client                      *http.Client
+	report                      map[string]any
+	kafka                       func(string, ...string) (string, error)
+	results                     []map[string]any
+	protection                  bool
+}
+type chainSnapshot struct {
+	At        time.Time `json:"at"`
+	Decisions int64     `json:"decisions"`
+	Receipts  int64     `json:"receipts"`
+	Settled   int64     `json:"settled"`
+	Reconcile int64     `json:"reconcile"`
+	Published int64     `json:"published"`
+	Processed int64     `json:"processed"`
+}
+type chainObservation struct {
+	RequestID  string `json:"requestId"`
+	StartMS    int64  `json:"clientStartMs"`
+	ObservedMS int64  `json:"committedObservedAtMs"`
+	RecordedMS int64  `json:"lastProcessedRecordAtMs"`
+	LatencyMS  int64  `json:"committedObservedLatencyMs"`
+}
+
+func runKafkaCapacity(db *sql.DB, rc *redis.Client, base, group, dir, k6 string, probe, confirm, fixedRate int, report map[string]any, kafka func(string, ...string) (string, error)) error {
+	if probe < 5 || probe > 60 || confirm < 30 || confirm > 120 {
+		return fmt.Errorf("invalid capacity durations")
+	}
+	if fixedRate < 0 || fixedRate > 450 {
+		return fmt.Errorf("fixed capacity rate must be 0..450")
+	}
+	h := &chainCapacity{db: db, rc: rc, base: base, group: group, dir: dir, k6: k6, client: &http.Client{Timeout: 5 * time.Second}, report: report, kafka: kafka}
+	h.protection, _ = report["backpressureExperiment"].(bool)
+	report["mode"] = "Kafka complete business capacity"
+	report["scenario"] = "k6 fixed-arrival-rate full Kafka business capacity search"
+	report["goHarness"] = "isolated resource ownership, concurrent completion observer and final accounting"
+	report["timingBoundary"] = "HTTP acceptance and committed statistical visibility are measured separately"
+	delete(report, "moderateRate")
+	delete(report, "secondsPerLoadPhase")
+	report["probeSeconds"] = probe
+	report["confirmationSeconds"] = confirm
+	report["users"] = 1000
+	report["slo"] = map[string]any{"decisionP95Ms": 300, "acceptedRoundP95Ms": 1000, "committedObservedP95Ms": 5000, "businessErrorRate": 0.001, "droppedIterations": 0, "maximumDrainSeconds": 10}
+	report["resolutionRoundsPerSecond"] = 5
+	report["notes"] = []string{"One loop: decision + impression + click + conversion (4 HTTP calls, 3 Kafka events). All users match a 3-advertiser first-price auction at 5 fen. Fresh request IDs.", "k6 acceptance latency differs from committed statistical completion. Observer queries every 250ms during load; completion includes polling/query/scheduling delay and uses a client timestamp embedded in requestId on the same WSL host.", "Three complete warmup flows per stage are excluded from measured rates/latencies, included in campaign money and metric checks. 1000 persisted profiles are prewarmed; no temporary-profile bypass.", "Fresh campaigns per stage preserve frequency/budget headroom. Never reset financial state during load; only own profile cache values evicted between stages. Old stage data remains in isolated DB.", "No source, relay batch size/poll period, worker count, connection pool, or timeout tuning during search. Colocated load generator/API/MySQL/Redis/Kafka share hardware; not production maximum.", "No-Ad is a failure, not a fast successful flow. All accepted events must commit, publish, process and reconcile; Kafka broker lag must be zero after drain. Failed stages retained.", "Only report a rate after three 60s confirmations by default. Probe failures are expected data; no within-stage automatic retry hides HTTP errors."}
+	hashes := report["sourceSHA256"].(map[string]string)
+	for _, path := range []string{"internal/platform/database/mysql.go", "internal/platform/profiling/server.go", "tests/bench/k6-lab/pool_observation.go", "tests/bench/k6-lab/pool_flags.go", "internal/observability/metrics.go", "internal/event/adapter/mysql/outbox.go"} {
+		data, e := os.ReadFile(path)
+		if e != nil {
+			return e
+		}
+		hashes[path] = fmt.Sprintf("%x", sha256.Sum256(data))
+	}
+	for _, path := range []string{"internal/decision/application/backpressure.go", "internal/decision/application/service.go", "internal/event/adapter/mysql/backpressure.go", "internal/config/config.go", "cmd/api/main.go", "tests/load/kafka-backpressure.js"} {
+		b, e := os.ReadFile(path)
+		if e != nil {
+			return e
+		}
+		hashes[path] = fmt.Sprintf("%x", sha256.Sum256(b))
+	}
+	for _, path := range []string{"tests/bench/k6-lab/kafka_capacity.go", "tests/load/kafka-capacity.js", "internal/event/application/outbox_relay.go", "internal/event/application/settlement_worker.go", "internal/event/domain/settlement.go", "internal/event/adapter/kafka/client.go", "internal/event/adapter/mysql/settlement.go", "internal/event/adapter/mysql/settlement_transaction.go"} {
+		b, e := os.ReadFile(path)
+		if e != nil {
+			return e
+		}
+		hashes[path] = fmt.Sprintf("%x", sha256.Sum256(b))
+	}
+	raw, e := h.call("POST", "/v1/auth/login", map[string]string{"username": "admin", "password": "adflow-admin"})
+	if e != nil {
+		return e
+	}
+	h.token = raw["accessToken"].(string)
+	for i := 0; i < 1000; i++ {
+		_, e = h.call("PUT", fmt.Sprintf("/v1/profiles/chain-profile-%04d", i), map[string]any{"tags": []string{"chain-load"}, "fields": map[string]string{"device": "android", "age": "25", "score": "88"}})
+		if e != nil {
+			return e
+		}
+	}
+	lo, hi := 0, 0
+	run := func(rate, secs int, label string) (bool, error) {
+		r, e := h.stage(rate, secs, label)
+		h.results = append(h.results, r)
+		report["capacityResults"] = h.results
+		_ = h.save()
+		if e != nil {
+			return false, e
+		}
+		return r["passed"].(bool), nil
+	}
+	if h.protection {
+		report["mode"] = "Kafka backlog protection verification; not maximum QPS"
+		for _, phase := range []struct {
+			rate, seconds int
+			label         string
+		}{{45, 20, "baseline"}, {100, confirm, "overload"}, {45, 30, "recovery"}} {
+			ok, err := run(phase.rate, phase.seconds, phase.label)
+			if err != nil {
+				return err
+			}
+			last := h.results[len(h.results)-1]
+			rejected := last["backpressureRejected"].(int64)
+			if !ok || (phase.label == "overload" && rejected == 0) || (phase.label != "overload" && rejected != 0) {
+				return fmt.Errorf("backpressure %s verification failed", phase.label)
+			}
+		}
+		report["protectionPassed"] = true
+		return nil
+	}
+	if fixedRate > 0 {
+		report["fixedConfirmationRate"] = fixedRate
+		for repeat := 1; repeat <= 3; repeat++ {
+			ok, e := run(fixedRate, confirm, fmt.Sprintf("confirm-%d", repeat))
+			if e != nil {
+				return e
+			}
+			if !ok {
+				report["conclusion"] = "Fixed-rate confirmation failed; no stable claim"
+				return fmt.Errorf("fixed-rate full-chain confirmation failed; inspect recorded proof")
+			}
+		}
+		report["confirmedBusinessRoundsPerSecond"] = fixedRate
+		report["confirmationsPassed"] = 3
+		return nil
+	}
+	for _, rate := range []int{10, 25, 50, 75, 100, 150, 200, 300, 450} {
+		ok, e := run(rate, probe, "ramp")
+		if e != nil {
+			return e
+		}
+		if !ok {
+			hi = rate
+			break
+		}
+		lo = rate
+	}
+	if lo == 0 {
+		report["conclusion"] = "Initial load did not meet full-chain SLO"
+		return nil
+	}
+	for hi > lo+5 {
+		mid := ((hi + lo) / 2 / 5) * 5
+		if mid <= lo {
+			break
+		}
+		ok, e := run(mid, probe, "refine")
+		if e != nil {
+			return e
+		}
+		if ok {
+			lo = mid
+		} else {
+			hi = mid
+		}
+	}
+	report["shortProbeBracket"] = map[string]int{"passed": lo, "failed": hi}
+	for backoff := 0; backoff < 6 && lo > 0; backoff++ {
+		all := true
+		for repeat := 1; repeat <= 3; repeat++ {
+			ok, e := run(lo, confirm, fmt.Sprintf("confirm-%d", repeat))
+			if e != nil {
+				return e
+			}
+			if !ok {
+				all = false
+				break
+			}
+		}
+		if all {
+			report["confirmedBusinessRoundsPerSecond"] = lo
+			report["confirmationsPassed"] = 3
+			report["ceilingWithoutFailure"] = hi == 0
+			return nil
+		}
+		hi = lo
+		lo -= 5
+	}
+	report["conclusion"] = "No tier achieved three full-chain confirmations within bounded backoff"
+	return nil
+}
+func (h *chainCapacity) save() error {
+	b, e := json.MarshalIndent(h.report, "", "  ")
+	if e != nil {
+		return e
+	}
+	return os.WriteFile(filepath.Join(h.dir, "proof.json"), b, 0644)
+}
+func (h *chainCapacity) call(method, path string, body any) (map[string]any, error) {
+	b, e := json.Marshal(body)
+	if e != nil {
+		return nil, e
+	}
+	req, e := http.NewRequest(method, h.base+path, bytes.NewReader(b))
+	if e != nil {
+		return nil, e
+	}
+	req.Header.Set("Content-Type", "application/json")
+	if h.token != "" {
+		req.Header.Set("Authorization", "Bearer "+h.token)
+	}
+	res, e := h.client.Do(req)
+	if e != nil {
+		return nil, e
+	}
+	defer res.Body.Close()
+	raw, e := io.ReadAll(res.Body)
+	if e != nil {
+		return nil, e
+	}
+	if res.StatusCode < 200 || res.StatusCode >= 300 {
+		return nil, fmt.Errorf("%s %s status %d: %s", method, path, res.StatusCode, raw)
+	}
+	out := map[string]any{}
+	if len(raw) > 0 {
+		e = json.Unmarshal(raw, &out)
+	}
+	return out, e
+}
+func (h *chainCapacity) seedStage(id string) (string, string, error) {
+	slot := "kc-slot-" + id
+	winner := ""
+	for _, bid := range []int{2, 3, 5} {
+		c, e := h.call("POST", "/v1/campaigns", map[string]any{"name": fmt.Sprintf("Kafka load %s bid%d", id, bid), "slotId": slot, "startAt": time.Now().UTC().Add(-time.Minute), "endAt": time.Now().UTC().Add(2 * time.Hour)})
+		if e != nil {
+			return "", "", e
+		}
+		cid := c["id"].(string)
+		if _, e = h.call("POST", "/v1/campaigns/"+cid+"/creatives", map[string]string{"title": "Kafka load creative", "description": "Synthetic test", "imageUrl": "https://example.com/test.png", "landingUrl": "https://example.com"}); e != nil {
+			return "", "", e
+		}
+		if _, e = h.call("POST", "/v1/campaigns/"+cid+"/publish", map[string]any{"targeting": map[string]any{"all": []any{map[string]string{"tag": "chain-load"}}}, "dailyBudgetFen": 10000000, "impressionCostFen": bid, "frequencyLimit": 100, "auction": map[string]any{"advertiserId": fmt.Sprintf("kc-bidder-%d", bid), "advertiserName": fmt.Sprintf("Bidder %d", bid), "bidFen": bid}}); e != nil {
+			return "", "", e
+		}
+		if bid == 5 {
+			winner = cid
+		}
+	}
+	return slot, winner, nil
+}
+func (h *chainCapacity) snapshot(prefix string) (s chainSnapshot, e error) {
+	s.At = time.Now().UTC()
+	e = h.db.QueryRow(`SELECT
+ (SELECT COUNT(*) FROM decisions WHERE request_id LIKE ?),
+ (SELECT COUNT(*) FROM event_receipts WHERE request_id LIKE ?),
+ (SELECT COUNT(*) FROM event_settlements WHERE request_id LIKE ? AND status='SETTLED'),
+ (SELECT COUNT(*) FROM event_settlements WHERE request_id LIKE ? AND status='RECONCILE'),
+ (SELECT COUNT(*) FROM event_outbox WHERE aggregate_key LIKE ? AND status='PUBLISHED'),
+ (SELECT COUNT(*) FROM processed_events WHERE request_id LIKE ?)`, prefix, prefix, prefix, prefix, prefix, prefix).Scan(&s.Decisions, &s.Receipts, &s.Settled, &s.Reconcile, &s.Published, &s.Processed)
+	return
+}
+func (h *chainCapacity) observe(prefix string, seen map[string]chainObservation) error {
+	rows, e := h.db.Query("SELECT request_id,MAX(processed_at) FROM processed_events WHERE request_id LIKE ? GROUP BY request_id HAVING COUNT(*)=3", prefix)
+	if e != nil {
+		return e
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var id string
+		var recorded time.Time
+		if e = rows.Scan(&id, &recorded); e != nil {
+			return e
+		}
+		if _, ok := seen[id]; ok {
+			continue
+		}
+		parts := strings.Split(id, "_")
+		if len(parts) < 3 {
+			return fmt.Errorf("invalid measured request ID")
+		}
+		start, e := strconv.ParseInt(parts[len(parts)-2], 10, 64)
+		if e != nil {
+			return e
+		}
+		now := time.Now().UTC().UnixMilli()
+		seen[id] = chainObservation{RequestID: id, StartMS: start, ObservedMS: now, RecordedMS: recorded.UnixMilli(), LatencyMS: now - start}
+	}
+	return rows.Err()
+}
+func (h *chainCapacity) stage(rate, seconds int, label string) (r map[string]any, err error) {
+	id := fmt.Sprintf("%02d-%s-%d", len(h.results)+1, label, rate)
+	prefix := "kc-" + id + "_%"
+	warmPrefix := "kw-" + id + "-%"
+	r = map[string]any{"id": id, "label": label, "targetBusinessRate": rate, "seconds": seconds}
+	fmt.Printf("START Kafka stage %s, %ds\n", id, seconds)
+	slot, winner, e := h.seedStage(id)
+	if e != nil {
+		err = e
+		return
+	}
+	r["winningCampaign"] = winner
+	keys := make([]string, 1000)
+	for i := range keys {
+		keys[i] = fmt.Sprintf("adflow:profile:g3:value:chain-profile-%04d", i)
+	}
+	if err = h.rc.Del(context.Background(), keys...).Err(); err != nil {
+		return
+	}
+	for i := 0; i < 1000; i++ {
+		if _, err = h.call("GET", fmt.Sprintf("/v1/profiles/chain-profile-%04d", i), nil); err != nil {
+			return
+		}
+	}
+	for i := 0; i < 3; i++ {
+		requestID := fmt.Sprintf("kw-%s-%d", id, i)
+		d, e := h.call("POST", "/v1/decisions", map[string]string{"requestId": requestID, "userId": fmt.Sprintf("chain-profile-%04d", i), "slotId": slot})
+		if e != nil {
+			err = e
+			return
+		}
+		if d["campaignId"] != winner || d["matched"] != true {
+			err = fmt.Errorf("warmup auction mismatch")
+			return
+		}
+		for _, kind := range []string{"impression", "click", "conversion"} {
+			event := map[string]any{"eventId": kind + "-" + requestID, "requestId": requestID, "campaignId": winner, "creativeId": d["creativeId"], "type": kind}
+			if kind == "conversion" {
+				event["valueFen"] = 500
+			}
+			if _, err = h.call("POST", "/v1/events", event); err != nil {
+				return
+			}
+		}
+	}
+	warmReady := false
+	for end := time.Now().Add(30 * time.Second); time.Now().Before(end); {
+		s, e := h.snapshot(warmPrefix)
+		if e != nil {
+			err = e
+			return
+		}
+		if s.Settled == 3 && s.Published == 9 && s.Processed == 9 {
+			warmReady = true
+			break
+		}
+		time.Sleep(200 * time.Millisecond)
+	}
+	if !warmReady {
+		err = fmt.Errorf("warmup did not drain")
+		return
+	}
+	rawPath := filepath.Join(h.dir, id+"-k6.json")
+	pool, e := h.beginPoolStage(id, label)
+	if e != nil {
+		err = e
+		return
+	}
+	defer func() { err = errors.Join(err, pool.waitCPU()) }()
+	args := []string{"run", "--quiet", "--no-color", "--no-usage-report", "-e", "BASE_URL=" + h.base, "-e", "STAGE=" + id, "-e", "SLOT=" + slot, "-e", "WINNER=" + winner, "-e", fmt.Sprintf("RATE=%d", rate), "-e", fmt.Sprintf("SECONDS=%d", seconds), "-e", "REPORT_PATH=" + rawPath, "tests/load/kafka-capacity.js"}
+	if h.protection {
+		args[len(args)-1] = "tests/load/kafka-backpressure.js"
+	}
+	cmd := exec.Command(h.k6, args...)
+	cmd.Env = append(os.Environ(), "ADFLOW_CAPACITY_TOKEN="+h.token)
+	if err = launch(cmd, filepath.Join(h.dir, id+"-console.log")); err != nil {
+		return
+	}
+	done := make(chan error, 1)
+	go func() { done <- cmd.Wait() }()
+	ticker := time.NewTicker(250 * time.Millisecond)
+	defer ticker.Stop()
+	seen := map[string]chainObservation{}
+	var timeline []chainSnapshot
+	var runErr error
+	var monitorErr error
+	lastSnap := time.Time{}
+	running := true
+	for running {
+		select {
+		case runErr = <-done:
+			running = false
+		case <-ticker.C:
+			if e = h.observe(prefix, seen); e != nil {
+				monitorErr = e
+			}
+			if time.Since(lastSnap) >= time.Second {
+				if e := pool.sample(); e != nil {
+					monitorErr = e
+				}
+				snap, e := h.snapshot(prefix)
+				if e != nil {
+					monitorErr = e
+				} else {
+					timeline = append(timeline, snap)
+				}
+				lastSnap = time.Now()
+			}
+		}
+	}
+	if runErr != nil {
+		r["k6Exit"] = runErr.Error()
+	}
+	if monitorErr != nil {
+		err = monitorErr
+		return
+	}
+	raw, e := os.ReadFile(rawPath)
+	if e != nil {
+		err = e
+		return
+	}
+	var summary struct {
+		Metrics map[string]struct {
+			Values map[string]float64 `json:"values"`
+		} `json:"metrics"`
+	}
+	if e = json.Unmarshal(raw, &summary); e != nil {
+		err = e
+		return
+	}
+	v := func(name string) map[string]float64 { return summary.Metrics[name].Values }
+	count := func(name string) int64 { return int64(v(name)["count"]) }
+	loops, matched, completed, events, impressions, clicks, conversions := count("iterations"), count("matched_decisions"), count("completed_rounds"), count("accepted_events"), count("accepted_impressions"), count("accepted_clicks"), count("accepted_conversions")
+	drainStart := time.Now()
+	final, drained, e := h.drainObserved(prefix, seen, impressions, &timeline)
+	if e != nil {
+		err = e
+		return
+	}
+	drainSeconds := time.Since(drainStart).Seconds()
+	if pool != nil {
+		poolResult, poolErr := pool.finish()
+		if poolErr != nil {
+			err = poolErr
+			return
+		}
+		r["poolObservation"] = poolResult
+	}
+	observations := make([]chainObservation, 0, len(seen))
+	latencies := make([]int64, 0, len(seen))
+	for _, value := range seen {
+		observations = append(observations, value)
+		latencies = append(latencies, value.LatencyMS)
+	}
+	sort.Slice(observations, func(i, j int) bool { return observations[i].RequestID < observations[j].RequestID })
+	sort.Slice(latencies, func(i, j int) bool { return latencies[i] < latencies[j] })
+	p95, p99, median := int64(0), int64(0), int64(0)
+	if len(latencies) > 0 {
+		n := len(latencies)
+		p95 = latencies[(95*n+99)/100-1]
+		p99 = latencies[(99*n+99)/100-1]
+		median = latencies[(50*n+99)/100-1]
+	}
+	var mi, mc, mv, money int64
+	if err = h.db.QueryRow("SELECT impressions,clicks,conversions,value_fen FROM campaign_metrics WHERE campaign_id=?", winner).Scan(&mi, &mc, &mv, &money); err != nil {
+		return
+	}
+	day := time.Now().UTC().Format("2006-01-02")
+	budgetRoot := "adflow:budget:" + day + ":" + winner
+	spent, e := h.rc.Get(context.Background(), budgetRoot+":spent").Int64()
+	if e != nil {
+		err = e
+		return
+	}
+	reserved, e := h.rc.Get(context.Background(), budgetRoot+":reserved").Int64()
+	if e != nil {
+		err = e
+		return
+	}
+	duplicatesOK := true
+	if len(observations) > 0 {
+		requestID := observations[0].RequestID
+		var creative string
+		if err = h.db.QueryRow("SELECT creative_id FROM decisions WHERE request_id=?", requestID).Scan(&creative); err != nil {
+			return
+		}
+		for _, kind := range []string{"impression", "click", "conversion"} {
+			event := map[string]any{"eventId": kind + "-" + requestID, "requestId": requestID, "campaignId": winner, "creativeId": creative, "type": kind}
+			if kind == "conversion" {
+				event["valueFen"] = 500
+			}
+			response, e := h.call("POST", "/v1/events", event)
+			if e != nil || response["recorded"] != false {
+				duplicatesOK = false
+			}
+		}
+	}
+	// Counter proof is re-read after duplicate submissions, not inferred from 200.
+	var mi2, mc2, mv2, val2 int64
+	if err = h.db.QueryRow("SELECT impressions,clicks,conversions,value_fen FROM campaign_metrics WHERE campaign_id=?", winner).Scan(&mi2, &mc2, &mv2, &val2); err != nil {
+		return
+	}
+	spent2, e := h.rc.Get(context.Background(), budgetRoot+":spent").Int64()
+	if e != nil {
+		err = e
+		return
+	}
+	duplicatesOK = duplicatesOK && mi == mi2 && mc == mc2 && mv == mv2 && money == val2 && spent == spent2
+	offsets, e := h.kafka("kafka-consumer-groups.sh", "--bootstrap-server", "127.0.0.1:9092", "--describe", "--group", h.group)
+	lagOK := e == nil
+	partitions := 0
+	for _, line := range strings.Split(offsets, "\n") {
+		fields := strings.Fields(line)
+		if len(fields) >= 6 && fields[0] == h.group {
+			partitions++
+			if fields[5] != "0" {
+				lagOK = false
+			}
+		}
+	}
+	lagOK = lagOK && partitions == 3
+	proof := drained && loops > 0 && final.Decisions == matched && final.Receipts == events && final.Processed == events && final.Published == events && final.Settled == impressions && final.Reconcile == 0 && int64(len(seen)) == completed && mi == impressions+3 && mc == clicks+3 && mv == conversions+3 && money == (conversions+3)*500 && spent == (impressions+3)*5 && reserved == 0 && duplicatesOK && lagOK
+	r["iterations"] = loops
+	r["matched"] = matched
+	r["completed"] = completed
+	r["acceptedEvents"] = events
+	r["acceptedImpressions"] = impressions
+	r["acceptedClicks"] = clicks
+	r["acceptedConversions"] = conversions
+	r["businessErrors"] = v("business_errors")["rate"]
+	if h.protection {
+		r["backpressureRejected"] = count("backpressure_rejections")
+		r["acceptedDecisionLatency"] = v("matched_decision_ms")
+		r["admittedRoundsPerConfiguredSecond"] = float64(completed) / float64(seconds)
+	}
+	r["noAd"] = count("no_ad")
+	r["dropped"] = count("dropped_iterations")
+	r["httpQPS"] = v("http_reqs")["rate"]
+	r["decisionLatency"] = v("decision_ms")
+	r["acceptanceLatency"] = v("accepted_round_ms")
+	r["committedObserved"] = map[string]any{"count": len(seen), "medianMs": median, "p95Ms": p95, "p99Ms": p99}
+	r["completionSamples"] = observations
+	r["queueTimeline"] = timeline
+	r["drainAfterLoadSeconds"] = drainSeconds
+	r["proof"] = map[string]any{"snapshot": final, "warmupRounds": 3, "impressions": mi, "clicks": mc, "conversions": mv, "conversionValueFen": money, "spentFen": spent, "reservedFen": reserved, "duplicatesIdempotent": duplicatesOK, "brokerLagZero": lagOK, "brokerGroupDescribe": offsets, "consistent": proof}
+	r["passed"] = runErr == nil && v("decision_ms")["p(95)"] < 300 && v("accepted_round_ms")["p(95)"] < 1000 && p95 < 5000 && v("business_errors")["rate"] < .001 && count("no_ad") == 0 && count("dropped_iterations") == 0 && float64(loops) >= float64(rate*seconds)*.99 && drainSeconds <= 10 && proof
+	if h.protection {
+		r["passed"] = r["passed"].(bool) && v("business_errors")["rate"] == 0 && matched > 0 && matched+count("backpressure_rejections") == loops && v("matched_decision_ms")["p(95)"] < 300
+	}
+	fmt.Printf("END Kafka %s: loops=%d completed=%d decisionP95=%.1fms acceptP95=%.1fms commitP95=%dms drain=%.2fs pass=%v\n", id, loops, completed, v("decision_ms")["p(95)"], v("accepted_round_ms")["p(95)"], p95, drainSeconds, r["passed"])
+	return
+}
+
+func (h *chainCapacity) drainObserved(prefix string, seen map[string]chainObservation, impressions int64, timeline *[]chainSnapshot) (final chainSnapshot, drained bool, err error) {
+	for end := time.Now().Add(30 * time.Second); time.Now().Before(end); {
+		if err = h.observe(prefix, seen); err != nil {
+			return
+		}
+		if final, err = h.snapshot(prefix); err != nil {
+			return
+		}
+		*timeline = append(*timeline, final)
+		if final.Receipts == final.Processed && final.Receipts == final.Published && final.Settled == impressions && final.Reconcile == 0 {
+			// A batch may commit between the observation and count queries.
+			// Once counts prove completion, collect any final missing timestamps.
+			err = h.observe(prefix, seen)
+			return final, err == nil, err
+		}
+		if final.Reconcile > 0 {
+			return
+		}
+		time.Sleep(250 * time.Millisecond)
+	}
+	return
+}

@@ -1,0 +1,35 @@
+[
+  {
+    "time": "2026-09-09T09:38:02.11672791+08:00",
+    "level": "INFO",
+    "msg": "http request",
+    "request_id": "959ce087ff73bd390efae4e17768daf4",
+    "method": "POST",
+    "path": "/v1/events",
+    "status": 422,
+    "response_bytes": 113,
+    "duration_ms": 11
+  },
+  {
+    "time": "2026-09-09T09:38:02.120102427+08:00",
+    "level": "INFO",
+    "msg": "http request",
+    "request_id": "9e2be5ac8cc0e81871d342cccee550a1",
+    "method": "POST",
+    "path": "/v1/events",
+    "status": 422,
+    "response_bytes": 113,
+    "duration_ms": 9
+  },
+  {
+    "time": "2026-09-09T09:38:02.120141002+08:00",
+    "level": "INFO",
+    "msg": "http request",
+    "request_id": "cf734e40fe6c6a0fda77d0981ba7d688",
+    "method": "POST",
+    "path": "/v1/events",
+    "status": 422,
+    "response_bytes": 113,
+    "duration_ms": 11
+  }
+]

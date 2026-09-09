@@ -1,0 +1,29 @@
+File: api-linux
+Build ID: 928b80bcfe978921b8133a95ba318310d86fc329
+Type: cpu
+Time: 2026-09-08 18:17:24 CST
+Duration: 20s, Total samples = 11.37s (56.85%)
+Showing nodes accounting for 7.78s, 68.43% of 11.37s total
+Dropped 551 nodes (cum <= 0.06s)
+Showing top 20 nodes out of 315
+      flat  flat%   sum%        cum   cum%
+     3.70s 32.54% 32.54%      3.70s 32.54%  internal/runtime/syscall/linux.Syscall6
+     2.62s 23.04% 55.58%      2.62s 23.04%  runtime.futex
+     0.18s  1.58% 57.17%      0.18s  1.58%  runtime.write1
+     0.13s  1.14% 58.31%      0.39s  3.43%  runtime.stealWork
+     0.11s  0.97% 59.28%      0.11s  0.97%  runtime.memmove
+     0.11s  0.97% 60.25%      0.11s  0.97%  runtime.usleep
+     0.09s  0.79% 61.04%      2.78s 24.45%  runtime.findRunnable
+     0.09s  0.79% 61.83%      0.28s  2.46%  runtime.unlock2
+     0.08s   0.7% 62.53%      0.08s   0.7%  runtime.exitsyscall
+     0.07s  0.62% 63.15%      0.09s  0.79%  runtime.gopark
+     0.07s  0.62% 63.76%      0.15s  1.32%  runtime.lock2
+     0.07s  0.62% 64.38%      0.07s  0.62%  runtime.memclrNoHeapPointers
+     0.07s  0.62% 65.00%      0.07s  0.62%  runtime.nanotime (inline)
+     0.06s  0.53% 65.52%      0.07s  0.62%  github.com/go-sql-driver/mysql.escapeStringBackslash
+     0.06s  0.53% 66.05%      0.07s  0.62%  runtime.mallocgcSmallScanNoHeaderSC2
+     0.06s  0.53% 66.58%      0.06s  0.53%  runtime.nextFreeFast
+     0.06s  0.53% 67.11%      0.07s  0.62%  runtime.tryDeferToSpanScan
+     0.05s  0.44% 67.55%      0.07s  0.62%  internal/sync.(*HashTrieMap[go.shape.interface {},go.shape.interface {}]).Load
+     0.05s  0.44% 67.99%      0.06s  0.53%  runtime.findfunc
+     0.05s  0.44% 68.43%      0.06s  0.53%  runtime.mallocgcSmallScanNoHeaderSC4

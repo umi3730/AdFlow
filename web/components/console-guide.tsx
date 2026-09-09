@@ -12,6 +12,7 @@ import {
 
 export type ConsoleView =
   | 'dashboard'
+  | 'reports'
   | 'campaigns'
   | 'creatives'
   | 'profiles'
@@ -21,6 +22,12 @@ export type ConsoleView =
   | 'agent';
 
 const featureNotes: { view: ConsoleView; title: string; detail: string }[] = [
+  {
+    view: 'reports',
+    title: '投放效果报表',
+    detail:
+      '按小时或天查看曝光、点击、转化与消耗，筛选日期和计划，导出报表或交给 Agent 分析。',
+  },
   {
     view: 'campaigns',
     title: '广告计划',

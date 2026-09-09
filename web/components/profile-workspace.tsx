@@ -224,7 +224,7 @@ export function ProfileWorkspace({
           </Button>
         }
       />
-      <div className="mt-5 grid gap-5 xl:grid-cols-[minmax(0,1fr)_340px]">
+      <div className="mt-5 grid gap-5 2xl:grid-cols-[minmax(0,1fr)_340px]">
         <Card className="min-w-0 self-start">
           <CardHeader>
             <div className="flex items-center justify-between">
@@ -305,32 +305,31 @@ export function ProfileWorkspace({
                 <p className="mt-1 text-sm">先保存一个画像，或调整筛选条件。</p>
               </div>
             ) : (
-              <Table className="min-w-[650px]">
-                <TableHeader>
+              <Table className="min-w-0 sm:min-w-[650px]">
+                <TableHeader className="hidden sm:table-header-group">
                   <TableRow>
                     <TableHead>用户 ID</TableHead>
                     <TableHead>标签</TableHead>
                     <TableHead>设备</TableHead>
                     <TableHead>分数</TableHead>
-                    <TableHead className="sticky right-0 bg-card text-right">
-                      操作
-                    </TableHead>
+                    <TableHead className="bg-card text-right">操作</TableHead>
                   </TableRow>
                 </TableHeader>
-                <TableBody>
+                <TableBody className="block sm:table-row-group">
                   {page.items.map((profile) => (
                     <TableRow
                       key={profile.userId}
                       className={
-                        selected?.userId === profile.userId
+                        'block py-3 sm:table-row sm:py-0 ' +
+                        (selected?.userId === profile.userId
                           ? 'bg-primary/5'
-                          : ''
+                          : '')
                       }
                     >
-                      <TableCell className="font-mono text-xs">
+                      <TableCell className="block whitespace-normal break-all font-mono text-sm sm:table-cell sm:text-xs">
                         {profile.userId}
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="block sm:table-cell">
                         <div className="flex max-w-64 flex-wrap gap-1">
                           {profile.tags.length
                             ? profile.tags.map((tag) => (
@@ -341,12 +340,20 @@ export function ProfileWorkspace({
                             : '—'}
                         </div>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="inline-block sm:table-cell">
+                        <span className="text-muted-foreground sm:hidden">
+                          设备：
+                        </span>
                         {profileDeviceLabel(profile.fields.device || '—')}
                       </TableCell>
-                      <TableCell>{profile.fields.score || '—'}</TableCell>
-                      <TableCell className="sticky right-0 bg-card">
-                        <div className="flex justify-end gap-1">
+                      <TableCell className="inline-block sm:table-cell">
+                        <span className="text-muted-foreground sm:hidden">
+                          活跃分数：
+                        </span>
+                        {profile.fields.score || '—'}
+                      </TableCell>
+                      <TableCell className="block bg-card sm:table-cell">
+                        <div className="flex flex-wrap gap-2 sm:justify-end">
                           <Button
                             type="button"
                             variant="outline"

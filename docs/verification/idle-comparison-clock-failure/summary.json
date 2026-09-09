@@ -1,0 +1,92 @@
+{
+  "usableForPoolComparison": false,
+  "reason": "WSL wall-clock steps; event HTTP 422 and invalid completion timing",
+  "trials": [
+    {
+      "trial": "trial-01-idle-10",
+      "idle": 10,
+      "passed": false,
+      "runError": "backpressure baseline verification failed",
+      "unexpectedStatuses": [
+        422,
+        422,
+        422
+      ]
+    },
+    {
+      "trial": "trial-02-idle-20",
+      "idle": 20,
+      "passed": false,
+      "runError": "backpressure overload verification failed",
+      "unexpectedStatuses": [
+        422,
+        422,
+        422,
+        422,
+        422,
+        422,
+        422,
+        422,
+        422,
+        422,
+        422,
+        422,
+        422
+      ]
+    },
+    {
+      "trial": "trial-03-idle-20",
+      "idle": 20,
+      "passed": false,
+      "runError": "backpressure baseline verification failed",
+      "unexpectedStatuses": [
+        422,
+        422,
+        422
+      ]
+    },
+    {
+      "trial": "trial-04-idle-10",
+      "idle": 10,
+      "passed": false,
+      "runError": "backpressure baseline verification failed",
+      "unexpectedStatuses": [
+        422,
+        422,
+        422
+      ]
+    },
+    {
+      "trial": "trial-05-idle-10",
+      "idle": 10,
+      "passed": false,
+      "runError": "backpressure overload verification failed",
+      "unexpectedStatuses": [
+        422,
+        422,
+        422,
+        422,
+        422,
+        422,
+        422,
+        422
+      ]
+    },
+    {
+      "trial": "trial-06-idle-20",
+      "idle": 20,
+      "passed": false,
+      "runError": "backpressure overload verification failed",
+      "unexpectedStatuses": [
+        422,
+        422,
+        422,
+        422,
+        422,
+        422,
+        422,
+        422
+      ]
+    }
+  ]
+}

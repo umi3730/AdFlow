@@ -54,7 +54,13 @@ import { ProfileWorkspace } from '@/components/profile-workspace';
 import { UserPoolSimulation } from '@/components/user-pool-simulation';
 import { RequestTraceDialog } from '@/components/request-trace-dialog';
 import { ConsoleHelp, type ConsoleView } from '@/components/console-guide';
-import { AgentWorkspace } from '@/components/agent-workspace';
+import { AgentCenter } from '@/components/delivery-diagnosis';
+import { DeliveryReportWorkspace } from '@/components/delivery-report';
+import {
+  beijingDate,
+  reportDateRange,
+  type DeliveryFilter,
+} from '@/lib/delivery-report';
 import {
   CreativeAssetPicker,
   CreativeDropZone,
@@ -97,7 +103,11 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { profileTagLabel } from '@/lib/profile-options';
+import {
+  profileTagLabel,
+  profileFields,
+  fieldValueOptions,
+} from '@/lib/profile-options';
 import { PageHeading } from '@/components/page-heading';
 import {
   Dialog,
@@ -127,13 +137,14 @@ type View = ConsoleView;
 
 const navItems = [
   { id: 'dashboard' as const, label: '总览', icon: BarChart3 },
+  { id: 'reports' as const, label: '效果报表', icon: Activity },
   { id: 'campaigns' as const, label: '广告计划', icon: Layers3 },
   { id: 'creatives' as const, label: '素材管理', icon: Boxes },
   { id: 'profiles' as const, label: '用户画像', icon: UsersRound },
   { id: 'decision' as const, label: '单次投放测试', icon: RadioTower },
   { id: 'simulation' as const, label: '批量投放测试', icon: FlaskConical },
   { id: 'operations' as const, label: '事件处理', icon: DatabaseZap },
-  { id: 'agent' as const, label: 'Agent规则助手', icon: Sparkles },
+  { id: 'agent' as const, label: 'Agent 助手', icon: Sparkles },
 ];
 
 export function AdFlowConsole() {
@@ -145,7 +156,22 @@ export function AdFlowConsole() {
         ? canOperate
         : true,
   );
-  const [view, setView] = useState<View>('dashboard');
+  const [view, setCurrentView] = useState<View>('dashboard');
+  const [creativeTarget, setCreativeTarget] = useState<Campaign | null>(null);
+  const [userSelectionRevision, setUserSelectionRevision] = useState(0);
+  const [decisionTarget, setDecisionTarget] = useState<Campaign | null>(null);
+  const statsRefreshTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
+  function addMaterials(campaign: Campaign) {
+    setCreativeTarget({ ...campaign });
+    setView('creatives');
+  }
+  function testCampaign(campaign: Campaign) {
+    setDecisionTarget({ ...campaign });
+    setView('decision');
+  }
+  const [diagnosisFilter, setDiagnosisFilter] = useState<
+    DeliveryFilter | undefined
+  >();
   const [helpOpen, setHelpOpen] = useState(false);
   const [traceTarget, setTraceTarget] = useState<TraceTarget | null>(null);
   const inspectRequest = useCallback(
@@ -181,6 +207,13 @@ export function AdFlowConsole() {
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState('');
   const [noticeTone, setNoticeTone] = useState<'success' | 'error'>('success');
+  const setView = useCallback(
+    (next: View) => {
+      setNotice('');
+      setCurrentView(next);
+    },
+    [setNotice, setCurrentView],
+  );
   const [query, setQuery] = useState('');
   const [lastUpdatedAt, setLastUpdatedAt] = useState<Date | null>(null);
 
@@ -195,7 +228,22 @@ export function AdFlowConsole() {
         refreshQueued.current = false;
         try {
           const result = await api.listCampaigns();
-          setCampaigns(result.items);
+          const enriched = await Promise.all(
+            result.items.map(async (campaign) => {
+              try {
+                const creatives = await api.listCreatives(campaign.id);
+                return {
+                  ...campaign,
+                  activeCreativeCount: creatives.items.filter(
+                    (item) => item.status === 'ACTIVE',
+                  ).length,
+                };
+              } catch {
+                return { ...campaign, activeCreativeCount: null };
+              }
+            }),
+          );
+          setCampaigns(enriched);
           setConnected(true);
           const entries = await Promise.all(
             result.items.map(
@@ -264,6 +312,25 @@ export function AdFlowConsole() {
     [setNotice, setNoticeTone],
   );
   useAdFlowTools(refresh, setView, notify);
+
+  useEffect(() => {
+    if (!notice || noticeTone !== 'success') return;
+    const timer = setTimeout(() => setNotice(''), 4500);
+    return () => clearTimeout(timer);
+  }, [notice, noticeTone]);
+  useEffect(() => {
+    if (view === 'dashboard' || view === 'campaigns') void refresh();
+  }, [view, refresh]);
+  useEffect(() => () => statsRefreshTimers.current.forEach(clearTimeout), []);
+  const refreshAfterEvents = useCallback(async () => {
+    statsRefreshTimers.current.forEach(clearTimeout);
+    statsRefreshTimers.current = [1000, 3000, 8000].map((delay) =>
+      setTimeout(() => {
+        void refresh();
+      }, delay),
+    );
+    await refresh();
+  }, [refresh]);
 
   async function run(action: () => Promise<void>, message: string) {
     setBusy(true);
@@ -356,7 +423,7 @@ export function AdFlowConsole() {
             className={`mb-2 flex items-center gap-2 text-xs font-medium ${connected ? 'text-emerald-200' : 'text-amber-200'}`}
           >
             <Activity className="size-3.5" />
-            {connected ? 'Decision Runtime 正常' : '等待本地 API'}
+            {connected ? '服务已连接' : '等待服务连接'}
           </div>
           <p className="text-xs leading-5 text-sidebar-foreground/75">
             本地环境 · API {apiEndpointHost}
@@ -557,42 +624,78 @@ export function AdFlowConsole() {
               query={query}
               onQueryChange={setQuery}
               onChanged={refresh}
+              onAddMaterials={addMaterials}
+              onTest={testCampaign}
               defaultName={testPlanName(testSequence)}
               agentDraft={pendingAgentDraft}
               campaignDrafts={campaignDrafts}
               onCreated={campaignCreated}
               onDiscardAgentDraft={() => setPendingAgentDraft(null)}
-              onPublished={(campaign) =>
+              onPublished={(campaign) => {
+                setNotice('');
                 setCampaignDrafts((previous) => {
                   const next = { ...previous };
                   delete next[campaign.id];
                   return next;
-                })
-              }
+                });
+              }}
             />
           )}
-          {view === 'creatives' && (
-            <CreativesView campaigns={campaigns} busy={busy} run={run} />
+          {view === 'reports' && (
+            <DeliveryReportWorkspace
+              campaigns={campaigns}
+              refreshKey={lastUpdatedAt?.getTime() ?? 0}
+              initialFilter={diagnosisFilter}
+              onDiagnose={(filter) => {
+                setDiagnosisFilter(filter);
+                setView('agent');
+              }}
+            />
           )}
+          <div hidden={view !== 'creatives'}>
+            <CreativesView
+              active={view === 'creatives'}
+              campaigns={campaigns}
+              busy={busy}
+              run={run}
+              targetCampaign={creativeTarget}
+              onTest={testCampaign}
+            />
+          </div>
           {view === 'profiles' && (
             <ProfileWorkspace
               onDecide={(userID) => {
                 setDecisionUserID(userID);
+                setUserSelectionRevision((revision) => revision + 1);
                 setView('decision');
               }}
             />
           )}
-          {view === 'decision' && (
+          <div hidden={view !== 'decision'}>
             <RoleGate minimum="operator">
               <DecisionView
+                active={view === 'decision'}
                 onInspectRequest={inspectRequest}
                 busy={busy}
                 run={run}
                 initialUserID={decisionUserID}
+                userSelectionRevision={userSelectionRevision}
                 campaigns={campaigns}
+                targetCampaign={decisionTarget}
+                onAddMaterials={addMaterials}
+                onEventsAccepted={refreshAfterEvents}
+                onReport={(campaignId) => {
+                  const filter = reportDateRange(
+                    beijingDate(),
+                    beijingDate(),
+                    'hour',
+                  );
+                  setDiagnosisFilter({ ...filter, campaignId });
+                  setView('reports');
+                }}
               />
             </RoleGate>
-          )}
+          </div>
           {view === 'operations' && (
             <OperationsView
               busy={busy}
@@ -609,7 +712,7 @@ export function AdFlowConsole() {
                 now={now}
                 active={view === 'simulation'}
                 campaigns={campaigns}
-                onFinished={refresh}
+                onFinished={refreshAfterEvents}
                 onRunningChange={handleSimulationRunningChange}
                 stopSignal={simulationStopSignal}
               />
@@ -617,7 +720,13 @@ export function AdFlowConsole() {
           </div>
           {view === 'agent' && (
             <RoleGate minimum="operator">
-              <AgentWorkspace
+              <AgentCenter
+                campaigns={campaigns}
+                initialFilter={diagnosisFilter}
+                onViewReport={(filter) => {
+                  setDiagnosisFilter(filter);
+                  setView('reports');
+                }}
                 onCreatePlan={(value) => {
                   setPendingAgentDraft(structuredClone(value));
                   setQuery('');
@@ -769,6 +878,8 @@ function CampaignsView({
   onCreated,
   onDiscardAgentDraft,
   onPublished,
+  onAddMaterials,
+  onTest,
 }: {
   now: number | null;
   newPlanOpen: boolean;
@@ -786,6 +897,8 @@ function CampaignsView({
   onCreated: (campaign: Campaign) => void;
   onDiscardAgentDraft: () => void;
   onPublished: (campaign: Campaign) => void;
+  onAddMaterials: (campaign: Campaign) => void;
+  onTest: (campaign: Campaign) => void;
 }) {
   const { canOperate, canAdmin } = useAccess();
   const [nameOverride, setName] = useState<string | null>(null);
@@ -840,8 +953,8 @@ function CampaignsView({
         onCreated(created);
         setName(null);
         onNewPlanOpenChange(false);
-        if (agentDraft) setSelectedCampaign(created);
-      }, '计划草稿已创建，尚未投放');
+        setSelectedCampaign(created);
+      }, '草稿已创建，请配置投放规则');
     } finally {
       creating.current = false;
     }
@@ -925,7 +1038,21 @@ function CampaignsView({
           }
           onInspect={setSelectedCampaign}
           actions={(campaign) => (
-            <div className="flex gap-1">
+            <div className="flex flex-wrap justify-end gap-1">
+              {campaign.status === 'ACTIVE' && canOperate && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={busy || campaign.activeCreativeCount == null}
+                  onClick={() =>
+                    campaign.activeCreativeCount === 0
+                      ? onAddMaterials(campaign)
+                      : onTest(campaign)
+                  }
+                >
+                  {campaign.activeCreativeCount === 0 ? '添加素材' : '试投'}
+                </Button>
+              )}
               <Button
                 type="button"
                 size="sm"
@@ -1094,6 +1221,12 @@ function CampaignsView({
           onClose={() => setSelectedCampaign(null)}
           onChanged={onChanged}
           onPublished={onPublished}
+          activeCreativeCount={
+            campaigns.find((item) => item.id === selectedCampaign.id)
+              ?.activeCreativeCount
+          }
+          onAddMaterials={() => onAddMaterials(selectedCampaign)}
+          onTest={() => onTest(selectedCampaign)}
         />
       )}
     </>
@@ -1101,16 +1234,25 @@ function CampaignsView({
 }
 
 function CreativesView({
+  active,
   campaigns,
   busy,
   run,
+  targetCampaign,
+  onTest,
 }: {
+  active: boolean;
   campaigns: Campaign[];
   busy: boolean;
   run: (action: () => Promise<void>, message: string) => Promise<void>;
+  targetCampaign: Campaign | null;
+  onTest: (campaign: Campaign) => void;
 }) {
   const { canOperate } = useAccess();
   const [campaignID, setCampaignID] = useState('');
+  useEffect(() => {
+    if (targetCampaign) setCampaignID(targetCampaign.id);
+  }, [targetCampaign]);
   const [items, setItems] = useState<Creative[]>([]);
   const [loadingCreatives, setLoadingCreatives] = useState(false);
   const [creativeLoadError, setCreativeLoadError] = useState('');
@@ -1150,6 +1292,7 @@ function CreativesView({
   }, []);
   const selectedCampaignID = selectedCreativeCampaignID(campaigns, campaignID);
   useEffect(() => {
+    if (!active) return;
     let live = true;
     void Promise.resolve().then(() => {
       if (live) void load(selectedCampaignID);
@@ -1158,7 +1301,7 @@ function CreativesView({
       live = false;
       cancelCreativeLoad();
     };
-  }, [selectedCampaignID, load, cancelCreativeLoad]);
+  }, [active, selectedCampaignID, load, cancelCreativeLoad]);
   async function create(event: { preventDefault(): void }) {
     event.preventDefault();
     if (
@@ -1195,7 +1338,22 @@ function CreativesView({
     <>
       <PageHeading
         title="素材管理"
-        description="按计划组织广告素材，快速检查状态与投放去向。"
+        action={
+          items.some((item) => item.status === 'ACTIVE') &&
+          selectedCampaignID ? (
+            <Button
+              variant="outline"
+              onClick={() => {
+                const campaign = campaigns.find(
+                  (item) => item.id === selectedCampaignID,
+                );
+                if (campaign) onTest(campaign);
+              }}
+            >
+              测试此计划
+            </Button>
+          ) : undefined
+        }
       />
       <div className="mt-5 grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
         <Card>
@@ -1291,7 +1449,7 @@ function CreativesView({
                     ? '确认后加入当前计划的素材列表'
                     : !selectedCampaignID
                       ? '请先选择广告计划'
-                      : '从右侧拖入或点击选择下一份素材'}
+                      : '选择一份素材后添加'}
                 </span>
                 <Button
                   type="submit"
@@ -1397,7 +1555,7 @@ function CreativesView({
                                 item.id,
                               );
                               await load(selectedCampaignID);
-                            }, '素材已启用；候选快照默认约 5 秒内刷新')
+                            }, '素材已启用')
                           }
                         >
                           重新启用
@@ -1425,7 +1583,7 @@ function CreativesView({
         <Card className="xl:sticky xl:top-24 xl:self-start">
           <CardHeader>
             <CardTitle>本地素材库</CardTitle>
-            <CardDescription>拖到左侧接收区，或点击选用。</CardDescription>
+            <CardDescription>点击选用，也支持拖拽。</CardDescription>
           </CardHeader>
           <CardContent>
             <CreativeAssetPicker
@@ -1442,17 +1600,29 @@ function CreativesView({
 }
 
 function DecisionView({
+  active,
   busy,
   run,
   initialUserID,
+  userSelectionRevision,
   campaigns,
   onInspectRequest,
+  targetCampaign,
+  onAddMaterials,
+  onEventsAccepted,
+  onReport,
 }: {
+  active: boolean;
   busy: boolean;
   run: (action: () => Promise<void>, message: string) => Promise<void>;
   initialUserID: string;
+  userSelectionRevision: number;
   campaigns: Campaign[];
   onInspectRequest: (target: TraceTarget) => void;
+  targetCampaign: Campaign | null;
+  onAddMaterials: (campaign: Campaign) => void;
+  onEventsAccepted: () => Promise<void>;
+  onReport: (campaignId: string) => void;
 }) {
   const [userID, setUserID] = useState(initialUserID);
   const [slotID, setSlotID] = useState(defaultAdSlotID);
@@ -1472,6 +1642,20 @@ function DecisionView({
     null,
   );
   const [explanationError, setExplanationError] = useState('');
+  const [decisionNow, setDecisionNow] = useState(() => Date.now());
+  useEffect(() => {
+    if (
+      !decision?.matched ||
+      !decision.expiresAt ||
+      eventState.impression === 'recorded'
+    )
+      return;
+    const timer = setTimeout(
+      () => setDecisionNow(Date.now()),
+      Math.max(0, Date.parse(decision.expiresAt) - Date.now() + 5),
+    );
+    return () => clearTimeout(timer);
+  }, [decision, eventState.impression]);
   useEffect(
     () => () => {
       decisionRevision.current++;
@@ -1480,6 +1664,7 @@ function DecisionView({
     [eventController],
   );
   useEffect(() => {
+    if (!active) return;
     let live = true;
     void api
       .listProfiles({ limit: 100 })
@@ -1495,8 +1680,9 @@ function DecisionView({
     return () => {
       live = false;
     };
-  }, []);
+  }, [active]);
   useEffect(() => {
+    if (!active) return;
     let live = true;
     const timer = setTimeout(() => {
       if (!userID.trim()) return;
@@ -1521,22 +1707,34 @@ function DecisionView({
       live = false;
       clearTimeout(timer);
     };
-  }, [userID]);
+  }, [userID, active]);
 
-  function clearDecision() {
+  const clearDecision = useCallback(() => {
     decisionRevision.current++;
     eventController.select(null);
     setEventState(eventController.snapshot());
     setDecision(null);
     setExplanation(null);
     setExplanationError('');
-  }
-  function chooseUser(id: string) {
-    setUserID(id);
-    setProfile(null);
-    setProfileError('');
-    clearDecision();
-  }
+  }, [eventController]);
+  const chooseUser = useCallback(
+    (id: string) => {
+      setUserID(id);
+      setProfile(null);
+      setProfileError('');
+      clearDecision();
+    },
+    [clearDecision],
+  );
+  useEffect(() => {
+    if (initialUserID) chooseUser(initialUserID);
+  }, [initialUserID, userSelectionRevision, chooseUser]);
+  useEffect(() => {
+    if (targetCampaign) {
+      setSlotID(targetCampaign.slotId);
+      clearDecision();
+    }
+  }, [targetCampaign, clearDecision]);
   async function decide(event: { preventDefault(): void }) {
     event.preventDefault();
     if (busy || deciding.current || eventController.isPending()) return;
@@ -1552,6 +1750,7 @@ function DecisionView({
         });
         if (revision !== decisionRevision.current) return;
         setDecision(result);
+        setDecisionNow(Date.now());
         eventController.select(result);
         setEventState(eventController.snapshot());
         try {
@@ -1575,6 +1774,12 @@ function DecisionView({
   }
   async function event(type: DecisionEventType) {
     if (busy || deciding.current) return;
+    if (
+      type === 'impression' &&
+      decision?.expiresAt &&
+      Date.now() >= Date.parse(decision.expiresAt)
+    )
+      return;
     const submission = eventController.begin(type);
     if (!submission) return;
     setEventState(eventController.snapshot());
@@ -1582,6 +1787,7 @@ function DecisionView({
       async () => {
         try {
           await api.recordEvent(submission);
+          void onEventsAccepted();
           if (eventController.finish(submission, true))
             setEventState(eventController.snapshot());
         } catch (cause) {
@@ -1603,7 +1809,12 @@ function DecisionView({
         <Card className="bg-card text-card-foreground">
           <CardHeader>
             <CardTitle>发起决策</CardTitle>
-            <CardDescription>每次自动生成新的 requestId。</CardDescription>
+            {targetCampaign && (
+              <CardDescription>
+                测试广告位：{adSlotLabel(targetCampaign.slotId)}
+                。该广告位的其他计划也会参与选择。
+              </CardDescription>
+            )}
           </CardHeader>
           <CardContent>
             <form className="space-y-4" onSubmit={decide}>
@@ -1682,8 +1893,15 @@ function DecisionView({
                         key={key}
                         className="flex flex-wrap justify-between gap-2"
                       >
-                        <dt className="text-muted-foreground">{key}</dt>
-                        <dd className="break-all">{value}</dd>
+                        <dt className="text-muted-foreground">
+                          {profileFields.find((field) => field.id === key)
+                            ?.label ?? key}
+                        </dt>
+                        <dd className="break-all">
+                          {fieldValueOptions(key)?.find(
+                            (option) => option.value === value,
+                          )?.label ?? value}
+                        </dd>
                       </div>
                     ))}
                   </dl>
@@ -1695,7 +1913,7 @@ function DecisionView({
                 disabled={busy || !userID.trim() || !slotID.trim()}
               >
                 {busy ? <LoaderCircle className="animate-spin" /> : <Send />}
-                {busy ? '决策执行中…' : '运行决策'}
+                {busy ? '处理中…' : '运行决策'}
               </Button>
             </form>
           </CardContent>
@@ -1726,7 +1944,7 @@ function DecisionView({
                 )}
                 <dl className="grid gap-3 text-sm md:grid-cols-2">
                   <div>
-                    <Result label="Request" value={decision.requestId} />
+                    <Result label="请求编号" value={decision.requestId} />
                     <Button
                       type="button"
                       size="sm"
@@ -1739,8 +1957,16 @@ function DecisionView({
                       查看处理过程
                     </Button>
                   </div>
-                  <Result label="Campaign" value={decision.campaignId || '—'} />
-                  <Result label="Creative" value={decision.creativeId || '—'} />
+                  <Result
+                    label="广告计划"
+                    value={
+                      campaigns.find((item) => item.id === decision.campaignId)
+                        ?.name ||
+                      decision.campaignId ||
+                      '—'
+                    }
+                  />
+                  <Result label="素材编号" value={decision.creativeId || '—'} />
                   <Result
                     label="曝光回传截止"
                     value={
@@ -1758,12 +1984,39 @@ function DecisionView({
                 {explanation && (
                   <TargetingReport report={explanation} campaigns={campaigns} />
                 )}
+                {decision.reason === 'no_creative' &&
+                  explanation?.candidates
+                    .filter((item) => item.targetingMatched)
+                    .map((item) => {
+                      const campaign = campaigns.find(
+                        (campaign) => campaign.id === item.campaignId,
+                      );
+                      return campaign ? (
+                        <Button
+                          key={campaign.id}
+                          variant="outline"
+                          onClick={() => onAddMaterials(campaign)}
+                        >
+                          给「{campaign.name}」添加素材
+                        </Button>
+                      ) : null;
+                    })}
+                {decision.matched && (
+                  <Button
+                    variant="outline"
+                    onClick={() => onReport(decision.campaignId)}
+                  >
+                    查看此计划报表
+                  </Button>
+                )}
                 {decision.matched && (
                   <div className="flex flex-wrap gap-2 border-t pt-4">
                     <Button
                       size="sm"
                       disabled={
                         busy ||
+                        (!!decision.expiresAt &&
+                          decisionNow >= Date.parse(decision.expiresAt)) ||
                         !canRecordDecisionEvent(eventState, 'impression')
                       }
                       onClick={() => void event('impression')}
@@ -1772,7 +2025,10 @@ function DecisionView({
                         ? '曝光已受理'
                         : eventState.impression === 'pending'
                           ? '曝光记录中…'
-                          : '记录曝光'}
+                          : decision.expiresAt &&
+                              decisionNow >= Date.parse(decision.expiresAt)
+                            ? '已过期，请重新决策'
+                            : '记录曝光'}
                     </Button>
                     <Button
                       size="sm"
@@ -1830,6 +2086,7 @@ function decisionReasonLabel(reason: string) {
     profile_not_found: '用户画像不存在',
     no_candidate: '该广告位暂无有效投放计划',
     targeting_miss: '用户未满足定向条件',
+    no_creative: '定向已满足，但计划缺少可用素材',
     frequency_capped: '该用户已达到每日曝光上限',
     budget_exhausted: '预算不足或已被预占',
     dependency_unavailable: '依赖服务暂不可用',
@@ -1855,7 +2112,7 @@ function TargetingReport({
       <p className="text-sm text-muted-foreground">
         用户 {report.profile.userId} ·{' '}
         {new Date(report.checkedAt).toLocaleTimeString('zh-CN')}
-        。仅检查当前标签、字段和素材，不占预算/频控，也不是历史决策审计。
+        ，按当前配置检查。
       </p>
       {report.candidates.length === 0 && (
         <p className="rounded-lg bg-muted/50 p-3 text-sm">
@@ -2468,6 +2725,7 @@ function MetricCard({
 }
 function StatusBadge({ status }: { status: string }) {
   const styles: Record<string, string> = {
+    NEEDS_CREATIVE: 'border-amber-200 bg-amber-50 text-amber-800',
     SCHEDULED: 'border-blue-200 bg-blue-50 text-blue-700',
     ENDED: 'border-slate-200 bg-slate-50 text-slate-600',
     INVALID_PERIOD: 'border-rose-200 bg-rose-50 text-rose-700',
@@ -2492,6 +2750,7 @@ function StatusBadge({ status }: { status: string }) {
     DEAD_LETTERED: 'border-rose-200 bg-rose-50 text-rose-700',
   };
   const labels: Record<string, string> = {
+    NEEDS_CREATIVE: '待添加素材',
     SCHEDULED: '待开始',
     ENDED: '已结束',
     INVALID_PERIOD: '时间异常',

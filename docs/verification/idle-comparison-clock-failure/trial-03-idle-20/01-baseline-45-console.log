@@ -1,0 +1,16 @@
+Intentional overload test: explicit backlog rejections counted separately; NOT capacity acceptance
+backpressure_rejections: {"values":{"count":0,"rate":0},"type":"counter","contains":"default"}
+matched_decision_ms: {"type":"trend","contains":"time","values":{"avg":46.778654973362954,"med":42.545128,"p(95)":70.412478,"p(99)":108.800195,"max":226.909704},"thresholds":{"p(95)<300":{"ok":true}}}
+iterations: {"type":"counter","contains":"default","values":{"rate":46.457556606406555,"count":901}}
+http_reqs: {"contains":"default","values":{"count":3603,"rate":185.77866420963687},"type":"counter"}
+decision_ms: {"type":"trend","contains":"time","values":{"p(95)":70.412478,"p(99)":108.800195,"max":226.909704,"avg":46.778654973362954,"med":42.545128},"thresholds":{"p(95)<300":{"ok":true}}}
+accepted_round_ms: {"type":"trend","contains":"time","values":{"p(95)":200.14999999999998,"p(99)":266,"max":335,"avg":140.79064587973275,"med":134},"thresholds":{"p(95)<1000":{"ok":true}}}
+business_errors: {"type":"rate","contains":"default","values":{"rate":0.003329633740288568,"passes":3,"fails":898},"thresholds":{"rate<0.001":{"ok":false}}}
+matched_decisions: {"type":"counter","contains":"default","values":{"count":901,"rate":46.457556606406555}}
+completed_rounds: {"thresholds":{"count>0":{"ok":true}},"type":"counter","contains":"default","values":{"count":898,"rate":46.3028699584385}}
+accepted_events: {"type":"counter","contains":"default","values":{"count":2699,"rate":139.16642095526225}}
+accepted_impressions: {"values":{"count":901,"rate":46.457556606406555},"type":"counter","contains":"default"}
+accepted_clicks: {"type":"counter","contains":"default","values":{"count":900,"rate":46.405994390417206}}
+accepted_conversions: {"values":{"count":898,"rate":46.3028699584385},"type":"counter","contains":"default"}
+dropped_iterations: {"contains":"default","values":{"count":0,"rate":0},"thresholds":{"count==0":{"ok":true}},"type":"counter"}
+time="2026-09-09T09:38:19+08:00" level=error msg="thresholds on metrics 'business_errors' have been crossed"

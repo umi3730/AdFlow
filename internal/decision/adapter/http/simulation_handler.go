@@ -1,6 +1,7 @@
 package httpadapter
 
 import (
+	"errors"
 	"github.com/gin-gonic/gin"
 	"github.com/umi3730/adflow/internal/decision/adapter/requestprofile"
 	"github.com/umi3730/adflow/internal/decision/application"
@@ -8,8 +9,6 @@ import (
 	"github.com/umi3730/adflow/internal/profile/schema"
 	httptransport "github.com/umi3730/adflow/internal/transport/http"
 	"net"
-	"regexp"
-	"strconv"
 	"time"
 )
 
@@ -27,13 +26,6 @@ func (h *SimulationHandler) RegisterRoutes(group *gin.RouterGroup) {
 	if h.local {
 		group.POST("/simulations/decisions", h.simulate)
 	}
-}
-
-var simulationRunID = regexp.MustCompile(`^[\w-]{1,80}$`)
-var temporaryUserID = regexp.MustCompile(`^user-\d{4}$`)
-
-func simulationIdentity(runID, userID, requestID string) (string, string) {
-	return domain.SimulationIdentity(runID, userID, requestID)
 }
 
 func (h *SimulationHandler) simulate(c *gin.Context) {
@@ -58,20 +50,19 @@ func (h *SimulationHandler) simulate(c *gin.Context) {
 	if !httptransport.BindJSON(c, &input) {
 		return
 	}
-	if !simulationRunID.MatchString(input.RunID) || !temporaryUserID.MatchString(input.Profile.UserID) {
-		httptransport.RespondError(c, 422, "invalid_simulation_identity", "临时用户 ID 必须为 user-0001 ～ user-0100", nil)
-		return
-	}
-	number, _ := strconv.Atoi(input.Profile.UserID[5:])
-	if number < 1 || number > 100 {
-		httptransport.RespondError(c, 422, "invalid_simulation_identity", "临时用户序号超出范围", nil)
+	if err := domain.ValidateSimulationIdentity(input.RunID, input.Profile.UserID); err != nil {
+		message := "临时用户 ID 必须为 user-0001 ～ user-0100"
+		if errors.Is(err, domain.ErrSimulationUserOutOfRange) {
+			message = "临时用户序号超出范围"
+		}
+		httptransport.RespondError(c, 422, "invalid_simulation_identity", message, nil)
 		return
 	}
 	if err := schema.ValidateFields(input.Profile.Fields); err != nil {
 		httptransport.RespondError(c, 422, "invalid_profile_fields", err.Error(), nil)
 		return
 	}
-	userID, requestID := simulationIdentity(input.RunID, input.Profile.UserID, input.RequestID)
+	userID, requestID := domain.SimulationIdentity(input.RunID, input.Profile.UserID, input.RequestID)
 	profile := domain.NewProfile(userID, input.Profile.Tags, input.Profile.Fields)
 	ctx := requestprofile.WithProfile(c.Request.Context(), profile)
 	started := time.Now()

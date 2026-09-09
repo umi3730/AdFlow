@@ -23,6 +23,7 @@ import {
 } from '@/components/ui/table';
 const reasonLabels: Record<string, string> = {
   targeting_miss: '定向未命中',
+  no_creative: '缺少可用素材',
   profile_not_found: '画像不存在',
   no_candidate: '无候选计划/素材',
   frequency_capped: '触达频控',

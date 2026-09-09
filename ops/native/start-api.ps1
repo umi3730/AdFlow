@@ -1,4 +1,4 @@
-param([int] $Port = 18080)
+param([int] $Port = 18080, [ValidateRange(0,65535)][int] $PprofPort = 0)
 $ErrorActionPreference = 'Stop'
 $adflowProject = (Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
 if (Get-NetTCPConnection -State Listen -LocalPort $Port -ErrorAction SilentlyContinue) {
@@ -10,6 +10,9 @@ Get-Content -LiteralPath (Join-Path $adflowProject '.env') | ForEach-Object {
     }
 }
 $env:ADFLOW_HTTP_ADDR = "127.0.0.1:$Port"
+if($PSBoundParameters.ContainsKey('PprofPort')) {
+    $env:ADFLOW_PPROF_ADDR = if($PprofPort -eq 0){''}else{"127.0.0.1:$PprofPort"}
+}
 $adflowOutput = Join-Path $adflowProject 'work/native-api'
 New-Item -ItemType Directory -Force -Path $adflowOutput | Out-Null
 $adflowStamp = Get-Date -Format 'yyyyMMdd-HHmmss-fff'

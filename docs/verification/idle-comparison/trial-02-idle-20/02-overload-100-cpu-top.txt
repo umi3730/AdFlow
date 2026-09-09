@@ -1,0 +1,29 @@
+File: api-linux
+Build ID: 72ca8faeb1daf3ca96efb3da5a744390aa021576
+Type: cpu
+Time: 2026-09-09 09:54:35 CST
+Duration: 20s, Total samples = 10.84s (54.20%)
+Showing nodes accounting for 7.02s, 64.76% of 10.84s total
+Dropped 554 nodes (cum <= 0.05s)
+Showing top 20 nodes out of 294
+      flat  flat%   sum%        cum   cum%
+     3.48s 32.10% 32.10%      3.48s 32.10%  internal/runtime/syscall/linux.Syscall6
+     2.53s 23.34% 55.44%      2.53s 23.34%  runtime.futex
+     0.13s  1.20% 56.64%      0.13s  1.20%  runtime.write1
+     0.12s  1.11% 57.75%      0.28s  2.58%  runtime.stealWork
+     0.08s  0.74% 58.49%      0.08s  0.74%  runtime.memclrNoHeapPointers
+     0.07s  0.65% 59.13%      0.07s  0.65%  runtime.usleep
+     0.06s  0.55% 59.69%      2.46s 22.69%  runtime.findRunnable
+     0.06s  0.55% 60.24%      0.06s  0.55%  runtime.nanotime (inline)
+     0.06s  0.55% 60.79%      0.29s  2.68%  runtime.selectgo
+     0.05s  0.46% 61.25%      0.14s  1.29%  runtime.lock2
+     0.05s  0.46% 61.72%      0.06s  0.55%  runtime.scanObject
+     0.04s  0.37% 62.08%      0.08s  0.74%  database/sql.driverArgsConnLocked
+     0.04s  0.37% 62.45%      0.45s  4.15%  runtime.mallocgc
+     0.04s  0.37% 62.82%      0.07s  0.65%  runtime.mallocgcSmallScanNoHeaderSC2
+     0.04s  0.37% 63.19%      0.06s  0.55%  runtime.mallocgcSmallScanNoHeaderSC3
+     0.04s  0.37% 63.56%      0.61s  5.63%  runtime.netpoll
+     0.04s  0.37% 63.93%      0.10s  0.92%  runtime.pcvalue
+     0.03s  0.28% 64.21%      1.06s  9.78%  database/sql.ctxDriverExec
+     0.03s  0.28% 64.48%      0.08s  0.74%  encoding/json/v2.makeStructArshaler.func2
+     0.03s  0.28% 64.76%      0.14s  1.29%  encoding/json/v2.makeStructArshaler.func3

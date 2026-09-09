@@ -3,6 +3,7 @@ package httpadapter
 import (
 	"context"
 	"errors"
+	"log/slog"
 	"net/http"
 	"strconv"
 	"strings"
@@ -216,8 +217,21 @@ func handleError(c *gin.Context, err error) {
 		httptransport.RespondError(c, http.StatusNotFound, "creative_not_found", err.Error(), nil)
 	case errors.Is(err, domain.ErrConcurrentMutation):
 		httptransport.RespondError(c, http.StatusConflict, "concurrent_mutation", err.Error(), nil)
-	default:
+	case errors.Is(err, domain.ErrInvalidName),
+		errors.Is(err, domain.ErrInvalidSlotID),
+		errors.Is(err, domain.ErrInvalidPeriod),
+		errors.Is(err, domain.ErrInvalidTransition),
+		errors.Is(err, domain.ErrInvalidBudget),
+		errors.Is(err, domain.ErrInvalidCost),
+		errors.Is(err, domain.ErrBudgetBelowCost),
+		errors.Is(err, domain.ErrInvalidFrequency),
+		errors.Is(err, domain.ErrInvalidTargeting),
+		errors.Is(err, domain.ErrInvalidCreative),
+		errors.Is(err, domain.ErrInvalidAuction):
 		httptransport.RespondError(c, http.StatusUnprocessableEntity, "campaign_rule_violation", err.Error(), nil)
+	default:
+		slog.ErrorContext(c.Request.Context(), "campaign operation failed", "error", err, "request_id", httptransport.RequestIDFrom(c))
+		httptransport.RespondError(c, http.StatusInternalServerError, "campaign_failed", "campaign operation could not be completed", nil)
 	}
 }
 

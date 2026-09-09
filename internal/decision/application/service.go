@@ -122,7 +122,11 @@ func (s *Service) Decide(ctx context.Context, request domain.Request) (domain.Re
 	if len(candidates) == 0 {
 		return s.noAd(ctx, request, owner, domain.ReasonNoCandidate)
 	}
-	candidates, advertiserCount := rankCandidates(candidates, profile, now, request.RequestID)
+	ranked, advertiserCount := rankCandidates(candidates, profile, now, request.RequestID)
+	if len(ranked) == 0 {
+		return s.noAd(ctx, request, owner, unavailableCandidateReason(candidates, profile, now))
+	}
+	candidates = ranked
 	budgetRejected, frequencyRejected := 0, 0
 
 	reason := domain.ReasonTargetingMiss

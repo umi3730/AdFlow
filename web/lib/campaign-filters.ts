@@ -10,6 +10,7 @@ export const campaignStatusOptions = [
   { value: allCampaignFilters, label: '全部状态' },
   { value: 'DRAFT', label: '草稿' },
   { value: 'ACTIVE', label: '投放中' },
+  { value: 'NEEDS_CREATIVE', label: '待添加素材' },
   { value: 'SCHEDULED', label: '待开始' },
   { value: 'PAUSED', label: '已暂停' },
   { value: 'ENDED', label: '已结束' },

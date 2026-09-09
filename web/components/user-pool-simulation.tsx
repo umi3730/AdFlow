@@ -102,8 +102,8 @@ export function UserPoolSimulation({
   }
   const [poolSize, setPoolSize] = useState('20');
   const [slotId, setSlotId] = useState(defaultAdSlotID);
-  const [maxRounds, setMaxRounds] = useState('1000');
-  const [concurrency, setConcurrency] = useState('10');
+  const [maxRounds, setMaxRounds] = useState('3');
+  const [concurrency, setConcurrency] = useState('1');
   const [seconds, setSeconds] = useState('30');
   const [timeoutMs, setTimeoutMs] = useState('5000');
   const [impressions, setImpressions] = useState(true);
@@ -1076,8 +1076,7 @@ export function UserPoolSimulation({
                 )}
               </fieldset>
               <p className="text-xs text-muted-foreground">
-                完成一轮补一轮，最多 100
-                个在途轮次；达到轮数或时长先到者停止补发。并发包含决策和所选事件回传，不代表后端实际并发连接数。
+                每轮包含决策和所选事件回传；达到轮数或时长上限后停止派发。
               </p>
               {!userIds.length && (
                 <p className="text-sm text-muted-foreground">

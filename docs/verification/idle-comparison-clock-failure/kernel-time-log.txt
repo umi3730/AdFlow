@@ -1,0 +1,4 @@
+Sep 09 09:33:54 UPC3799 kernel: mini_init (147): drop_caches: 1
+Sep 09 09:37:30 UPC3799 systemd-journald[54]: Time jumped backwards, rotating.
+Sep 09 09:38:33 UPC3799 systemd-journald[54]: Time jumped backwards, rotating.
+Sep 09 09:43:16 UPC3799 systemd-journald[54]: Time jumped backwards, rotating.

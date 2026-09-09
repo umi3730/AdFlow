@@ -1,0 +1,12 @@
+{
+  "capturedAt": "2026-09-09T10:14:43.6161191+08:00",
+  "goTest": "go test ./... passed",
+  "goVet": "go vet ./... passed",
+  "auditRegression": "3 tests passed",
+  "snapshotPrepareOnly": "passed; source snapshot and Linux API/runner builds; no new load run",
+  "snapshotFiles": 283,
+  "snapshotApiSHA256": "fdb66adacdd2fa700b7b9ba0b21e5b1fa6482d42a4f561eb8612cd0dcb77d253",
+  "snapshotRunnerSHA256": "f5469a357d44fcfffdd6b2ada7d2577ef46f259582da726f5069eeb4e2409f1a",
+  "note": "Post-experiment tool validation against current working tree; these binaries were not used by the archived six trials.",
+  "ntpRestored": true
+}

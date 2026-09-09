@@ -32,7 +32,7 @@ jobs:
       - name: Check formatting
         shell: bash
         run: |
-          files="$(gofmt -l cmd internal)"
+          files="$(gofmt -l cmd internal tests)"
           if [ -n "$files" ]; then
             echo "The following Go files need gofmt:"
             echo "$files"
@@ -40,10 +40,10 @@ jobs:
           fi
 
       - name: Vet
-        run: go vet ./...
+        run: go vet ./cmd/... ./internal/... ./tests/...
 
       - name: Test with race detector
-        run: go test -race -coverprofile=coverage.out ./...
+        run: go test -race -coverprofile=coverage.out ./cmd/... ./internal/... ./tests/...
 
   frontend:
     name: Frontend verification

@@ -1,0 +1,26 @@
+{
+  "checkedAt": "2026-09-09T09:31:17.0685810+08:00",
+  "archivedTrialsVerified": 9,
+  "remainingExperimentSchemas": 0,
+  "services": [
+    {
+      "apiPort": 18080,
+      "ready": true,
+      "authEnabled": false,
+      "role": "admin",
+      "profilingPort": 6060,
+      "profilingPid": 3144,
+      "poolLimit": 30
+    },
+    {
+      "apiPort": 18081,
+      "ready": true,
+      "authEnabled": false,
+      "role": "admin",
+      "profilingPort": 6061,
+      "profilingPid": 24112,
+      "poolLimit": 30
+    }
+  ],
+  "frontendStatus": 200
+}

@@ -1,0 +1,29 @@
+File: api-linux
+Build ID: 72ca8faeb1daf3ca96efb3da5a744390aa021576
+Type: cpu
+Time: 2026-09-09 10:02:38 CST
+Duration: 20s, Total samples = 11.65s (58.25%)
+Showing nodes accounting for 7.58s, 65.06% of 11.65s total
+Dropped 604 nodes (cum <= 0.06s)
+Showing top 20 nodes out of 312
+      flat  flat%   sum%        cum   cum%
+     3.95s 33.91% 33.91%      3.95s 33.91%  internal/runtime/syscall/linux.Syscall6
+     2.38s 20.43% 54.33%      2.38s 20.43%  runtime.futex
+     0.18s  1.55% 55.88%      0.47s  4.03%  runtime.stealWork
+     0.17s  1.46% 57.34%      0.17s  1.46%  runtime.write1
+     0.14s  1.20% 58.54%      0.14s  1.20%  runtime.usleep
+     0.10s  0.86% 59.40%      3.10s 26.61%  runtime.findRunnable
+     0.10s  0.86% 60.26%      0.95s  8.15%  runtime.netpoll
+     0.08s  0.69% 60.94%      0.08s  0.69%  runtime.findfunc
+     0.06s  0.52% 61.46%      0.37s  3.18%  runtime.selectgo
+     0.05s  0.43% 61.89%      0.06s  0.52%  runtime.mallocgcTinySC2
+     0.05s  0.43% 62.32%      0.19s  1.63%  runtime.runqgrab
+     0.05s  0.43% 62.75%      0.07s   0.6%  runtime.tryDeferToSpanScan
+     0.04s  0.34% 63.09%      1.60s 13.73%  github.com/go-sql-driver/mysql.(*mysqlConn).writePacket
+     0.04s  0.34% 63.43%      0.10s  0.86%  runtime.pcvalue
+     0.04s  0.34% 63.78%      0.07s   0.6%  runtime.scanObjectsSmall
+     0.03s  0.26% 64.03%      0.14s  1.20%  database/sql.(*driverConn).resetSession
+     0.03s  0.26% 64.29%      0.07s   0.6%  encoding/json/jsontext.getBufferedEncoder
+     0.03s  0.26% 64.55%      0.84s  7.21%  internal/poll.(*FD).Read
+     0.03s  0.26% 64.81%      0.23s  1.97%  runtime.reentersyscall
+     0.03s  0.26% 65.06%      0.15s  1.29%  runtime.slicebytetostring

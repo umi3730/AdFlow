@@ -1,0 +1,29 @@
+File: api-linux
+Build ID: 928b80bcfe978921b8133a95ba318310d86fc329
+Type: cpu
+Time: 2026-09-08 18:04:17 CST
+Duration: 20s, Total samples = 11.30s (56.50%)
+Showing nodes accounting for 7.49s, 66.28% of 11.30s total
+Dropped 526 nodes (cum <= 0.06s)
+Showing top 20 nodes out of 302
+      flat  flat%   sum%        cum   cum%
+     3.78s 33.45% 33.45%      3.78s 33.45%  internal/runtime/syscall/linux.Syscall6
+     2.60s 23.01% 56.46%      2.60s 23.01%  runtime.futex
+     0.20s  1.77% 58.23%      0.20s  1.77%  runtime.write1
+     0.14s  1.24% 59.47%      0.14s  1.24%  runtime.usleep
+     0.11s  0.97% 60.44%      0.41s  3.63%  runtime.stealWork
+     0.08s  0.71% 61.15%      0.08s  0.71%  runtime.memmove
+     0.07s  0.62% 61.77%      0.15s  1.33%  runtime.scanObject
+     0.07s  0.62% 62.39%      0.37s  3.27%  runtime.selectgo
+     0.05s  0.44% 62.83%      2.75s 24.34%  runtime.findRunnable
+     0.05s  0.44% 63.27%      0.08s  0.71%  runtime.scanObjectsSmall
+     0.04s  0.35% 63.63%      1.60s 14.16%  github.com/go-sql-driver/mysql.(*mysqlConn).writePacket
+     0.04s  0.35% 63.98%      0.09s   0.8%  runtime.(*unwinder).resolveInternal
+     0.04s  0.35% 64.34%      0.19s  1.68%  runtime.runqgrab
+     0.04s  0.35% 64.69%      3.45s 30.53%  runtime.schedule
+     0.03s  0.27% 64.96%      0.12s  1.06%  github.com/redis/go-redis/v9.(*baseClient).processPendingPushNotificationWithReader
+     0.03s  0.27% 65.22%      0.06s  0.53%  runtime.(*timers).check
+     0.03s  0.27% 65.49%      0.06s  0.53%  runtime.growslice
+     0.03s  0.27% 65.75%      0.07s  0.62%  runtime.mapaccess2_faststr
+     0.03s  0.27% 66.02%      0.81s  7.17%  runtime.netpoll
+     0.03s  0.27% 66.28%      0.08s  0.71%  runtime.newobject

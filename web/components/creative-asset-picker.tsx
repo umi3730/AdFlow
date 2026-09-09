@@ -106,10 +106,10 @@ export function CreativeDropZone({
           <span className="block break-words text-lg font-medium">
             {hovered && !disabled
               ? '松开，放到左侧'
-              : (selected?.name ?? '从右侧拖入小人')}
+              : (selected?.name ?? '选择一份素材')}
           </span>
           <span className="block text-sm text-muted-foreground">
-            右侧拖入或点击选择，下方确认添加。
+            从素材库选择或拖入图片。
           </span>
         </span>
       </button>

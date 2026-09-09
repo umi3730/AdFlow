@@ -1,0 +1,46 @@
+{
+  "startedAt": "2026-09-08T09:52:02.7856625Z",
+  "finishedAt": "2026-09-08T09:52:03.9086412Z",
+  "profileType": "mem",
+  "requestedDurationSeconds": 30,
+  "profilingURL": "http://127.0.0.1:6061",
+  "before": {
+    "apiAddress": "127.0.0.1:18081",
+    "pid": 35308,
+    "startedAt": "2026-09-08T09:52:02.2450614Z",
+    "blockProfileRate": 0,
+    "gomaxprocs": 12,
+    "pool": {
+      "MaxOpenConnections": 30,
+      "OpenConnections": 3,
+      "InUse": 0,
+      "Idle": 3,
+      "WaitCount": 0,
+      "WaitDuration": 0,
+      "MaxIdleClosed": 0,
+      "MaxIdleTimeClosed": 0,
+      "MaxLifetimeClosed": 0
+    }
+  },
+  "after": {
+    "apiAddress": "127.0.0.1:18081",
+    "pid": 35308,
+    "startedAt": "2026-09-08T09:52:02.2450614Z",
+    "blockProfileRate": 0,
+    "gomaxprocs": 12,
+    "pool": {
+      "MaxOpenConnections": 30,
+      "OpenConnections": 3,
+      "InUse": 0,
+      "Idle": 3,
+      "WaitCount": 0,
+      "WaitDuration": 0,
+      "MaxIdleClosed": 0,
+      "MaxIdleTimeClosed": 0,
+      "MaxLifetimeClosed": 0
+    }
+  },
+  "profileFile": "D:\\AdFlow\\work\\pool-comparison\\tool-check\\mem-20260908-175202-780-f564c538.pprof",
+  "topFile": "D:\\AdFlow\\work\\pool-comparison\\tool-check\\mem-20260908-175202-780-f564c538.top.txt",
+  "profileSHA256": "4f0dbb79f347b5d04c6575bf3985e3b170a1298fcb9197f3181de810a9d6f012"
+}

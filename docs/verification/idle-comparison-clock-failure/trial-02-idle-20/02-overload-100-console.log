@@ -1,0 +1,16 @@
+Intentional overload test: explicit backlog rejections counted separately; NOT capacity acceptance
+backpressure_rejections: {"values":{"rate":47.30275357588446,"count":2770},"type":"counter","contains":"default"}
+matched_decision_ms: {"type":"trend","contains":"time","values":{"avg":56.10654016589289,"med":52.088602,"p(95)":87.785186,"p(99)":140.69144089999915,"max":280.318526},"thresholds":{"p(95)<300":{"ok":true}}}
+iterations: {"type":"counter","contains":"default","values":{"count":6001,"rate":102.47791487685294}}
+http_reqs: {"type":"counter","contains":"default","values":{"count":15687,"rate":267.8838611353428}}
+decision_ms: {"type":"trend","contains":"time","values":{"avg":36.73715811714725,"med":38.497688,"p(95)":77.239361,"p(99)":121.893703,"max":280.318526},"thresholds":{"p(95)<300":{"ok":true}}}
+accepted_round_ms: {"contains":"time","values":{"avg":169.39061528899938,"med":162,"p(95)":245,"p(99)":373.3199999999997,"max":531},"thresholds":{"p(95)<1000":{"ok":true}},"type":"trend"}
+business_errors: {"contains":"default","values":{"rate":0.0021663056157307115,"passes":13,"fails":5988},"thresholds":{"rate<0.001":{"ok":false}},"type":"rate"}
+matched_decisions: {"type":"counter","contains":"default","values":{"count":3231,"rate":55.175161300968476}}
+completed_rounds: {"thresholds":{"count>0":{"ok":true}},"type":"counter","contains":"default","values":{"count":3218,"rate":54.953162818482376}}
+accepted_events: {"type":"counter","contains":"default","values":{"count":9673,"rate":165.18394777600375}}
+accepted_impressions: {"type":"counter","contains":"default","values":{"count":3231,"rate":55.175161300968476}}
+accepted_clicks: {"type":"counter","contains":"default","values":{"count":3224,"rate":55.05562365655288}}
+accepted_conversions: {"type":"counter","contains":"default","values":{"count":3218,"rate":54.953162818482376}}
+dropped_iterations: {"type":"counter","contains":"default","values":{"count":0,"rate":0},"thresholds":{"count==0":{"ok":true}}}
+time="2026-09-09T09:37:25+08:00" level=error msg="thresholds on metrics 'business_errors' have been crossed"

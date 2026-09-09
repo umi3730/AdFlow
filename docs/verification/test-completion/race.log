@@ -1,0 +1,60 @@
+?   	github.com/umi3730/adflow/cmd/api	[no test files]
+?   	github.com/umi3730/adflow/cmd/migrate	[no test files]
+?   	github.com/umi3730/adflow/internal/agentassistant/adapter/http	[no test files]
+ok  	github.com/umi3730/adflow/internal/agentassistant/adapter/mock	1.037s
+ok  	github.com/umi3730/adflow/internal/agentassistant/adapter/openai	1.140s
+ok  	github.com/umi3730/adflow/internal/agentassistant/application	1.067s
+ok  	github.com/umi3730/adflow/internal/agentassistant/domain	1.031s
+ok  	github.com/umi3730/adflow/internal/audit/adapter/http	1.063s
+ok  	github.com/umi3730/adflow/internal/audit/adapter/memory	1.034s
+ok  	github.com/umi3730/adflow/internal/audit/adapter/mysql	1.028s
+ok  	github.com/umi3730/adflow/internal/audit/application	1.027s
+?   	github.com/umi3730/adflow/internal/audit/domain	[no test files]
+ok  	github.com/umi3730/adflow/internal/bootstrap	1.098s
+ok  	github.com/umi3730/adflow/internal/campaign/adapter/http	1.067s
+ok  	github.com/umi3730/adflow/internal/campaign/adapter/memory	1.026s
+ok  	github.com/umi3730/adflow/internal/campaign/adapter/mysql	1.049s
+ok  	github.com/umi3730/adflow/internal/campaign/application	1.024s
+ok  	github.com/umi3730/adflow/internal/campaign/domain	1.024s
+ok  	github.com/umi3730/adflow/internal/config	1.029s
+ok  	github.com/umi3730/adflow/internal/decision/adapter/campaign	1.089s
+ok  	github.com/umi3730/adflow/internal/decision/adapter/http	1.163s
+ok  	github.com/umi3730/adflow/internal/decision/adapter/memory	1.138s
+ok  	github.com/umi3730/adflow/internal/decision/adapter/mysql	1.133s
+ok  	github.com/umi3730/adflow/internal/decision/adapter/profilecache	1.298s
+ok  	github.com/umi3730/adflow/internal/decision/adapter/redis	1.203s
+ok  	github.com/umi3730/adflow/internal/decision/adapter/requestprofile	1.035s
+ok  	github.com/umi3730/adflow/internal/decision/application	1.130s
+ok  	github.com/umi3730/adflow/internal/decision/domain	1.046s
+?   	github.com/umi3730/adflow/internal/event/adapter/http	[no test files]
+ok  	github.com/umi3730/adflow/internal/event/adapter/kafka	1.067s
+ok  	github.com/umi3730/adflow/internal/event/adapter/memory	1.043s
+ok  	github.com/umi3730/adflow/internal/event/adapter/mysql	1.199s
+ok  	github.com/umi3730/adflow/internal/event/application	1.252s
+ok  	github.com/umi3730/adflow/internal/event/domain	1.075s
+ok  	github.com/umi3730/adflow/internal/health	1.069s
+ok  	github.com/umi3730/adflow/internal/identity/adapter/http	2.450s
+ok  	github.com/umi3730/adflow/internal/identity/adapter/jwt	1.046s
+ok  	github.com/umi3730/adflow/internal/identity/adapter/memory	1.187s
+ok  	github.com/umi3730/adflow/internal/identity/adapter/mysql	1.130s
+?   	github.com/umi3730/adflow/internal/identity/adapter/password	[no test files]
+ok  	github.com/umi3730/adflow/internal/identity/application	4.549s
+ok  	github.com/umi3730/adflow/internal/identity/domain	1.037s
+ok  	github.com/umi3730/adflow/internal/observability	1.091s
+ok  	github.com/umi3730/adflow/internal/operations/adapter/http	1.098s
+ok  	github.com/umi3730/adflow/internal/operations/application	1.034s
+?   	github.com/umi3730/adflow/internal/platform/cache	[no test files]
+ok  	github.com/umi3730/adflow/internal/platform/database	1.029s
+ok  	github.com/umi3730/adflow/internal/platform/migrate	1.026s
+ok  	github.com/umi3730/adflow/internal/platform/profiling	1.034s
+ok  	github.com/umi3730/adflow/internal/profile/schema	1.024s
+ok  	github.com/umi3730/adflow/internal/reporting/adapter/http	1.041s
+?   	github.com/umi3730/adflow/internal/reporting/adapter/mysql	[no test files]
+?   	github.com/umi3730/adflow/internal/reporting/application	[no test files]
+ok  	github.com/umi3730/adflow/internal/reporting/domain	1.030s
+ok  	github.com/umi3730/adflow/internal/transport/http	1.138s
+?   	github.com/umi3730/adflow/tests/bench/full-chain	[no test files]
+?   	github.com/umi3730/adflow/tests/bench/jmeter-profile	[no test files]
+ok  	github.com/umi3730/adflow/tests/bench/k6-lab	1.044s
+?   	github.com/umi3730/adflow/tests/bench/outbox-index	[no test files]
+?   	github.com/umi3730/adflow/tests/plan-sample-contract	[no test files]

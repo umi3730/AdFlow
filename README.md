@@ -4,11 +4,11 @@
 
 重点是业务约束、并发正确性和可复查的压测记录，适合作为 Go 后端学习与面试展示项目。
 
-[快速启动](#快速启动) · [功能说明](docs/getting-started.md) · [API 文档](docs/openapi.yaml) · [性能与验证](#性能与验证)
+[快速启动](#快速启动) · [五分钟演示](docs/demo-walkthrough.md) · [功能说明](docs/getting-started.md) · [版本演进](docs/project-evolution.md) · [API 文档](docs/openapi.yaml) · [性能与验证](#性能与验证)
 
-![投放总览](docs/images/overview.png)
+![投放总览](docs/images/overview.jpg)
 
-*截图来自本地运行的管理台，曝光、点击、转化价值均为模拟数据。*
+*截图采集于 2026-09-09，来自本地运行的管理台；曝光、点击、转化价值均为模拟数据，性能结论另见下方实验记录。*
 
 ## 可以做什么
 
@@ -20,26 +20,46 @@
 | 用户与投放模拟 | 保存模拟画像，按计划生成样本，单次验证或固定并发批量运行 |
 | 异步事件处理 | 结算队列、Transactional Outbox、Kafka 消费、幂等计量、死信与待核对 |
 | 请求追踪 | 按 requestId 查看决策、曝光结算、发布和统计状态 |
+| 投放效果报表 | 按小时/天、计划和日期查看趋势、实际消耗、CTR/CVR，支持 CSV 导出 |
+| Agent 投放诊断 | 结合报表、计划配置与请求结果生成建议，每条建议附分析依据 |
 | 权限与辅助配置 | JWT、RBAC、审计日志；Agent 生成草稿，经人工确认后发布 |
 
 内置固定成本和三广告主竞价用例。新环境自动安装一次；用户可以编辑或删除，持久化环境重启不会恢复已删除数据。后台账号与模拟用户画像是两种不同对象。
 
+报表与诊断均由 Go 后端实现，诊断复用现有模型调用、熔断和本地降级。MySQL 部署新增 `000014_delivery_reports` 查询索引迁移，详见 [报表与诊断说明](docs/delivery-reports-and-diagnosis.md)。
+
 <details>
-<summary>查看竞价配置、决策结果和完整处理过程</summary>
+<summary>查看竞价配置、完整处理过程和效果报表</summary>
 
 ### 竞价与定向配置
 
-![竞价规则](docs/images/auction-rules.png)
-
-### 单次投放验证
-
-![单次决策结果](docs/images/decision.png)
+![竞价规则](docs/images/auction-rules.jpg)
 
 ### 决策 → 曝光结算 → 事件计量
 
-![请求处理过程](docs/images/request-trace.png)
+![请求处理过程](docs/images/request-trace.jpg)
+
+![曝光、点击与转化计量](docs/images/request-events.jpg)
+
+### 投放效果报表
+
+![投放效果报表](docs/images/delivery-report.jpg)
 
 </details>
+
+## 项目版本演进
+
+已完成的工作按能力里程碑整理为五个版本：
+
+| 版本 | 重点 | 代表工作 |
+| --- | --- | --- |
+| V1 基础投放版 | 业务闭环 | 计划、素材、画像、定向、预算频控与事件统计 |
+| V2 吞吐优化版 | 降低读写开销 | 消除 N+1、候选/画像缓存、并发回源合并、Kafka 批处理 |
+| V3 竞价与可靠结算版 | 并发一致性与恢复 | 一价竞价、成交快照、幂等结算、死锁重试、租约接管、联合索引 |
+| V4 稳定性治理版 | 过载保护与瓶颈分析 | 队列背压、请求追踪、Prometheus、pprof、连接池对照 |
+| V5 运营分析版 | 效果分析与智能辅助 | 小时/天报表、实际消耗、CSV 导出、Agent 投放诊断 |
+
+查看[版本演进与面试讲解](docs/project-evolution.md)，了解每阶段的优化动机、实现、验证记录和面试表述。V1～V5 是项目能力里程碑，具体代码及实验来源在文档中对应。
 
 ## 技术设计
 
@@ -107,7 +127,7 @@ Demo 默认直接进入管理员工作台，登录、注册和退出入口不显
 
 ### MySQL / Redis / Kafka 模式
 
-使用 MySQL **8.0**，先应用全部迁移（当前至 `000013`）：
+使用 MySQL **8.0**，先应用全部迁移（当前至 `000014`）：
 
 ```bash
 go run ./cmd/migrate -dir migrations
@@ -118,8 +138,8 @@ go run ./cmd/migrate -dir migrations
 ## 测试与目录
 
 ```bash
-go test ./...
-go vet ./...
+go test ./cmd/... ./internal/... ./tests/...
+go vet ./cmd/... ./internal/... ./tests/...
 cd web
 npm test
 npm run lint
@@ -127,6 +147,8 @@ npm run build
 ```
 
 GitHub Actions 运行 Go 格式检查、vet、race 测试，以及前端格式、lint、测试和构建。真实 MySQL / Redis / Kafka 集成测试需要独立测试环境并显式启用，见[基础设施验证](docs/integration-verification.md)。
+
+2026-09-09 已补齐本地验证：125 项前端回归、47 个有测试 Go 包的竞态检测、15 个真实依赖集成用例及 1 个报表 SQL 用例通过；记录见 [测试补跑](docs/test-completion-20260909.md)。简历引用方式见 [面试要点](docs/resume-and-interview.md)。
 
 ```text
 cmd/            API 与数据库迁移入口
@@ -136,6 +158,38 @@ web/            React / TypeScript 管理台
 tests/          集成测试、k6 / JMeter 与独立基准实验
 docs/           功能设计、故障复盘、测试报告及原始证据
 ops/            本地基础设施与 API 启动脚本
+scripts/        性能分析与自动化工具
 ```
+
+## 架构与性能
+
+### 系统架构
+- **[系统架构图](docs/architecture.md)** - 完整的模块化单体架构、组件职责和技术栈
+- **[请求流程图](docs/request-flows.md)** - 决策、事件、缓存等关键路径的详细时序图
+
+### 性能优化
+- **[性能优化总览](docs/OPTIMIZATION_SUMMARY.md)** - 已完成的优化工作和基准数据
+- **[性能优化指南](docs/performance-optimization.md)** - pprof 分析、连接池对照与调优边界
+- **[快速开始](docs/performance-quickstart.md)** - 性能监控工具的使用方法
+
+**已验证基准:**
+- 决策 QPS: 450 (P95: 100-103ms)
+- Profile 查询: 1,000 QPS (Redis 缓存)
+- 完整四步链路: 45 轮/秒，三组 120s；见上方版本化测试记录
+
+**监控能力:**
+- pprof 性能分析（默认关闭，按实例配置 loopback 地址；见 [使用说明](docs/profiling.md)）
+- Prometheus 指标 (包含数据库连接池监控)
+- 自动化分析脚本 (`scripts/profile.ps1`)
+
+已完成 [30/60/100 最大连接数对照](docs/mysql-pool-comparison-20260908.md)：九组试验全部通过，扩大连接数未显示稳定的整体性能收益，默认保留 30/10。未使用的对象池已移除，不计为性能成果。
+
+### 开发检查
+
+Windows 在仓库根目录运行 `./scripts/verify.ps1`，检查 Go 格式、静态分析、正式包测试及前端 lint/回归测试；Linux/macOS 可运行 `make verify`。Go 检查范围为 `cmd/`、`internal/`、`tests/`，避免忽略目录 `work/` 的临时实验污染结果。
+
+`./scripts/verify.ps1 -BackendOnly` 只检查后端；`-Race` 启用竞态检测，需要可用的 C 工具链和 `CGO_ENABLED=1`。CI 保留竞态检测、前端格式检查和构建，连接 MySQL/Redis/Kafka 的集成测试需另行准备环境。工程整理内容见[代码审查记录](docs/engineering-review-20260909.md)。
+
+[空闲连接 10/20 对照记录](docs/mysql-idle-pool-comparison-20260909.md)：观察到空闲上限触发的连接关闭减少；保留失败轮次和源码来源限制，尚不作为新的容量或已上线性能成果。
 
 后续重点：减少结算和同步审计的数据库写入开销，补充更长依赖中断与多实例过载测试。已有边界和计划保存在 [Roadmap](docs/roadmap.md)。

@@ -33,8 +33,7 @@ export function DecisionPricing({ pricing }: { pricing: Decision['pricing'] }) {
         </p>
       )}
       <p className="text-xs text-muted-foreground">
-        本次按计划 v{pricing.version}{' '}
-        预占上述金额，曝光后确认；这是历史决策记录。
+        规则 v{pricing.version} · 金额先预占，曝光后扣费。
       </p>
     </section>
   );

@@ -1,0 +1,27 @@
+File: adflow-api-20260908-175157-804.exe
+Build ID: D:\AdFlow\work\native-api\adflow-api-20260908-175157-804.exe2026-09-08 17:52:01.5315675 +0800 CST
+Type: inuse_space
+Time: 2026-09-08 17:52:02 CST
+Showing nodes accounting for 3586.63kB, 100% of 3586.63kB total
+Showing top 20 nodes out of 50
+      flat  flat%   sum%        cum   cum%
+     513kB 14.30% 14.30%      513kB 14.30%  github.com/ugorji/go/codec.helperDecDriverJsonBytes.fastpathDList
+     513kB 14.30% 28.61%      513kB 14.30%  runtime.mallocgc
+  512.50kB 14.29% 42.90%   512.50kB 14.29%  hash/crc32.simpleMakeTable (inline)
+  512.05kB 14.28% 57.17%   512.05kB 14.28%  context.WithDeadlineCause
+  512.05kB 14.28% 71.45%   512.05kB 14.28%  github.com/twmb/franz-go/pkg/kgo.(*Client).pushMetrics
+  512.01kB 14.28% 85.72%   512.01kB 14.28%  github.com/go-sql-driver/mysql.(*mysqlConn).readHandshakePacket
+  512.01kB 14.28%   100%   512.01kB 14.28%  log/slog/internal/buffer.init.func1
+         0     0%   100%   512.05kB 14.28%  context.WithDeadline (inline)
+         0     0%   100%   512.05kB 14.28%  context.WithTimeout
+         0     0%   100%   512.01kB 14.28%  database/sql.(*DB).BeginTx
+         0     0%   100%   512.01kB 14.28%  database/sql.(*DB).BeginTx.func1
+         0     0%   100%   512.01kB 14.28%  database/sql.(*DB).begin
+         0     0%   100%   512.01kB 14.28%  database/sql.(*DB).conn
+         0     0%   100%   512.01kB 14.28%  database/sql.(*DB).retry
+         0     0%   100%   512.01kB 14.28%  github.com/go-sql-driver/mysql.(*connector).Connect
+         0     0%   100%   512.50kB 14.29%  github.com/klauspost/compress/internal/snapref.init
+         0     0%   100%   512.05kB 14.28%  github.com/redis/go-redis/v9/internal/pool.(*ConnPool).addIdleConn
+         0     0%   100%   512.05kB 14.28%  github.com/redis/go-redis/v9/internal/pool.(*ConnPool).checkMinIdleConns.func1
+         0     0%   100%      513kB 14.30%  github.com/ugorji/go/codec.init
+         0     0%   100%   512.01kB 14.28%  github.com/umi3730/adflow/internal/event/adapter/mysql.(*Outbox).ClaimBatch

@@ -24,6 +24,30 @@ const campaign = {
   endAt: new Date(end).toISOString(),
 };
 
+test('Published campaigns need a usable creative and preserve lifecycle and time boundaries', () => {
+  const missing = { ...campaign, activeCreativeCount: 0 };
+  assert.equal(campaignDisplayStatus(missing, start), 'NEEDS_CREATIVE');
+  assert.equal(
+    campaignDisplayStatus({ ...missing, activeCreativeCount: 1 }, start),
+    'ACTIVE',
+  );
+  assert.equal(
+    campaignDisplayStatus({ ...missing, activeCreativeCount: null }, start),
+    'CHECKING',
+  );
+  assert.equal(campaignDisplayStatus(missing, start - 1), 'SCHEDULED');
+  assert.equal(campaignDisplayStatus(missing, end), 'ENDED');
+  assert.equal(
+    campaignDisplayStatus({ ...missing, status: 'PAUSED' }, start),
+    'PAUSED',
+  );
+  assert.equal(missing.status, 'ACTIVE');
+  assert.deepEqual(
+    filterCampaigns([missing], '', allCampaignFilters, 'NEEDS_CREATIVE', start),
+    [missing],
+  );
+});
+
 test('Published campaign uses an inclusive start and exclusive end without changing its lifecycle', () => {
   const original = structuredClone(campaign);
   assert.equal(campaignDisplayStatus(campaign, start - 1), 'SCHEDULED');

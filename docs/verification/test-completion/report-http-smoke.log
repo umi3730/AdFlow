@@ -1,0 +1,19 @@
+{
+  "passed": true,
+  "campaignId": "46f9ed13265070b5a4ce1f6f9cd5d334",
+  "summary": {
+    "impressions": 3,
+    "clicks": 2,
+    "conversions": 1,
+    "spendFen": 21,
+    "valueFen": 300,
+    "unpricedImpressions": 0,
+    "ctr": 0.6666666666666666,
+    "cvr": 0.5,
+    "cpcFen": 10.5,
+    "cpaFen": 21
+  },
+  "hourBuckets": 3,
+  "dayBuckets": 1,
+  "diagnosisRecommendations": 4
+}

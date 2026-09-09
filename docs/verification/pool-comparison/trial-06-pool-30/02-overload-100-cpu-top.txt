@@ -1,0 +1,29 @@
+File: api-linux
+Build ID: 928b80bcfe978921b8133a95ba318310d86fc329
+Type: cpu
+Time: 2026-09-08 18:09:31 CST
+Duration: 20s, Total samples = 11.16s (55.80%)
+Showing nodes accounting for 7.31s, 65.50% of 11.16s total
+Dropped 614 nodes (cum <= 0.06s)
+Showing top 20 nodes out of 311
+      flat  flat%   sum%        cum   cum%
+     3.61s 32.35% 32.35%      3.61s 32.35%  internal/runtime/syscall/linux.Syscall6
+     2.67s 23.92% 56.27%      2.67s 23.92%  runtime.futex
+     0.14s  1.25% 57.53%      0.14s  1.25%  runtime.write1
+     0.09s  0.81% 58.33%      0.30s  2.69%  runtime.stealWork
+     0.08s  0.72% 59.05%      0.08s  0.72%  runtime.usleep
+     0.07s  0.63% 59.68%      0.40s  3.58%  runtime.mallocgc
+     0.06s  0.54% 60.22%      0.11s  0.99%  runtime.(*unwinder).resolveInternal
+     0.06s  0.54% 60.75%      0.06s  0.54%  runtime.memmove
+     0.05s  0.45% 61.20%      2.70s 24.19%  runtime.findRunnable
+     0.05s  0.45% 61.65%      0.06s  0.54%  runtime.mallocgcSmallScanNoHeaderSC2
+     0.05s  0.45% 62.10%      0.06s  0.54%  runtime.mallocgcTinySC2
+     0.05s  0.45% 62.54%      0.12s  1.08%  runtime.newobject
+     0.05s  0.45% 62.99%      0.13s  1.16%  runtime.runqgrab
+     0.05s  0.45% 63.44%      0.10s   0.9%  runtime.scanblock
+     0.05s  0.45% 63.89%      3.34s 29.93%  runtime.schedule
+     0.04s  0.36% 64.25%      3.12s 27.96%  database/sql.withLock
+     0.04s  0.36% 64.61%      0.20s  1.79%  runtime.lock2
+     0.04s  0.36% 64.96%      0.06s  0.54%  runtime.tryDeferToSpanScan
+     0.03s  0.27% 65.23%      1.39s 12.46%  database/sql.ctxDriverExec
+     0.03s  0.27% 65.50%      0.07s  0.63%  database/sql.driverArgsConnLocked

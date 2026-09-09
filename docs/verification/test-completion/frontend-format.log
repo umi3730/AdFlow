@@ -1,0 +1,8 @@
+
+> sites-project@0.1.0 format
+> oxfmt --check
+
+Checking formatting...
+
+All matched files use the correct format.
+Finished in 645ms on 142 files using 12 threads.

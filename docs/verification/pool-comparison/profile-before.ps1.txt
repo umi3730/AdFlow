@@ -1,0 +1,90 @@
+#!/usr/bin/env pwsh
+# Performance profiling script for AdFlow
+
+param(
+    [string]$ProfileType = "cpu",  # cpu, mem, goroutine, block
+    [int]$Duration = 30,            # Duration in seconds
+    [string]$Output = "work"        # Output directory
+)
+
+$ErrorActionPreference = "Stop"
+
+Write-Host "=== AdFlow Performance Profiling ===" -ForegroundColor Cyan
+Write-Host "Profile Type: $ProfileType"
+Write-Host "Duration: $Duration seconds"
+Write-Host ""
+
+# Create output directory
+New-Item -ItemType Directory -Force $Output | Out-Null
+
+# Start API server in background if not running
+$apiProcess = Get-Process -Name "api" -ErrorAction SilentlyContinue
+if (-not $apiProcess) {
+    Write-Host "Starting API server..." -ForegroundColor Yellow
+    $env:ADFLOW_ENV = "benchmark"
+    Start-Process -FilePath "go" -ArgumentList "run", "./cmd/api" -NoNewWindow
+    Start-Sleep -Seconds 3
+    Write-Host "API server started" -ForegroundColor Green
+}
+
+# Profile endpoints
+$baseURL = "http://localhost:6060"
+
+switch ($ProfileType) {
+    "cpu" {
+        $profileURL = "$baseURL/debug/pprof/profile?seconds=$Duration"
+        $outputFile = "$Output/cpu.prof"
+        Write-Host "Collecting CPU profile for $Duration seconds..." -ForegroundColor Yellow
+    }
+    "mem" {
+        $profileURL = "$baseURL/debug/pprof/heap"
+        $outputFile = "$Output/mem.prof"
+        Write-Host "Collecting memory profile..." -ForegroundColor Yellow
+    }
+    "goroutine" {
+        $profileURL = "$baseURL/debug/pprof/goroutine"
+        $outputFile = "$Output/goroutine.prof"
+        Write-Host "Collecting goroutine profile..." -ForegroundColor Yellow
+    }
+    "block" {
+        $profileURL = "$baseURL/debug/pprof/block"
+        $outputFile = "$Output/block.prof"
+        Write-Host "Collecting block profile..." -ForegroundColor Yellow
+    }
+    default {
+        Write-Host "Unknown profile type: $ProfileType" -ForegroundColor Red
+        exit 1
+    }
+}
+
+# Download profile
+try {
+    Invoke-WebRequest -Uri $profileURL -OutFile $outputFile -TimeoutSec ($Duration + 10)
+    Write-Host "Profile saved to: $outputFile" -ForegroundColor Green
+} catch {
+    Write-Host "Failed to download profile: $_" -ForegroundColor Red
+    exit 1
+}
+
+# Generate visualization
+Write-Host ""
+Write-Host "Generating visualization..." -ForegroundColor Yellow
+
+$htmlFile = "$Output/$ProfileType.html"
+go tool pprof -http=:0 -no_browser -output=$htmlFile $outputFile
+
+if (Test-Path $htmlFile) {
+    Write-Host "HTML report saved to: $htmlFile" -ForegroundColor Green
+} else {
+    Write-Host "Generating interactive view..." -ForegroundColor Yellow
+    Write-Host "Run: go tool pprof -http=:8080 $outputFile" -ForegroundColor Cyan
+}
+
+# Show top functions
+Write-Host ""
+Write-Host "=== Top Functions ===" -ForegroundColor Cyan
+go tool pprof -top -nodecount=20 $outputFile
+
+Write-Host ""
+Write-Host "=== Profile Complete ===" -ForegroundColor Green
+Write-Host "View in browser: go tool pprof -http=:8080 $outputFile"

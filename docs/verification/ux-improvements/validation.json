@@ -1,0 +1,56 @@
+{
+  "testCampaignPaused": true,
+  "goVet": true,
+  "checkedAt": "2026-09-09T11:11:10.7521213+08:00",
+  "goTest": true,
+  "frontendTests": 123,
+  "lintWarningsRemain": true,
+  "scope": "local UX changes; no new performance claim",
+  "build": true,
+  "typecheck": true,
+  "lintErrors": 0,
+  "databaseRecreated": false,
+  "manualBrowser": [
+    "missing creative status and action",
+    "no_creative reason",
+    "selection and result retained across navigation",
+    "expired impression disabled",
+    "events accepted and reported",
+    "campaign metrics updated without manual refresh",
+    "390px and 1280px profile layouts"
+  ],
+  "apiChecks": [
+    {
+      "summary": {
+        "impressions": 2,
+        "clicks": 1,
+        "conversions": 1,
+        "spendFen": 10,
+        "valueFen": 500,
+        "unpricedImpressions": 0,
+        "ctr": 0.5,
+        "cvr": 1,
+        "cpcFen": 10,
+        "cpaFen": 10
+      },
+      "port": 18080,
+      "ready": true
+    },
+    {
+      "summary": {
+        "impressions": 2,
+        "clicks": 1,
+        "conversions": 1,
+        "spendFen": 10,
+        "valueFen": 500,
+        "unpricedImpressions": 0,
+        "ctr": 0.5,
+        "cvr": 1,
+        "cpcFen": 10,
+        "cpaFen": 10
+      },
+      "port": 18081,
+      "ready": true
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+$ErrorActionPreference='Stop'
+$initial=& wsl.exe -d Ubuntu -u root --exec systemctl is-active systemd-timesyncd
+$wasActive=($initial.Trim() -eq 'active')
+$record=[ordered]@{startedAt=(Get-Date).ToString('o');wasActive=$wasActive;restored=$false;windowsTimeChanged=$false}
+$record | ConvertTo-Json | Set-Content -Encoding utf8 work/idle-comparison/ntp-control.json
+try{
+    if($wasActive){wsl.exe -d Ubuntu -u root --exec systemctl stop systemd-timesyncd;if($LASTEXITCODE -ne 0){throw 'Cannot pause WSL time synchronization'}}
+    wsl.exe -d Ubuntu -u root --cd /mnt/d/AdFlow --exec python3 work/idle-comparison/clock-preflight.py work/idle-comparison/clock-preflight.json
+    if($LASTEXITCODE -ne 0){throw 'Clock did not stabilize; no new benchmark started'}
+    .\scripts\compare-pools.ps1 -Dimension idle -Seconds 60
+}finally{
+    if($wasActive){wsl.exe -d Ubuntu -u root --exec systemctl start systemd-timesyncd;if($LASTEXITCODE -ne 0){throw 'Restore WSL time synchronization failed'}}
+    $status=& wsl.exe -d Ubuntu -u root --exec systemctl is-active systemd-timesyncd
+    $record.restored=if($wasActive){$status.Trim() -eq 'active'}else{$status.Trim() -ne 'active'}
+    $record.finishedAt=(Get-Date).ToString('o')
+    $record | ConvertTo-Json | Set-Content -Encoding utf8 work/idle-comparison/ntp-control.json
+    Write-Output "WSL time synchronization restored: $($record.restored)"
+}

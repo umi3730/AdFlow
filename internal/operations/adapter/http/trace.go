@@ -8,15 +8,10 @@ import (
 	"github.com/umi3730/adflow/internal/operations/application"
 	httptransport "github.com/umi3730/adflow/internal/transport/http"
 	"net/http"
-	"regexp"
-	"strconv"
 	"strings"
 	"time"
 	"unicode/utf8"
 )
-
-var traceRunPattern = regexp.MustCompile(`^[\w-]{1,80}$`)
-var traceUserPattern = regexp.MustCompile(`^user-\d{4}$`)
 
 func (h *Handler) requestTrace(c *gin.Context) {
 	if h.trace == nil {
@@ -31,13 +26,12 @@ func (h *Handler) requestTrace(c *gin.Context) {
 		return
 	}
 	if run != "" || user != "" {
-		if !traceRunPattern.MatchString(run) || !traceUserPattern.MatchString(user) {
-			httptransport.RespondError(c, 400, "invalid_simulation_identity", "临时用户查询参数不完整或无效", nil)
-			return
-		}
-		n, _ := strconv.Atoi(user[5:])
-		if n < 1 || n > 100 {
-			httptransport.RespondError(c, 400, "invalid_simulation_identity", "临时用户序号超出范围", nil)
+		if err := decisiondomain.ValidateSimulationIdentity(run, user); err != nil {
+			message := "临时用户查询参数不完整或无效"
+			if errors.Is(err, decisiondomain.ErrSimulationUserOutOfRange) {
+				message = "临时用户序号超出范围"
+			}
+			httptransport.RespondError(c, 400, "invalid_simulation_identity", message, nil)
 			return
 		}
 		_, id = decisiondomain.SimulationIdentity(run, user, rawID)

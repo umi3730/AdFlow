@@ -1,0 +1,29 @@
+File: api-linux
+Build ID: 928b80bcfe978921b8133a95ba318310d86fc329
+Type: cpu
+Time: 2026-09-08 17:56:24 CST
+Duration: 20s, Total samples = 11.09s (55.45%)
+Showing nodes accounting for 7.31s, 65.92% of 11.09s total
+Dropped 586 nodes (cum <= 0.06s)
+Showing top 20 nodes out of 310
+      flat  flat%   sum%        cum   cum%
+     3.85s 34.72% 34.72%      3.85s 34.72%  internal/runtime/syscall/linux.Syscall6
+     2.42s 21.82% 56.54%      2.42s 21.82%  runtime.futex
+     0.15s  1.35% 57.89%      0.15s  1.35%  runtime.usleep
+     0.11s  0.99% 58.88%      0.11s  0.99%  runtime.write1
+     0.08s  0.72% 59.60%      0.08s  0.72%  runtime.memmove
+     0.07s  0.63% 60.23%      2.70s 24.35%  runtime.findRunnable
+     0.07s  0.63% 60.87%      0.32s  2.89%  runtime.selectgo
+     0.06s  0.54% 61.41%      0.08s  0.72%  runtime.(*stkframe).getStackMap
+     0.06s  0.54% 61.95%      0.41s  3.70%  runtime.mallocgc
+     0.06s  0.54% 62.49%      0.09s  0.81%  runtime.mallocgcSmallScanNoHeaderSC2
+     0.05s  0.45% 62.94%      0.13s  1.17%  runtime.(*timers).check
+     0.05s  0.45% 63.39%      0.08s  0.72%  runtime.tryDeferToSpanScan
+     0.04s  0.36% 63.75%      0.51s  4.60%  log/slog.(*commonHandler).handle
+     0.04s  0.36% 64.11%      0.45s  4.06%  runtime.futexsleep
+     0.04s  0.36% 64.47%      0.81s  7.30%  runtime.netpoll
+     0.04s  0.36% 64.83%      0.06s  0.54%  runtime.scanObject
+     0.03s  0.27% 65.10%      0.20s  1.80%  internal/poll.(*FD).RawRead
+     0.03s  0.27% 65.37%      1.02s  9.20%  internal/poll.(*FD).Read
+     0.03s  0.27% 65.64%      2.44s 22.00%  internal/poll.(*FD).Write
+     0.03s  0.27% 65.92%      0.10s   0.9%  internal/poll.runtime_pollSetDeadline

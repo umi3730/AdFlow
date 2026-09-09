@@ -1,0 +1,29 @@
+File: api-linux
+Build ID: 928b80bcfe978921b8133a95ba318310d86fc329
+Type: cpu
+Time: 2026-09-08 18:14:46 CST
+Duration: 20s, Total samples = 11.28s (56.40%)
+Showing nodes accounting for 7.26s, 64.36% of 11.28s total
+Dropped 580 nodes (cum <= 0.06s)
+Showing top 20 nodes out of 304
+      flat  flat%   sum%        cum   cum%
+     3.44s 30.50% 30.50%      3.44s 30.50%  internal/runtime/syscall/linux.Syscall6
+     2.82s 25.00% 55.50%      2.82s 25.00%  runtime.futex
+     0.16s  1.42% 56.91%      0.16s  1.42%  runtime.write1
+     0.15s  1.33% 58.24%      0.44s  3.90%  runtime.stealWork
+     0.15s  1.33% 59.57%      0.15s  1.33%  runtime.usleep
+     0.06s  0.53% 60.11%      0.06s  0.53%  runtime.nanotime (inline)
+     0.05s  0.44% 60.55%      0.20s  1.77%  runtime.runqgrab
+     0.04s  0.35% 60.90%      0.14s  1.24%  encoding/json/v2.makeStructArshaler.func3
+     0.04s  0.35% 61.26%      0.92s  8.16%  github.com/go-sql-driver/mysql.(*buffer).fill
+     0.04s  0.35% 61.61%      2.89s 25.62%  runtime.findRunnable
+     0.04s  0.35% 61.97%      0.10s  0.89%  runtime.newobject
+     0.04s  0.35% 62.32%      0.10s  0.89%  runtime.pcvalue
+     0.04s  0.35% 62.68%      3.70s 32.80%  runtime.schedule
+     0.03s  0.27% 62.94%      0.08s  0.71%  database/sql.driverArgsConnLocked
+     0.03s  0.27% 63.21%      0.97s  8.60%  github.com/go-sql-driver/mysql.(*okHandler).readResultSetHeaderPacket
+     0.03s  0.27% 63.48%      0.13s  1.15%  runtime.lock2
+     0.03s  0.27% 63.74%      0.25s  2.22%  runtime.selectgo
+     0.03s  0.27% 64.01%      0.06s  0.53%  runtime.tryDeferToSpanScan
+     0.02s  0.18% 64.18%      0.70s  6.21%  database/sql.(*DB).beginDC.func1
+     0.02s  0.18% 64.36%      0.41s  3.63%  database/sql.(*Tx).Commit

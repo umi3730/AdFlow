@@ -1,0 +1,24 @@
+import json,sys,time
+from pathlib import Path
+started=time.monotonic()
+window_start=started
+origin=None
+window_offset=None
+jumps=[]
+last_report=started
+while time.monotonic()-started<180:
+    m1=time.monotonic_ns();wall=time.time_ns();m2=time.monotonic_ns()
+    if m2-m1<10_000_000:
+        offset=wall-(m1+m2)//2
+        if origin is None:origin=window_offset=offset
+        if abs(offset-window_offset)>50_000_000:
+            jumps.append({'afterSeconds':time.monotonic()-started,'driftMs':(offset-window_offset)/1e6})
+            window_offset=offset;window_start=time.monotonic()
+        if time.monotonic()-window_start>=60:
+            result={'stable':True,'requiredStableSeconds':60,'elapsedSeconds':time.monotonic()-started,'preWindowAdjustments':jumps,'finalOffsetChangeMs':(offset-origin)/1e6}
+            Path(sys.argv[1]).write_text(json.dumps(result,indent=2));print(json.dumps(result));sys.exit(0)
+    if time.monotonic()-last_report>=20:
+        print('Clock preflight: %.1fs stable so far'%(time.monotonic()-window_start),flush=True);last_report=time.monotonic()
+    time.sleep(.1)
+Path(sys.argv[1]).write_text(json.dumps({'stable':False,'adjustments':jumps},indent=2))
+sys.exit(1)

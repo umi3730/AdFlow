@@ -8,6 +8,70 @@ servers:
 security:
   - bearerAuth: []
 paths:
+  /v1/reports/delivery:
+    get:
+      summary: Delivery effect report grouped by Beijing hour or day
+      description: Aggregates deduplicated processed events within [from,to), at most 31 days. Spend uses confirmed immutable impression settlement snapshots. CTR=clicks/impressions and CVR=conversions/clicks; zero denominators return zero.
+      parameters:
+        - { name: from, in: query, required: true, schema: { type: string, format: date-time } }
+        - { name: to, in: query, required: true, schema: { type: string, format: date-time } }
+        - { name: granularity, in: query, schema: { type: string, enum: [hour, day], default: day } }
+        - { name: campaignId, in: query, schema: { type: string, maxLength: 64 } }
+      responses:
+        '200':
+          description: Totals and zero-filled time series
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/DeliveryReport' }
+        '400': { description: Invalid filter }
+        '401': { description: Authentication required }
+        '503': { description: Report query unavailable or timed out }
+  /v1/reports/delivery/export:
+    get:
+      summary: Export delivery report as UTF-8 BOM CSV
+      parameters:
+        - { name: from, in: query, required: true, schema: { type: string, format: date-time } }
+        - { name: to, in: query, required: true, schema: { type: string, format: date-time } }
+        - { name: granularity, in: query, schema: { type: string, enum: [hour, day], default: day } }
+        - { name: campaignId, in: query, schema: { type: string, maxLength: 64 } }
+      responses:
+        '200':
+          description: CSV with Beijing bucket times, CNY amounts and percentages
+          content:
+            text/csv:
+              schema: { type: string }
+        '400': { description: Invalid filter }
+        '401': { description: Authentication required }
+        '503': { description: Report unavailable }
+  /v1/agent/delivery-diagnoses:
+    post:
+      summary: Diagnose delivery using server-loaded reports and optional request evidence
+      description: Requires operator role. Reads report data, current campaign/creative status and optional stored request outcome. Returns evidence-linked recommendations; does not modify campaigns. Uses the configured Agent provider with circuit breaking and optional local fallback.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [from, to, granularity]
+              properties:
+                from: { type: string, format: date-time }
+                to: { type: string, format: date-time }
+                granularity: { type: string, enum: [hour, day] }
+                campaignId: { type: string, maxLength: 64 }
+                question: { type: string, maxLength: 1000 }
+                requestId: { type: string, maxLength: 128 }
+      responses:
+        '200':
+          description: Diagnosis with verified evidence references and provider metadata
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/DeliveryDiagnosis' }
+        '401': { description: Authentication required }
+        '403': { description: Operator role required }
+        '404': { description: Campaign or request not found }
+        '422': { description: Invalid request, mismatched campaign/request, or invalid model output }
+        '503': { description: Data or provider unavailable }
   /livez:
     get:
       summary: Process liveness
@@ -115,6 +179,7 @@ paths:
         - { name: limit, in: query, schema: { type: integer, minimum: 0, maximum: 100, default: 20 } }
         - { name: offset, in: query, schema: { type: integer, minimum: 0, default: 0 } }
       responses:
+        '500': { $ref: '#/components/responses/CampaignFailure' }
         '200': { description: Campaign page }
     post:
       summary: Create campaign draft
@@ -124,6 +189,7 @@ paths:
           application/json:
             schema: { $ref: '#/components/schemas/CampaignWrite' }
       responses:
+        '500': { $ref: '#/components/responses/CampaignFailure' }
         '201': { description: Campaign draft created }
         '400': { $ref: '#/components/responses/BadRequest' }
   /v1/campaigns/{campaignId}:
@@ -133,6 +199,7 @@ paths:
       summary: Soft-delete a non-active campaign
       description: Admin only. Preserves versions, creatives and delivery history. Deleted campaigns are hidden from ordinary reads; no restore endpoint is provided. Candidate snapshot TTL still applies.
       responses:
+        '500': { $ref: '#/components/responses/CampaignFailure' }
         '204': { description: Campaign soft-deleted }
         '403': { description: Admin role required }
         '404': { description: Campaign missing or already deleted }
@@ -140,6 +207,7 @@ paths:
     get:
       summary: Get campaign
       responses:
+        '500': { $ref: '#/components/responses/CampaignFailure' }
         '200': { description: Campaign aggregate }
         '404': { description: Campaign not found }
     put:
@@ -150,6 +218,7 @@ paths:
           application/json:
             schema: { $ref: '#/components/schemas/CampaignWrite' }
       responses:
+        '500': { $ref: '#/components/responses/CampaignFailure' }
         '200': { description: Draft updated }
         '422': { description: Campaign is not editable or violates a domain rule }
   /v1/campaigns/{campaignId}/publish:
@@ -163,6 +232,7 @@ paths:
           application/json:
             schema: { $ref: '#/components/schemas/PublishCampaign' }
       responses:
+        '500': { $ref: '#/components/responses/CampaignFailure' }
         '200': { description: Version published }
         '422': { description: Domain validation failed }
   /v1/campaigns/{campaignId}/pause:
@@ -171,6 +241,7 @@ paths:
     post:
       summary: Pause active campaign
       responses:
+        '500': { $ref: '#/components/responses/CampaignFailure' }
         '200': { description: Campaign paused }
   /v1/campaigns/{campaignId}/resume:
     parameters:
@@ -178,6 +249,7 @@ paths:
     post:
       summary: Resume paused campaign
       responses:
+        '500': { $ref: '#/components/responses/CampaignFailure' }
         '200': { description: Campaign resumed }
   /v1/campaigns/{campaignId}/creatives:
     parameters:
@@ -185,6 +257,7 @@ paths:
     get:
       summary: List campaign creatives
       responses:
+        '500': { $ref: '#/components/responses/CampaignFailure' }
         '200': { description: Creative list }
     post:
       summary: Create creative
@@ -194,6 +267,7 @@ paths:
           application/json:
             schema: { $ref: '#/components/schemas/CreateCreative' }
       responses:
+        '500': { $ref: '#/components/responses/CampaignFailure' }
         '201': { description: Creative created }
   /v1/campaigns/{campaignId}/creatives/{creativeId}/disable:
     parameters:
@@ -202,6 +276,7 @@ paths:
     post:
       summary: Disable creative
       responses:
+        '500': { $ref: '#/components/responses/CampaignFailure' }
         '200': { description: Creative disabled }
   /v1/campaigns/{campaignId}/creatives/{creativeId}/enable:
     parameters:
@@ -211,6 +286,7 @@ paths:
       summary: Re-enable a disabled creative
       description: Operator or admin. Checks campaign ownership and visibility; cannot restore deleted resources or change campaign status. Uses optimistic revision protection. Candidate cache TTL still applies.
       responses:
+        '500': { $ref: '#/components/responses/CampaignFailure' }
         '200': { description: Creative active again with incremented revision }
         '403': { description: Operator role required }
         '404': { description: Campaign or creative missing/deleted, or ownership mismatch }
@@ -224,6 +300,7 @@ paths:
       summary: Soft-delete a disabled creative
       description: Admin only. Preserves historical references and validates campaign ownership. Disable the creative first.
       responses:
+        '500': { $ref: '#/components/responses/CampaignFailure' }
         '204': { description: Creative soft-deleted }
         '403': { description: Admin role required }
         '404': { description: Resource missing, deleted or owned by another campaign }
@@ -497,6 +574,8 @@ components:
       required: true
       schema: { type: string }
   responses:
+    CampaignFailure:
+      description: Internal campaign or creative operation failure. Returns campaign_failed and a requestId; internal storage details are logged only on the server.
     BadRequest:
       description: Invalid JSON or field validation failure
     Unauthorized:
@@ -629,3 +708,65 @@ components:
         type: { type: string, enum: [impression, click, conversion] }
         valueFen: { type: integer, minimum: 0 }
         occurredAt: { type: string, format: date-time }
+    DeliveryMetrics:
+      type: object
+      properties:
+        impressions: { type: integer, minimum: 0 }
+        clicks: { type: integer, minimum: 0 }
+        conversions: { type: integer, minimum: 0 }
+        spendFen: { type: integer, description: Sum of confirmed impression prices in fen }
+        valueFen: { type: integer }
+        unpricedImpressions: { type: integer, description: Historical processed impressions without confirmed price evidence }
+        ctr: { type: number, description: clicks/impressions }
+        cvr: { type: number, description: conversions/clicks }
+        cpcFen: { type: number }
+        cpaFen: { type: number }
+    DeliveryReport:
+      type: object
+      properties:
+        from: { type: string, format: date-time }
+        to: { type: string, format: date-time }
+        campaignId: { type: string }
+        granularity: { type: string, enum: [hour, day] }
+        timezone: { type: string, const: Asia/Shanghai }
+        generatedAt: { type: string, format: date-time }
+        summary: { $ref: '#/components/schemas/DeliveryMetrics' }
+        series:
+          type: array
+          items:
+            allOf:
+              - { $ref: '#/components/schemas/DeliveryMetrics' }
+              - type: object
+                properties:
+                  bucket: { type: string, format: date-time }
+    DeliveryDiagnosis:
+      type: object
+      properties:
+        summary: { type: string }
+        provider: { type: string }
+        model: { type: string }
+        promptVersion: { type: string }
+        generatedAt: { type: string, format: date-time }
+        fallback: { type: boolean }
+        providerRequestId: { type: string }
+        inputTokens: { type: integer }
+        outputTokens: { type: integer }
+        totalTokens: { type: integer }
+        evidence:
+          type: array
+          items:
+            type: object
+            properties:
+              id: { type: string }
+              title: { type: string }
+              detail: { type: string }
+              suggestion: { type: string }
+        recommendations:
+          type: array
+          items:
+            type: object
+            required: [title, action, evidenceIds]
+            properties:
+              title: { type: string }
+              action: { type: string }
+              evidenceIds: { type: array, items: { type: string } }
