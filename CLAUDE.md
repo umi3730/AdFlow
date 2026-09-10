@@ -1,7 +1,7 @@
 # AdFlow Project Instructions
 
 ## Project Overview
-AdFlow is a high-performance advertising decision platform built with Go. It's designed as a portfolio project demonstrating expertise in concurrent systems, distributed architecture, and production-grade engineering.
+AdFlow is a Go advertising decision and delivery-validation project. It is a modular monolith with explicit concurrency controls, recoverable event processing, and versioned local performance evidence. Do not describe local validation as production capacity or cluster high-availability verification.
 
 ## Architecture Principles
 
@@ -29,24 +29,24 @@ internal/
 - Unit tests for domain logic (targeting 80%+ coverage)
 - Integration tests with `//go:build integration` tag
 - Load tests in `tests/load/` using k6
-- Always run tests before committing: `go test ./...`
+- Always run tests before committing: `go test ./cmd/... ./internal/... ./tests/...`; keep ignored `work/` experiments out of the formal package scope
 
 ### Performance Considerations
-- Decision hot path must stay under 100ms P95
+- Use the scenario-specific latency and error thresholds recorded with each experiment; distinguish processing timeouts, interface latency, and statistics-visible latency
 - Introduce object pools only after allocation profiles establish a need and ownership is explicit
 - Profile with pprof before optimizing: `go test -cpuprofile=cpu.prof -bench=.`
-- Cache immutable data (campaigns) but never user state
+- Cache immutable candidate snapshots; profile caching must follow the existing Cache-Aside invalidation and generation protocol. Do not add uncoordinated mutable user caches
 
 ### Concurrency Patterns
 - Use `context.Context` for cancellation
 - Always set timeouts on database operations
-- Release reservations in defer blocks with independent context
+- Use bounded cleanup contexts and owner-checked release. For an uncertain decision commit, query durable state before releasing reservations; only a definite non-commit permits immediate release
 - Prefer channels over shared memory where appropriate
 
 ### Database
-- Use optimistic locking for campaign updates (check `version`)
+- Use optimistic locking for campaign updates (check `revision`); published rule `version` is a separate historical identifier
 - All migrations in `migrations/` directory with checksums
-- MySQL 5.7+ compatible (avoid 8.0-only features)
+- Require MySQL 8.0; task claims use `FOR UPDATE SKIP LOCKED`
 - Index hot paths: decision lookup, outbox claiming, event deduplication
 
 ### Error Handling
@@ -58,7 +58,7 @@ internal/
 ### Configuration
 - All config via environment variables (see `internal/config/config.go`)
 - Local development defaults to in-memory adapters
-- Production requires MySQL + Redis + Kafka
+- Persistent Kafka mode requires shared MySQL decision/event storage and Redis reservations. Treat production deployment and high availability as separate validation work
 - Never commit secrets or credentials
 
 ### HTTP API
@@ -71,7 +71,7 @@ internal/
 - Use `requestId` as partition key for ordering
 - Idempotency via `eventId` at consumer boundary
 - Transactional Outbox pattern for durability
-- Dead letter queue after 8 retries
+- Distinguish relay dead letters, settlement reconciliation and consumer failures. Do not claim every failure automatically enters the same dead-letter path
 
 ## When Working on This Project
 
@@ -98,10 +98,10 @@ internal/
 - **Keep indexes documented:** Hot paths need proper indexes
 
 ### Before Committing
-- [ ] Run `go fmt ./...`
-- [ ] Run `go vet ./...`
-- [ ] Run `go test ./...`
-- [ ] Run `go test -race ./...` for concurrency changes
+- [ ] Check `gofmt -l cmd internal tests` and format changed Go files when needed
+- [ ] Run `go vet ./cmd/... ./internal/... ./tests/...`
+- [ ] Run `go test ./cmd/... ./internal/... ./tests/...`
+- [ ] Run `go test -race ./cmd/... ./internal/... ./tests/...` for concurrency changes on a supported toolchain; CI also runs race checks
 - [ ] Run benchmarks if touching hot paths: `go test -bench=. ./internal/decision/...`
 - [ ] Update relevant documentation
 - [ ] Check git diff for debug statements or TODOs
@@ -123,8 +123,9 @@ go run ./cmd/api
 # Apply migrations
 go run ./cmd/migrate -dir migrations
 
-# Run load test (2000 QPS for 2 minutes)
-$env:TARGET_RATE = "2000"
+# Example offered load on an isolated instance; not a capacity claim.
+# TARGET_RATE is business iterations/s, not automatically HTTP QPS.
+$env:TARGET_RATE = "20"
 $env:STEADY_DURATION = "2m"
 k6 run tests/load/delivery-sustained.js
 
@@ -144,25 +145,14 @@ go tool pprof -http=:8080 cpu.prof
 go tool pprof -http=:8080 work/cpu.prof
 ```
 
-## Resume Context
+## Evidence and Validation
 
-This is a portfolio project designed to demonstrate:
-- **Measured Go concurrency work:** cite versioned test reports; do not claim 2,500+/5,000+ QPS or multiplier improvements without matching evidence.
-- **Performance optimization skills** (pprof, object pools, connection tuning)
-- Distributed systems (Kafka, Redis, MySQL)
-- Production observability (Prometheus, structured logging, pprof)
-- Clean architecture and testability
-- Performance optimization skills
-
-When making changes, consider the "resume story" - what would make this project more impressive to potential employers?
-
-## Key Metrics to Maintain
-
-- Decision P95 latency: < 100ms
-- Cache hit rate: > 95%
-- Test coverage: > 80%
-- Zero data races in `-race` tests
-- Kafka consumer lag: < 1s
+- Cite the tested version, workload, environment and full result, including failing stages.
+- Report interface QPS, complete business iterations and event throughput separately.
+- Keep coverage goals separate from measured coverage; do not infer coverage from test counts.
+- A passing race check only covers executed paths; it does not prove budget or event consistency.
+- Kafka lag is an offset/record count here, not elapsed seconds. Use a separate end-to-end observation for statistics-visible latency.
+- Keep personal resume/interview materials in the user's knowledge base or ignored local workspace, not public project documentation.
 
 ## Documentation Standards
 

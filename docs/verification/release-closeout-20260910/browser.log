@@ -1,0 +1,35 @@
+
+> sites-project@0.1.0 test:e2e
+> node e2e/run.mjs
+
+[isolated-app] (node:4632) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[isolated-app] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 18 tests using 1 worker
+
+(node:36904) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok  1 [desktop] › e2e\specs\navigation.spec.ts:3:1 › workspace and campaign filters survive refresh and browser history (26.3s)
+  ok  2 [desktop] › e2e\specs\navigation.spec.ts:50:1 › only applied report filters enter the URL and history restores the query (13.5s)
+[isolated-app] [vinext] Server render error: [Error: Network connection lost.] { retryable: true }
+  ok  3 [desktop] › e2e\specs\profile-labels.spec.ts:3:1 › Existing demo tags are Chinese in rule view and edit, while saving the same ID (8.0s)
+  ok  4 [desktop] › e2e\specs\profile-labels.spec.ts:39:1 › Chinese demo names and tag labels preserve actual user IDs across workspaces (7.2s)
+  ok  5 [desktop] › e2e\specs\targeting.spec.ts:3:1 › A nonmatching plan is collapsed separately from the saved winner (6.1s)
+  ok  6 [desktop] › e2e\specs\workspaces.spec.ts:13:1 › create, publish, retain selections, deliver events and export a report (17.4s)
+  ok  7 [desktop] › e2e\specs\workspaces.spec.ts:186:1 › unexposed decisions expire while their workspace is hidden (6.2s)
+  ok  8 [desktop] › e2e\specs\workspaces.spec.ts:213:1 › bounded batch completes and its result survives navigation (7.6s)
+  ok  9 [desktop] › e2e\specs\workspaces.spec.ts:256:1 › global stop cancels a pending round after switching workspaces (7.1s)
+(node:15620) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 10 [mobile] › e2e\specs\navigation.spec.ts:3:1 › workspace and campaign filters survive refresh and browser history (25.4s)
+  ok 11 [mobile] › e2e\specs\navigation.spec.ts:50:1 › only applied report filters enter the URL and history restores the query (13.7s)
+[isolated-app] [vinext] Server render error: [Error: Network connection lost.] { retryable: true }
+  ok 12 [mobile] › e2e\specs\profile-labels.spec.ts:3:1 › Existing demo tags are Chinese in rule view and edit, while saving the same ID (7.2s)
+  ok 13 [mobile] › e2e\specs\profile-labels.spec.ts:39:1 › Chinese demo names and tag labels preserve actual user IDs across workspaces (6.8s)
+  ok 14 [mobile] › e2e\specs\targeting.spec.ts:3:1 › A nonmatching plan is collapsed separately from the saved winner (5.9s)
+  ok 15 [mobile] › e2e\specs\workspaces.spec.ts:13:1 › create, publish, retain selections, deliver events and export a report (16.3s)
+  ok 16 [mobile] › e2e\specs\workspaces.spec.ts:186:1 › unexposed decisions expire while their workspace is hidden (6.2s)
+  ok 17 [mobile] › e2e\specs\workspaces.spec.ts:213:1 › bounded batch completes and its result survives navigation (7.3s)
+  ok 18 [mobile] › e2e\specs\workspaces.spec.ts:256:1 › global stop cancels a pending round after switching workspaces (6.8s)
+
+  18 passed (3.8m)

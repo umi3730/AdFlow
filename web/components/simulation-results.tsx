@@ -6,6 +6,7 @@ import type {
 } from '@/lib/user-pool-simulator';
 import { simulationProgress } from '@/lib/simulation-presentation';
 import { Button } from '@/components/ui/button';
+import { SimulationReceiptCheck } from '@/components/simulation-receipt-check';
 import {
   Card,
   CardHeader,
@@ -46,11 +47,15 @@ export const SimulationResults = memo(function SimulationResults({
   preview,
   startedAt,
   onInspectRequest,
+  temporary = false,
+  active = true,
 }: {
   snapshot: SimulationSnapshot | null;
   runConfig: SimulationConfig | null;
   preview: { seconds: number; maxRounds: number; concurrency: number };
   startedAt: string;
+  temporary?: boolean;
+  active?: boolean;
   onInspectRequest?: (
     requestId: string,
     userId: string,
@@ -68,7 +73,7 @@ export const SimulationResults = memo(function SimulationResults({
       : snapshot.status === 'stopping'
         ? '结束中'
         : snapshot.status === 'completed'
-          ? '已完成'
+          ? '请求已结束'
           : '已停止';
   const progress = simulationProgress(
     runConfig ?? {
@@ -79,6 +84,13 @@ export const SimulationResults = memo(function SimulationResults({
   );
   const mainReason =
     snapshot && Object.entries(snapshot.reasons).sort((a, b) => b[1] - a[1])[0];
+
+  if (!snapshot)
+    return (
+      <p className="py-4 text-center text-sm text-muted-foreground">
+        开始模拟后，这里会显示命中、回传和耗时结果。
+      </p>
+    );
 
   return (
     <div className="min-w-0 space-y-5 xl:col-span-2">
@@ -134,6 +146,17 @@ export const SimulationResults = memo(function SimulationResults({
               </div>
             ))}
           </div>
+          <p className="mt-3 text-sm text-muted-foreground">
+            请求结束只表示决策与所选事件的接口调用结束。已接收的事件可能仍在结算或等待计入统计；停止不会撤回已受理的事件。
+          </p>
+          {snapshot.status !== 'running' && snapshot.status !== 'stopping' && (
+            <SimulationReceiptCheck
+              key={snapshot.runId}
+              snapshot={snapshot}
+              temporary={temporary}
+              active={active}
+            />
+          )}
         </CardContent>
       </Card>
       <Card>
@@ -147,7 +170,7 @@ export const SimulationResults = memo(function SimulationResults({
           <div className="mb-5 grid grid-cols-2 gap-4 lg:grid-cols-4">
             {[
               ['完成轮次/秒', actualRate.toFixed(1)],
-              ['流程正常完成', snapshot?.successful ?? 0],
+              ['请求流程完成', snapshot?.successful ?? 0],
               [
                 '流程失败 / 超时',
                 (snapshot?.failed ?? 0) + ' / ' + (snapshot?.timeouts ?? 0),
@@ -164,7 +187,7 @@ export const SimulationResults = memo(function SimulationResults({
                   : '—',
               ],
               [
-                '流程正常完成率',
+                '请求流程完成率',
                 settled
                   ? ((snapshot!.successful / settled) * 100).toFixed(1) + '%'
                   : '—',

@@ -5,7 +5,7 @@ import {
   numericFieldLimits,
   fieldOperators,
   profileFields,
-  profileTags,
+  ruleTagOptions,
 } from '@/lib/profile-options';
 import { Input } from '@/components/ui/input';
 import { FormSelect } from '@/components/form-select';
@@ -53,10 +53,7 @@ export function RuleConditionInput({
           <FormSelect
             label={label + '标签'}
             value={row.tag}
-            options={profileTags.map((tag) => ({
-              value: tag.id,
-              label: tag.label,
-            }))}
+            options={ruleTagOptions(row.tag)}
             disabled={disabled}
             onChange={(tag) => onChange({ tag })}
           />

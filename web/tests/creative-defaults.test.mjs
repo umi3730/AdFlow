@@ -61,13 +61,10 @@ test('Picker keeps click/keyboard alternatives, rejects navigation on drop and n
 
 test('Receiver and create form are on the left; the right panel contains the library only', () => {
   const source = readFileSync(
-    new URL('../components/adflow-console.tsx', import.meta.url),
+    new URL('../components/console/creatives-view.tsx', import.meta.url),
     'utf8',
   );
-  const view = source.slice(
-    source.indexOf('function CreativesView('),
-    source.indexOf('function DecisionView('),
-  );
+  const view = source;
   const left = view.slice(0, view.indexOf('<Card className="xl:sticky'));
   const right = view.slice(view.indexOf('<Card className="xl:sticky'));
   assert.match(left, /<CreativeDropZone/);
@@ -129,13 +126,10 @@ test('Local-only creation resolves registered asset IDs and rejects arbitrary UR
   ])
     assert.throws(() => localCreativeImageURL(id, 'http://127.0.0.1:3000'));
   const source = readFileSync(
-    new URL('../components/adflow-console.tsx', import.meta.url),
+    new URL('../components/console/creatives-view.tsx', import.meta.url),
     'utf8',
   );
-  const view = source.slice(
-    source.indexOf('function CreativesView('),
-    source.indexOf('function DecisionView('),
-  );
+  const view = source;
   assert.doesNotMatch(view, /label="图片 URL"|setImageUrl/);
   assert.match(
     view,
@@ -221,13 +215,10 @@ test('Creative defaults use current-plan gaps and ignore historical browser numb
 
 test('Successful creation clears only the pending selection and blocks empty resubmission', () => {
   const source = readFileSync(
-    new URL('../components/adflow-console.tsx', import.meta.url),
+    new URL('../components/console/creatives-view.tsx', import.meta.url),
     'utf8',
   );
-  const view = source.slice(
-    source.indexOf('function CreativesView('),
-    source.indexOf('function DecisionView('),
-  );
+  const view = source;
   assert.match(
     view,
     /await api\.createCreative[\s\S]*?setTitle\(null\);\s*setAssetID\(''\);\s*await load/,
@@ -249,13 +240,10 @@ test('Successful creation clears only the pending selection and blocks empty res
 
 test('Creative selection starts empty and changing plans clears the pending image', () => {
   const source = readFileSync(
-    new URL('../components/adflow-console.tsx', import.meta.url),
+    new URL('../components/console/creatives-view.tsx', import.meta.url),
     'utf8',
   );
-  const view = source.slice(
-    source.indexOf('function CreativesView('),
-    source.indexOf('function DecisionView('),
-  );
+  const view = source;
   assert.match(view, /\[assetID, setAssetID\] = useState\(''\)/);
   assert.doesNotMatch(view, /useState\(demoCreatives\[0\]/);
   assert.match(view, /setCampaignID\(nextID\);\s*setAssetID\(''\)/);
@@ -271,13 +259,10 @@ test('Plan choice stays explicit across refresh and list responses cannot overwr
   );
   assert.equal(selectedCreativeCampaignID([{ id: '14' }], '13'), '');
   const source = readFileSync(
-    new URL('../components/adflow-console.tsx', import.meta.url),
+    new URL('../components/console/creatives-view.tsx', import.meta.url),
     'utf8',
   );
-  const view = source.slice(
-    source.indexOf('function CreativesView('),
-    source.indexOf('function DecisionView('),
-  );
+  const view = source;
   assert.doesNotMatch(view, /campaignID \|\| campaigns\[0\]/);
   assert.match(view, /label="选择广告计划"/);
   assert.match(view, /request === creativeRequest.current/);
@@ -286,13 +271,10 @@ test('Plan choice stays explicit across refresh and list responses cannot overwr
 
 test('Custom or deliberately blank titles win; only successful creation advances defaults', () => {
   const source = readFileSync(
-    new URL('../components/adflow-console.tsx', import.meta.url),
+    new URL('../components/console/creatives-view.tsx', import.meta.url),
     'utf8',
   );
-  const view = source.slice(
-    source.indexOf('function CreativesView('),
-    source.indexOf('function DecisionView('),
-  );
+  const view = source;
   assert.match(view, /titleOverride \?\? testCreativeTitle\(sequence\)/);
   assert.match(
     view,

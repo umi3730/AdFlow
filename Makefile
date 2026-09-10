@@ -1,4 +1,4 @@
-.PHONY: test test-race integration-test vet verify frontend-verify fmt-check run migrate fmt tidy
+.PHONY: test test-race integration-test vet verify frontend-verify browser-test fmt-check run migrate fmt tidy
 
 # Exclude ignored work/ experiments from reproducible project checks.
 GO_PACKAGES := ./cmd/... ./internal/... ./tests/...
@@ -19,6 +19,9 @@ verify: fmt-check vet test frontend-verify
 
 frontend-verify:
 	cd web && npm run lint && npm test
+
+browser-test:
+	cd web && npm run test:e2e
 
 fmt-check:
 	@files="$$(gofmt -l cmd internal tests)" || exit $$?; if [ -n "$$files" ]; then echo "$$files"; exit 1; fi

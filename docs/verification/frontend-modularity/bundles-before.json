@@ -1,0 +1,37 @@
+[
+  {
+    "name": "adflow-console-tdpHN_12.js",
+    "bytes": 715945,
+    "gzip": 221744
+  },
+  {
+    "name": "auth-gate-DWOOHsPH.js",
+    "bytes": 60529,
+    "gzip": 21502
+  },
+  {
+    "name": "framework-DTZGTDtF.js",
+    "bytes": 190109,
+    "gzip": 59068
+  },
+  {
+    "name": "index-DhLtZYhl.js",
+    "bytes": 108961,
+    "gzip": 32152
+  },
+  {
+    "name": "layout-segment-context-BjClN81B.js",
+    "bytes": 496,
+    "gzip": 343
+  },
+  {
+    "name": "rolldown-runtime-hePW80VL.js",
+    "bytes": 716,
+    "gzip": 428
+  },
+  {
+    "name": "vinext-BJecHanQ.js",
+    "bytes": 125715,
+    "gzip": 37265
+  }
+]

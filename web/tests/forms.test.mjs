@@ -74,7 +74,13 @@ test('All default labels ignore old browser counters and profiles use an unfilte
   assert.match(profile, /api.listProfileCatalog\(\)/);
   assert.match(profile, /nextTestUserNumber\(numberingProfiles\)/);
   assert.match(main, /nextTestPlanNumber\(campaigns\)/);
-  assert.match(main, /nextTestCreativeNumber\(items\)/);
+  assert.match(
+    readFileSync(
+      new URL('../components/console/creatives-view.tsx', import.meta.url),
+      'utf8',
+    ),
+    /nextTestCreativeNumber\(items\)/,
+  );
 });
 
 test('Previous theme artwork is retained as an intact archive, not an active UI dependency', () => {
@@ -215,10 +221,14 @@ test('five fixed ad slots retain the original default and legacy labels', () => 
 });
 
 test('campaign, decision and simulation selectors share fixed slots without campaign-derived options', () => {
-  const consoleSource = readFileSync(
-    new URL('../components/adflow-console.tsx', import.meta.url),
-    'utf8',
-  );
+  const consoleSource = ['campaigns-view', 'decision-view']
+    .map((name) =>
+      readFileSync(
+        new URL('../components/console/' + name + '.tsx', import.meta.url),
+        'utf8',
+      ),
+    )
+    .join('\n');
   const simulationSource = readFileSync(
     new URL('../components/user-pool-simulation.tsx', import.meta.url),
     'utf8',
@@ -234,6 +244,10 @@ test('all console forms explicitly declare a submit button', () => {
     'adflow-console.tsx',
     [
       'adflow-console.tsx',
+      'console/campaigns-view.tsx',
+      'console/creatives-view.tsx',
+      'console/decision-view.tsx',
+      'console/operations-view.tsx',
       'campaign-rule-dialog.tsx',
       'profile-workspace.tsx',
       'user-pool-simulation.tsx',

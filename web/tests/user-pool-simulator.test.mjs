@@ -129,6 +129,12 @@ test('Matched rounds send impression, click, conversion in order and count accep
   assert.equal(result.recent[0].campaignId, 'auction-winner');
   assert.equal(result.recent[0].advertiserName, '风铃互动');
   assert.equal(result.recent[0].priceFen, 5);
+  assert.deepEqual(
+    result.recent[0].acceptedEventIds,
+    events.map((event) => event[2]),
+  );
+  result.recent[0].acceptedEventIds.length = 0;
+  assert.equal(handle.snapshot().recent[0].acceptedEventIds.length, 3);
 });
 
 test('Failed earlier stages never send downstream events or count unpaid conversions', async () => {
@@ -163,6 +169,10 @@ test('Failed earlier stages never send downstream events or count unpaid convers
             ['impression', 'click', 'conversion'].indexOf(failure) + 1,
           );
     assert.deepEqual(events, expected);
+    assert.equal(
+      result.recent[0].acceptedEventIds.length,
+      Math.max(0, expected.length - 1),
+    );
     assert.equal(result.valueFenAccepted, 0);
     assert.equal(result.conversionsAccepted, 0);
     if (failure !== 'noAd') assert.equal(result.errors[failure + ':503'], 1);
@@ -540,7 +550,11 @@ test('Station navigation keeps the simulator mounted, with global stop and bound
   assert.match(shell, /onRunningChange=\{handleSimulationRunningChange\}/);
   assert.match(shell, /setTimeout\(poll, 1000\)/);
   assert.doesNotMatch(shell, /总览与计划统计每/);
-  assert.match(shell, /if \(refreshTask.current\)/);
+  const refreshHook = readFileSync(
+    new URL('../hooks/use-console-data.ts', import.meta.url),
+    'utf8',
+  );
+  assert.match(refreshHook, /if \(refreshTask.current\)/);
   assert.match(shell, /停止模拟/);
   assert.match(shell, /setSimulationRefreshUntil\(Date.now\(\) \+ 15000\)/);
 });

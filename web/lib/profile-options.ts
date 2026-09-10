@@ -7,9 +7,9 @@ export const profileTags = [
 ];
 export const profileTagDictionary = [
   ...profileTags,
-  { id: 'adflow_demo', label: '演示用户' },
-  { id: 'auction_demo', label: '竞价演示用户' },
-  { id: 'demo_excluded', label: '演示排除人群' },
+  { id: 'adflow_demo', label: '基础演示人群' },
+  { id: 'auction_demo', label: '竞价人群' },
+  { id: 'demo_excluded', label: '排除演示人群' },
   { id: 'shopping_interest', label: '购物兴趣' },
   { id: 'anime', label: '二次元兴趣' },
   { id: 'strategy_game', label: '策略游戏兴趣' },
@@ -18,9 +18,84 @@ export const profileTagDictionary = [
 export function profileTagLabel(id: string) {
   return profileTagDictionary.find((tag) => tag.id === id)?.label ?? id;
 }
+
+// Keep common choices concise while translating known existing tags.
+// Truly unknown values retain FormSelect's original-value fallback.
+export function ruleTagOptions(current: string) {
+  const options = profileTags.map((tag) => ({
+    value: tag.id,
+    label: tag.label,
+  }));
+  const existing = profileTagDictionary.find((tag) => tag.id === current);
+  if (existing && !options.some((option) => option.value === current)) {
+    options.push({ value: existing.id, label: existing.label });
+  }
+  return options;
+}
+const legacyTagLabels = new Map([
+  ['演示用户', 'adflow_demo'],
+  ['竞价演示用户', 'auction_demo'],
+  ['演示排除人群', 'demo_excluded'],
+]);
 export function profileTagID(input: string) {
   const value = input.trim();
-  return profileTagDictionary.find((tag) => tag.label === value)?.id ?? value;
+  return (
+    profileTagDictionary.find((tag) => tag.label === value)?.id ??
+    legacyTagLabels.get(value) ??
+    value
+  );
+}
+
+export type ProfileTagKind =
+  | 'interest'
+  | 'behavior'
+  | 'demo'
+  | 'exclusion'
+  | 'custom';
+
+export function profileTagInfo(id: string): {
+  label: string;
+  kind: ProfileTagKind;
+  description: string;
+} {
+  const label = profileTagLabel(id);
+  if (id === 'demo_excluded') {
+    return {
+      label,
+      kind: 'exclusion',
+      description: '用于演示排除条件，仅在计划设置对应排除规则时生效。',
+    };
+  }
+  if (id === 'adflow_demo' || id === 'auction_demo') {
+    return {
+      label,
+      kind: 'demo',
+      description: '内置演示使用的人群标签，不表示已经命中或成交。',
+    };
+  }
+  if (
+    [
+      'tech_interest',
+      'gaming_interest',
+      'shopping_interest',
+      'anime',
+      'strategy_game',
+    ].includes(id)
+  ) {
+    return {
+      label,
+      kind: 'interest',
+      description: '兴趣标签；与计划中的定向条件分别匹配。',
+    };
+  }
+  if (profileTagDictionary.some((tag) => tag.id === id)) {
+    return { label, kind: 'behavior', description: '用户行为或状态标签。' };
+  }
+  return {
+    label,
+    kind: 'custom',
+    description: '自定义或未收录标签，保留原始标识。',
+  };
 }
 export function addProfileTags(current: string, input: string) {
   const existing = current

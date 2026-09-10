@@ -1,5 +1,8 @@
 'use client';
 
+import { profileDisplayName, isDemoProfile } from '@/lib/profile-presentation';
+import { ProfileTags } from '@/components/profile-tags';
+
 import {
   useCallback,
   useEffect,
@@ -8,7 +11,19 @@ import {
   useMemo,
   type SetStateAction,
 } from 'react';
-import { Download, Play, RefreshCw, Square, UsersRound } from 'lucide-react';
+import {
+  ChevronDown,
+  Download,
+  Play,
+  RefreshCw,
+  Square,
+  UsersRound,
+} from 'lucide-react';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 import {
   api,
   newClientID,
@@ -37,7 +52,7 @@ import {
   type SimulationPool,
   type PoolSource,
 } from '@/lib/simulation-pool';
-import { profileDeviceLabel, profileTagLabel } from '@/lib/profile-options';
+import { profileDeviceLabel } from '@/lib/profile-options';
 import {
   makePlanSimulationProfiles,
   type SampleMix,
@@ -549,6 +564,7 @@ export function UserPoolSimulation({
               <p className="text-xs text-muted-foreground">{notice}</p>
             )}
             <div className="space-y-2 border-b pb-3">
+              <p className="text-sm font-medium">先载入用例，再点击开始模拟</p>
               <Button
                 type="button"
                 variant="outline"
@@ -570,239 +586,251 @@ export function UserPoolSimulation({
                 载入竞价用例
               </Button>
               <p className="text-xs leading-5 text-muted-foreground">
-                使用内置的命中、排除和未命中画像，各运行一次。演示数据可在计划、素材和画像页面修改或删除。
+                演示用例验证命中与排除；竞价用例运行三轮，观察不同广告主的成交结果。载入只准备参数。
               </p>
             </div>
-            <FormSelect
-              label="用户池来源"
-              value={poolSource}
-              disabled={locked}
-              options={[
-                { value: 'temporary', label: '临时用户（不保存）' },
-                { value: 'saved', label: '已保存用户' },
-              ]}
-              onChange={(value) => {
-                if (runner.current) return;
-                const next = value === 'saved' ? 'saved' : 'temporary';
-                if (next === poolSource) return;
-                loadController.current?.abort();
-                setPoolSource(next);
-                setLoading(false);
-                setNotice('');
-              }}
-            />
-            {poolSource === 'temporary' && (
-              <>
+            <Collapsible>
+              <CollapsibleTrigger className="flex w-full items-center justify-between py-2 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                自定义用户池 <ChevronDown className="size-4" />
+              </CollapsibleTrigger>
+              <CollapsibleContent className="space-y-3 pt-2">
                 <FormSelect
-                  label="样本生成方式"
-                  value={sampleMode}
-                  disabled={locked || loading}
+                  label="用户池来源"
+                  value={poolSource}
+                  disabled={locked}
                   options={[
-                    { value: 'random', label: '随机样本' },
-                    { value: 'plan', label: '按计划生成样本' },
+                    { value: 'temporary', label: '临时用户（不保存）' },
+                    { value: 'saved', label: '已保存用户' },
                   ]}
-                  onChange={setSampleMode}
-                />
-                {sampleMode === 'plan' ? (
-                  <div className="space-y-3">
-                    <FormSelect
-                      label="参考计划"
-                      value={sampleCampaignId}
-                      disabled={locked || loading}
-                      options={campaigns
-                        .filter((campaign) => campaign.activeVersion)
-                        .map((campaign) => ({
-                          value: campaign.id,
-                          label: campaign.name,
-                        }))}
-                      onChange={setSampleCampaignId}
-                      placeholder="请选择已发布规则的计划"
-                    />
-                    {!campaigns.some((campaign) => campaign.activeVersion) && (
-                      <p className="text-xs text-muted-foreground">
-                        暂无已发布规则的计划，请先创建并发布计划。
-                      </p>
-                    )}
-                    <FormSelect
-                      label="样本组合"
-                      value={sampleMix}
-                      disabled={locked || loading}
-                      options={[
-                        {
-                          value: 'mixed',
-                          label: '满足与不满足各半（奇数多一个满足）',
-                        },
-                        { value: 'matched', label: '全部满足定向' },
-                        { value: 'unmatched', label: '全部不满足定向' },
-                      ]}
-                      onChange={(value) => setSampleMix(value as SampleMix)}
-                    />
-                    <p className="text-xs leading-5 text-muted-foreground">
-                      按所选计划的已发布规则生成，包含自定义标签；生成后自动切换到该计划的广告位。
-                    </p>
-                  </div>
-                ) : (
-                  <p className="text-xs leading-5 text-muted-foreground">
-                    从常用兴趣、设备、年龄等范围随机取样，不根据计划补标签，也不保证满足定向。
-                  </p>
-                )}
-                <label htmlFor="sim-seed" className="block space-y-1 text-sm">
-                  样本种子
-                  <Input
-                    id="sim-seed"
-                    aria-label="样本种子"
-                    value={seed}
-                    onChange={(event) => setSeed(event.target.value)}
-                    maxLength={80}
-                    disabled={locked || loading}
-                  />
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  <Input
-                    type="number"
-                    aria-label="生成用户数"
-                    className="min-w-0 flex-1 basis-24"
-                    value={poolSize}
-                    onChange={(event) => setPoolSize(event.target.value)}
-                    min={1}
-                    max={100}
-                    disabled={locked || loading}
-                  />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    disabled={
-                      locked ||
-                      loading ||
-                      !local ||
-                      (sampleMode === 'plan' && !sampleCampaignId)
-                    }
-                    onClick={() => void generatePool()}
-                  >
-                    {loading ? '正在生成…' : '生成临时用户'}
-                  </Button>
-                </div>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  disabled={
-                    locked ||
-                    loading ||
-                    !local ||
-                    (sampleMode === 'plan' && !sampleCampaignId)
-                  }
-                  onClick={() => void generatePool(newClientID('pool'))}
-                >
-                  换一批样本
-                </Button>
-                <p className="text-xs text-muted-foreground">
-                  相同规则、样本组合、人数与种子可复现画像；修改选项后需重新生成，不写入画像表。
-                </p>
-                {pools.temporary.planSample && profiles.length > 0 && (
-                  <div
-                    className="space-y-2 border-t pt-3 text-xs leading-5"
-                    aria-live="polite"
-                  >
-                    <p className="break-words">
-                      当前样本：{pools.temporary.planSample.campaignName} · v
-                      {pools.temporary.planSample.version}。 满足定向{' '}
-                      {
-                        profiles.filter(
-                          (profile) =>
-                            pools.temporary.planSample!.expected[
-                              profile.userId
-                            ],
-                        ).length
-                      }{' '}
-                      人， 不满足{' '}
-                      {
-                        profiles.filter(
-                          (profile) =>
-                            !pools.temporary.planSample!.expected[
-                              profile.userId
-                            ],
-                        ).length
-                      }{' '}
-                      人。
-                    </p>
-                    <p className="text-muted-foreground">
-                      仅针对生成时的所选计划；满足定向仍受素材、预算、频控和竞价影响。不满足的用户可能命中其他计划。
-                    </p>
-                    {slotId !== pools.temporary.planSample.slotId && (
-                      <p className="text-amber-800">
-                        当前广告位与参考计划不同，请切回原广告位或重新生成样本。
-                      </p>
-                    )}
-                    {pools.temporary.planSample.warnings.map((warning) => (
-                      <p key={warning} className="text-amber-800">
-                        {warning}
-                      </p>
-                    ))}
-                  </div>
-                )}
-              </>
-            )}
-            <div className="flex flex-wrap gap-2">
-              {poolSource === 'saved' && (
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  disabled={locked || loading}
-                  onClick={() => {
-                    setPoolSource('saved');
-                    if (poolSource === 'saved') void loadProfiles();
-                  }}
-                >
-                  <RefreshCw />
-                  刷新列表
-                </Button>
-              )}
-
-              <Button
-                type="button"
-                size="sm"
-                variant="ghost"
-                disabled={locked || loading}
-                onClick={() =>
-                  setUserIds(profiles.map((profile) => profile.userId))
-                }
-              >
-                全选
-              </Button>
-              <Button
-                type="button"
-                size="sm"
-                variant="ghost"
-                disabled={locked}
-                onClick={() => setUserIds([])}
-              >
-                清空选择
-              </Button>
-              {poolSource === 'temporary' && (
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="ghost"
-                  disabled={locked || loading}
-                  onClick={() => {
-                    setPools((previous) => ({
-                      ...previous,
-                      temporary: { profiles: [], selectedIds: [] },
-                    }));
+                  onChange={(value) => {
+                    if (runner.current) return;
+                    const next = value === 'saved' ? 'saved' : 'temporary';
+                    if (next === poolSource) return;
+                    loadController.current?.abort();
+                    setPoolSource(next);
+                    setLoading(false);
                     setNotice('');
                   }}
-                >
-                  清空临时池
-                </Button>
-              )}
-            </div>
+                />
+                {poolSource === 'temporary' && (
+                  <>
+                    <FormSelect
+                      label="样本生成方式"
+                      value={sampleMode}
+                      disabled={locked || loading}
+                      options={[
+                        { value: 'random', label: '随机样本' },
+                        { value: 'plan', label: '按计划生成样本' },
+                      ]}
+                      onChange={setSampleMode}
+                    />
+                    {sampleMode === 'plan' ? (
+                      <div className="space-y-3">
+                        <FormSelect
+                          label="参考计划"
+                          value={sampleCampaignId}
+                          disabled={locked || loading}
+                          options={campaigns
+                            .filter((campaign) => campaign.activeVersion)
+                            .map((campaign) => ({
+                              value: campaign.id,
+                              label: campaign.name,
+                            }))}
+                          onChange={setSampleCampaignId}
+                          placeholder="请选择已发布规则的计划"
+                        />
+                        {!campaigns.some(
+                          (campaign) => campaign.activeVersion,
+                        ) && (
+                          <p className="text-xs text-muted-foreground">
+                            暂无已发布规则的计划，请先创建并发布计划。
+                          </p>
+                        )}
+                        <FormSelect
+                          label="样本组合"
+                          value={sampleMix}
+                          disabled={locked || loading}
+                          options={[
+                            {
+                              value: 'mixed',
+                              label: '满足与不满足各半（奇数多一个满足）',
+                            },
+                            { value: 'matched', label: '全部满足定向' },
+                            { value: 'unmatched', label: '全部不满足定向' },
+                          ]}
+                          onChange={(value) => setSampleMix(value as SampleMix)}
+                        />
+                        <p className="text-xs leading-5 text-muted-foreground">
+                          按所选计划的已发布规则生成，包含自定义标签；生成后自动切换到该计划的广告位。
+                        </p>
+                      </div>
+                    ) : (
+                      <p className="text-xs leading-5 text-muted-foreground">
+                        从常用兴趣、设备、年龄等范围随机取样，不根据计划补标签，也不保证满足定向。
+                      </p>
+                    )}
+                    <label
+                      htmlFor="sim-seed"
+                      className="block space-y-1 text-sm"
+                    >
+                      样本种子
+                      <Input
+                        id="sim-seed"
+                        aria-label="样本种子"
+                        value={seed}
+                        onChange={(event) => setSeed(event.target.value)}
+                        maxLength={80}
+                        disabled={locked || loading}
+                      />
+                    </label>
+                    <div className="flex flex-wrap gap-2">
+                      <Input
+                        type="number"
+                        aria-label="生成用户数"
+                        className="min-w-0 flex-1 basis-24"
+                        value={poolSize}
+                        onChange={(event) => setPoolSize(event.target.value)}
+                        min={1}
+                        max={100}
+                        disabled={locked || loading}
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        disabled={
+                          locked ||
+                          loading ||
+                          !local ||
+                          (sampleMode === 'plan' && !sampleCampaignId)
+                        }
+                        onClick={() => void generatePool()}
+                      >
+                        {loading ? '正在生成…' : '生成临时用户'}
+                      </Button>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      disabled={
+                        locked ||
+                        loading ||
+                        !local ||
+                        (sampleMode === 'plan' && !sampleCampaignId)
+                      }
+                      onClick={() => void generatePool(newClientID('pool'))}
+                    >
+                      换一批样本
+                    </Button>
+                    <p className="text-xs text-muted-foreground">
+                      相同规则、样本组合、人数与种子可复现画像；修改选项后需重新生成，不写入画像表。
+                    </p>
+                    {pools.temporary.planSample && profiles.length > 0 && (
+                      <div
+                        className="space-y-2 border-t pt-3 text-xs leading-5"
+                        aria-live="polite"
+                      >
+                        <p className="break-words">
+                          当前样本：{pools.temporary.planSample.campaignName} ·
+                          v{pools.temporary.planSample.version}。 满足定向{' '}
+                          {
+                            profiles.filter(
+                              (profile) =>
+                                pools.temporary.planSample!.expected[
+                                  profile.userId
+                                ],
+                            ).length
+                          }{' '}
+                          人， 不满足{' '}
+                          {
+                            profiles.filter(
+                              (profile) =>
+                                !pools.temporary.planSample!.expected[
+                                  profile.userId
+                                ],
+                            ).length
+                          }{' '}
+                          人。
+                        </p>
+                        <p className="text-muted-foreground">
+                          仅针对生成时的所选计划；满足定向仍受素材、预算、频控和竞价影响。不满足的用户可能命中其他计划。
+                        </p>
+                        {slotId !== pools.temporary.planSample.slotId && (
+                          <p className="text-amber-800">
+                            当前广告位与参考计划不同，请切回原广告位或重新生成样本。
+                          </p>
+                        )}
+                        {pools.temporary.planSample.warnings.map((warning) => (
+                          <p key={warning} className="text-amber-800">
+                            {warning}
+                          </p>
+                        ))}
+                      </div>
+                    )}
+                  </>
+                )}
+                <div className="flex flex-wrap gap-2">
+                  {poolSource === 'saved' && (
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      disabled={locked || loading}
+                      onClick={() => {
+                        setPoolSource('saved');
+                        if (poolSource === 'saved') void loadProfiles();
+                      }}
+                    >
+                      <RefreshCw />
+                      刷新列表
+                    </Button>
+                  )}
+
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    disabled={locked || loading}
+                    onClick={() =>
+                      setUserIds(profiles.map((profile) => profile.userId))
+                    }
+                  >
+                    全选
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    disabled={locked}
+                    onClick={() => setUserIds([])}
+                  >
+                    清空选择
+                  </Button>
+                  {poolSource === 'temporary' && (
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      disabled={locked || loading}
+                      onClick={() => {
+                        setPools((previous) => ({
+                          ...previous,
+                          temporary: { profiles: [], selectedIds: [] },
+                        }));
+                        setNotice('');
+                      }}
+                    >
+                      清空临时池
+                    </Button>
+                  )}
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
             {loading ? (
               <p className="text-sm text-muted-foreground">正在准备用户池…</p>
             ) : !profiles.length ? (
               <p className="text-sm text-muted-foreground">
                 {poolSource === 'temporary'
-                  ? '先生成临时用户，生成后自动全选。'
+                  ? '可载入上方用例，或展开自定义用户池生成样本。'
                   : '没有已保存用户。可以在用户画像页创建，或切换到临时用户。'}
               </p>
             ) : (
@@ -832,7 +860,7 @@ export function UserPoolSimulation({
                       />
                       <span className="min-w-0">
                         <span className="block break-all text-sm">
-                          {profile.userId}
+                          {profileDisplayName(profile.userId)}
                           {poolSource === 'temporary' &&
                             pools.temporary.planSample && (
                               <span className="ml-2 text-xs text-muted-foreground">
@@ -844,6 +872,11 @@ export function UserPoolSimulation({
                               </span>
                             )}
                         </span>
+                        {isDemoProfile(profile.userId) && (
+                          <span className="block break-all font-mono text-xs text-muted-foreground">
+                            {profile.userId}
+                          </span>
+                        )}
                         <span className="block text-xs text-muted-foreground">
                           {profileDeviceLabel(
                             profile.fields.device || '无设备',
@@ -851,11 +884,8 @@ export function UserPoolSimulation({
                           · 年龄 {profile.fields.age || '—'} · 分数{' '}
                           {profile.fields.score || '—'}
                         </span>
-                        <span className="block break-words text-xs text-muted-foreground">
-                          标签：
-                          {profile.tags.length
-                            ? profile.tags.map(profileTagLabel).join('、')
-                            : '无'}
+                        <span className="mt-1 block">
+                          <ProfileTags tags={profile.tags} />
                         </span>
                       </span>
                     </label>
@@ -942,31 +972,41 @@ export function UserPoolSimulation({
                       required
                     />
                   </label>
-                  <label htmlFor="sim-seconds" className="space-y-1 text-sm">
-                    最长派发时间（秒）
-                    <Input
-                      id="sim-seconds"
-                      type="number"
-                      value={seconds}
-                      onChange={(event) => setSeconds(event.target.value)}
-                      min={1}
-                      max={simulationLimits.seconds}
-                      required
-                    />
-                  </label>
-                  <label htmlFor="sim-timeout" className="space-y-1 text-sm">
-                    单轮超时（毫秒）
-                    <Input
-                      id="sim-timeout"
-                      type="number"
-                      value={timeoutMs}
-                      onChange={(event) => setTimeoutMs(event.target.value)}
-                      min={100}
-                      max={10000}
-                      required
-                    />
-                  </label>
                 </div>
+                <Collapsible>
+                  <CollapsibleTrigger className="flex w-full items-center justify-between py-2 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                    高级运行参数 <ChevronDown className="size-4" />
+                  </CollapsibleTrigger>
+                  <p className="text-xs text-muted-foreground">
+                    最长派发 {seconds} 秒 · 单轮超时 {timeoutMs} 毫秒
+                  </p>
+                  <CollapsibleContent className="grid grid-cols-2 gap-3 pt-3">
+                    <label htmlFor="sim-seconds" className="space-y-1 text-sm">
+                      最长派发时间（秒）
+                      <Input
+                        id="sim-seconds"
+                        type="number"
+                        value={seconds}
+                        onChange={(event) => setSeconds(event.target.value)}
+                        min={1}
+                        max={simulationLimits.seconds}
+                        required
+                      />
+                    </label>
+                    <label htmlFor="sim-timeout" className="space-y-1 text-sm">
+                      单轮超时（毫秒）
+                      <Input
+                        id="sim-timeout"
+                        type="number"
+                        value={timeoutMs}
+                        onChange={(event) => setTimeoutMs(event.target.value)}
+                        min={100}
+                        max={10000}
+                        required
+                      />
+                    </label>
+                  </CollapsibleContent>
+                </Collapsible>
                 <label
                   htmlFor="sim-impressions"
                   className="flex items-center gap-2 text-sm"
@@ -1114,6 +1154,8 @@ export function UserPoolSimulation({
         </Card>
         <div ref={resultsAnchor} className="min-w-0 scroll-mt-40 xl:col-span-2">
           <SimulationResults
+            active={active}
+            temporary={runContext?.poolSource === 'temporary'}
             snapshot={snapshot}
             runConfig={runConfig}
             preview={preview}

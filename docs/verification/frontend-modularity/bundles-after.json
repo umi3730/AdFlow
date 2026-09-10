@@ -1,0 +1,73 @@
+{
+  "consoleEntry": {
+    "name": "adflow-console-BpopdYDe.js",
+    "bytes": 61689,
+    "gzipBytes": 20611
+  },
+  "eagerJavaScript": {
+    "bytes": 590039,
+    "gzipBytes": 185532,
+    "files": [
+      "adflow-console-BpopdYDe.js",
+      "auth-gate-DWOOHsPH.js",
+      "framework-DTZGTDtF.js",
+      "index-vOD2Dsgx.js",
+      "rolldown-runtime-hePW80VL.js",
+      "useScrollLock-Cwl6-gCn.js",
+      "vinext-l_FbbdfN.js"
+    ]
+  },
+  "largestChunks": [
+    {
+      "name": "delivery-report-DSXLz5rG.js",
+      "bytes": 368879,
+      "gzipBytes": 108864
+    },
+    {
+      "name": "framework-DTZGTDtF.js",
+      "bytes": 190109,
+      "gzipBytes": 59068
+    },
+    {
+      "name": "vinext-l_FbbdfN.js",
+      "bytes": 125715,
+      "gzipBytes": 37266
+    },
+    {
+      "name": "index-vOD2Dsgx.js",
+      "bytes": 109024,
+      "gzipBytes": 32176
+    },
+    {
+      "name": "form-select-H9hwmmwV.js",
+      "bytes": 69209,
+      "gzipBytes": 24968
+    },
+    {
+      "name": "adflow-console-BpopdYDe.js",
+      "bytes": 61689,
+      "gzipBytes": 20611
+    },
+    {
+      "name": "auth-gate-DWOOHsPH.js",
+      "bytes": 60529,
+      "gzipBytes": 21502
+    },
+    {
+      "name": "creatives-view-XMhkAdOP.js",
+      "bytes": 46694,
+      "gzipBytes": 16448
+    },
+    {
+      "name": "useScrollLock-Cwl6-gCn.js",
+      "bytes": 42257,
+      "gzipBytes": 14481
+    },
+    {
+      "name": "user-pool-simulation-Do8S5ZVN.js",
+      "bytes": 39391,
+      "gzipBytes": 13907
+    }
+  ],
+  "oversizedChunks": []
+}

@@ -79,7 +79,7 @@ AdFlow is a real-time advertising decision platform built as a modular monolith 
          │    MySQL     │  │  Redis  │  │    Kafka     │
          │              │  │         │  │              │
          │ • Campaigns  │  │ • Limit │  │ • Events     │
-         │ • Decisions  │  │ • Cache │  │ • Outbox     │
+         │ • Decisions  │  │ • Cache │  │ • Groups     │
          │ • Events     │  │ • Locks │  │ • Dead Letter│
          │ • Profiles   │  └─────────┘  └──────────────┘
          │ • Outbox     │
@@ -108,7 +108,7 @@ AdFlow is a real-time advertising decision platform built as a modular monolith 
 - **Admission control:** Token bucket (local) or sliding window (Redis)
 - **Concurrency control:** Semaphore-based max in-flight requests
 - **Decision logic:** Candidate filtering, targeting evaluation, auction
-- **Resource reservation:** Atomic Redis Lua for frequency/budget
+- **Resource reservation:** Separate atomic Redis Lua reservations for frequency and budget; failed later steps release resources already acquired
 - **Idempotency:** MySQL-based request deduplication
 - **Caching:** 5s immutable candidate snapshot, profile cache-aside
 
@@ -173,7 +173,7 @@ HTTP POST → Admission Control → Rate Limit Check
   → Profile Lookup (Redis/MySQL cache-aside)
   → Candidate Loading (5s local cache)
   → Targeting Evaluation (in-memory)
-  → Frequency/Budget Reservation (Redis Lua atomic)
+  → Frequency Reservation → Budget Reservation (each atomic; cleanup on failure)
   → Decision Persistence (MySQL)
   → HTTP 200
 ```
@@ -196,7 +196,9 @@ API Server (in-memory adapters)
   → Fast iteration
 ```
 
-### Production (Multi-Instance)
+### Possible Multi-Instance Deployment (Not a Validated Topology)
+
+The following is an extension sketch. Local capacity tests used shared local infrastructure and a single-replica Kafka topic; they do not validate MySQL replication, Redis Cluster, or multi-replica failover. Redis multi-key scripts need a compatible hash-slot/key design before a Cluster migration.
 ```
               Load Balancer
                     │
@@ -216,7 +218,7 @@ API Server (in-memory adapters)
 
 - **Language:** Go 1.27
 - **HTTP Framework:** Gin
-- **Database:** MySQL 5.7+ (with sql.DB connection pooling)
+- **Database:** MySQL 8.0 (with sql.DB connection pooling; queue claims use `FOR UPDATE SKIP LOCKED`)
 - **Cache:** Redis 6+
 - **Message Queue:** Kafka (franz-go client)
 - **Metrics:** Prometheus
@@ -236,13 +238,13 @@ API Server (in-memory adapters)
 - **Adapters:** MySQL, Redis, Kafka, Memory, HTTP
 
 ### Optimistic Concurrency
-- **Why:** Better throughput than pessimistic locks
-- **Implementation:** Version field on Campaign, compare-and-set on update
+- **Why:** Detect stale administrative writes instead of silently overwriting another update
+- **Implementation:** Campaign `revision` checked by conditional SQL updates; published rule `version` is a separate historical identifier
 
 ### Transactional Outbox
 - **Why:** At-least-once event delivery without distributed transactions
-- **Implementation:** Events written to MySQL in same transaction as state change
-- **Relay:** Background worker polls and publishes to Kafka
+- **Implementation:** In Kafka mode, event receipts, settlement tasks and Outbox events are accepted in one MySQL transaction. This does not make Redis and MySQL a single transaction, or make every campaign domain event an Outbox message.
+- **Relay:** Publication waits for settlement proof; consumers validate accepted payloads and process events idempotently
 
 ### Immutable Candidate Cache
 - **Why:** Reduce database load on hot path
@@ -253,13 +255,21 @@ API Server (in-memory adapters)
 - **Why:** Reduce profile database reads (high read/write ratio)
 - **Implementation:** Redis with MySQL fallback
 - **Negative caching:** 5s TTL for missing profiles
+- **Updates:** Persist to MySQL, then invalidate Redis with a new random generation; Lua only permits matching-generation refills. Failed invalidation remains a bounded consistency/recovery concern.
 
 ### Atomic Reservations
 - **Why:** Prevent over-spending and frequency cap violations
-- **Implementation:** Redis Lua scripts (atomic check-and-reserve)
+- **Implementation:** Separate atomic frequency and budget reservations, with cleanup after a later reservation fails. Exposure settlement confirms both reservations and writes an idempotency receipt in one Lua operation.
 - **TTL:** 30s reservation window
 
+### Settlement Recovery
+- **Worker:** Claims at most 4 tasks with a 15s lease and processes them sequentially; failed iterations return unfinished claims using an owner-checked, bounded cleanup context
+- **Transaction retries:** Retry MySQL 1213/1205 only after explicit whole-transaction rollback; a lost commit acknowledgement is not blindly retried
+- **Uncertain state:** Missing/expired reservations without valid proof enter `RECONCILE`; this is not an unlimited automatic recovery guarantee
+
 ## Scalability Considerations
+
+These are extension directions unless explicitly identified as implemented. They are not additional performance results or a claim that all pictured infrastructure is already deployed.
 
 ### Horizontal Scaling
 - **Stateless API instances** behind load balancer
@@ -273,9 +283,9 @@ API Server (in-memory adapters)
 - **Indexes** on hot paths (decision lookup, outbox claiming)
 
 ### Cache Scaling
-- **Redis cluster** for high throughput
+- **Redis Cluster** requires adapting and validating multi-key script placement; current reservation/cache adapters use a single Redis client
 - **TTL-based eviction** to prevent unbounded growth
-- **Circuit breaker** with fallback to source on cache failure
+- **Profile cache failure:** Bounded Redis calls fall back to MySQL; budget/frequency operations must not bypass their gate. The Agent model circuit breaker is a separate mechanism.
 
 ### Queue Scaling
 - **Kafka partitioning** by requestId for ordering
@@ -316,4 +326,4 @@ API Server (in-memory adapters)
 
 ---
 
-**Last updated:** 2026-09-08
+**Last updated:** 2026-09-10

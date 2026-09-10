@@ -79,7 +79,7 @@ flowchart LR
 ```
 
 - **模块化单体**：按 campaign、decision、event、identity 等业务模块组织；领域与应用层依赖接口，MySQL、Redis、Kafka 位于适配层。
-- **缓存与原子预占**：画像采用 Cache-Aside，含负缓存、并发回源合并和 generation 校验，避免旧查询重新填入过期值；Redis Lua 原子处理预算和频控。
+- **缓存与原子预占**：画像采用 Cache-Aside，含负缓存、并发回源合并和 generation 校验，避免旧查询重新填入过期值；Redis Lua 分别原子预占预算与频控，曝光结算时在一次脚本中确认两者。
 - **并发与过载保护**：速率限制、Channel 限制执行并发、Context 超时；根据异步队列高低门槛暂停和恢复新决策，避免积压失控。
 - **可靠事件链路**：先持久化受理，曝光结算确认后发布；Kafka 至少一次投递，消费端按 eventId 幂等，统计与处理记录同事务提交。
 - **恢复与可解释性**：worker 租约和 owner 校验、明确回滚后的有限事务重试；保存成交版本与价格，异常进入待核对而非猜测扣费成功。
@@ -96,7 +96,7 @@ flowchart LR
 | 广告决策，含竞价与预占 | 450 QPS，3 × 60s 达标 | [决策报告](docs/decision-capacity-20260908.md)；81003 次请求有 2 次 409，不含事件回传 |
 | Kafka 完整业务链路 | 45 轮/秒，3 × 120s；16202 轮、48606 条事件完成 | [完整链路](docs/kafka-capacity-followup-20260908.md)；约 180 HTTP QPS，50 轮第三组出现积压 |
 | 异步积压保护 | 100 次新决策尝试/秒 × 120s，受理 6681 轮、明确拒绝 5320 次 | [保护验收](docs/async-backpressure-20260908.md)；已受理流程全部完成，统计 P95 2.875s，恢复阶段无拒绝；不代表全量接收 100 轮/秒 |
-| SQL 索引对照 | 百万行 Outbox 场景，UPDATE 服务端 P95 164.52ms → 1.09ms | [独立实验](docs/sql-index-experiment-20260908.md)；同一索引 invisible/visible 对照，含回滚，非接口耗时 |
+| SQL 索引对照 | 百万行 Outbox 场景，UPDATE 服务端 P95 164.52ms → 1.09ms | [独立实验](docs/sql-index-experiment-20260908.md)；同一索引 invisible/visible 对照，更新后回滚；计时不含提交/回滚，非接口耗时 |
 
 完整链路的一轮包含一次决策和曝光、点击、转化三次回传。压测同时核对受理数量、结算、消费、预算金额和重复事件；HTTP 202 或 Kafka lag=0 都不能单独代表业务已完成。
 
@@ -154,6 +154,8 @@ GitHub Actions 运行 Go 格式检查、vet、race 测试，以及前端格式�
 
 2026-09-09 已补齐本地验证：125 项前端回归、47 个有测试 Go 包的竞态检测、15 个真实依赖集成用例及 1 个报表 SQL 用例通过；记录见 [测试补跑](docs/test-completion-20260909.md)。
 
+2026-09-10 版本整理验证：145 项前端测试、18 项桌面/窄屏浏览器回归，以及 Go 检查、类型检查、格式检查和生产构建通过；依赖审计为 0。详见[版本整理记录](docs/release-closeout-20260910.md)。
+
 ```text
 cmd/            API 与数据库迁移入口
 internal/       业务模块、基础设施适配器、可观测性
@@ -192,7 +194,7 @@ scripts/        性能分析与自动化工具
 
 Windows 在仓库根目录运行 `./scripts/verify.ps1`，检查 Go 格式、静态分析、正式包测试及前端 lint/回归测试；Linux/macOS 可运行 `make verify`。Go 检查范围为 `cmd/`、`internal/`、`tests/`，避免忽略目录 `work/` 的临时实验污染结果。
 
-`./scripts/verify.ps1 -BackendOnly` 只检查后端；`-Race` 启用竞态检测，需要可用的 C 工具链和 `CGO_ENABLED=1`。CI 保留竞态检测、前端格式检查和构建，连接 MySQL/Redis/Kafka 的集成测试需另行准备环境。工程整理内容见[代码审查记录](docs/engineering-review-20260909.md)。
+`./scripts/verify.ps1 -BackendOnly` 只检查后端；`-Race` 启用竞态检测，需要可用的 C 工具链和 `CGO_ENABLED=1`。加 `-Browser` 可运行隔离的桌面/窄屏浏览器回归，首次需在 `web/` 执行 `npx playwright install chromium`，详见[自动化功能回归](docs/browser-regression.md)。CI 保留竞态检测、前端格式检查和构建，并独立运行浏览器回归；连接 MySQL/Redis/Kafka 的集成测试需另行准备环境。工程整理内容见[代码审查记录](docs/engineering-review-20260909.md)与[前端模块及加载优化](docs/frontend-modularity-20260909.md)。构建前端后可运行 `node scripts/inspect-client-bundle.mjs` 查看实际分块和立即加载依赖。
 
 [空闲连接 10/20 对照记录](docs/mysql-idle-pool-comparison-20260909.md)：观察到空闲上限触发的连接关闭减少；保留失败轮次和源码来源限制，尚不作为新的容量或已上线性能成果。
 

@@ -48,6 +48,7 @@ export interface SimulationSnapshot {
   p95Ms: number;
   p99Ms: number;
   recent: {
+    acceptedEventIds: string[];
     campaignId?: string;
     advertiserName?: string;
     priceFen?: number;
@@ -255,7 +256,10 @@ export function startSimulation(
       elapsedMs: Math.max(0, (finishedAt ?? clock.now()) - startedAt),
       reasons: { ...state.reasons },
       errors: { ...state.errors },
-      recent: state.recent.map((row) => ({ ...row })),
+      recent: state.recent.map((row) => ({
+        ...row,
+        acceptedEventIds: [...row.acceptedEventIds],
+      })),
       p50Ms: at(50),
       p95Ms: at(95),
       p99Ms: at(99),
@@ -298,6 +302,7 @@ export function startSimulation(
     let campaignId: string | undefined;
     let advertiserName: string | undefined;
     let priceFen: number | undefined;
+    const acceptedEventIds: string[] = [];
     const timeout = clock.later(() => {
       timedOut = true;
       controller.abort();
@@ -331,6 +336,7 @@ export function startSimulation(
         );
         if (controller.signal.aborted) throw new Error('aborted');
         state.impressionsAccepted++;
+        acceptedEventIds.push(requestId + '-impression');
         if (config.behavior) {
           const behavior = simulationBehaviorForRequest(
             config.behavior,
@@ -346,6 +352,7 @@ export function startSimulation(
             );
             if (controller.signal.aborted) throw new Error('aborted');
             state.clicksAccepted++;
+            acceptedEventIds.push(requestId + '-click');
             if (behavior.valueFen !== null) {
               phase = 'conversion';
               state.httpRequests++;
@@ -357,6 +364,7 @@ export function startSimulation(
               );
               if (controller.signal.aborted) throw new Error('aborted');
               state.conversionsAccepted++;
+              acceptedEventIds.push(requestId + '-conversion');
               state.valueFenAccepted += behavior.valueFen;
             }
           }
@@ -385,6 +393,7 @@ export function startSimulation(
       const durationMs = Math.max(0, clock.now() - began);
       if (outcome !== '已取消') durations.push(durationMs);
       state.recent.unshift({
+        acceptedEventIds,
         campaignId,
         advertiserName,
         priceFen,

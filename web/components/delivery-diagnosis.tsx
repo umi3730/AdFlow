@@ -8,7 +8,7 @@ import {
   ReportFilters,
   initialReportSelection,
   selectedReportFilter,
-} from '@/components/delivery-report';
+} from '@/components/report-filters';
 import { AgentWorkspace } from '@/components/agent-workspace';
 import type { RuleEditorValue } from '@/lib/campaign-rules';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';

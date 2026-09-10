@@ -103,14 +103,18 @@ test('Campaign page attaches imported rules only to the newly created plan and i
     new URL('../components/adflow-console.tsx', import.meta.url),
     'utf8',
   );
+  const campaignSource = readFileSync(
+    new URL('../components/console/campaigns-view.tsx', import.meta.url),
+    'utf8',
+  );
   assert.match(source, /setPendingAgentDraft\(structuredClone\(value\)\)/);
   assert.match(source, /setView\('campaigns'\)/);
   assert.match(source, /\[campaign.id\]: structuredClone\(pendingAgentDraft\)/);
   assert.match(
-    source,
+    campaignSource,
     /await api\.createCampaign[\s\S]*?onCreated\(created\)[\s\S]*?setName\(null\)/,
   );
-  assert.match(source, /campaignDrafts\[selectedCampaign.id\]/);
+  assert.match(campaignSource, /campaignDrafts\[selectedCampaign.id\]/);
   assert.match(source, /defaultName=\{testPlanName\(testSequence\)\}/);
 });
 

@@ -1,10 +1,12 @@
 param(
     [switch]$Race,
-    [switch]$BackendOnly
+    [switch]$BackendOnly,
+    [switch]$Browser
 )
 
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
+if ($BackendOnly -and $Browser) { throw 'Browser checks cannot be combined with BackendOnly.' }
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
 $goPackages = @('./cmd/...', './internal/...', './tests/...')
 
@@ -35,6 +37,9 @@ try {
         try {
             Invoke-Check -Program npm.cmd -Arguments @('run', 'lint')
             Invoke-Check -Program npm.cmd -Arguments @('test')
+            if ($Browser) {
+                Invoke-Check -Program npm.cmd -Arguments @('run', 'test:e2e')
+            }
         } finally {
             Pop-Location
         }

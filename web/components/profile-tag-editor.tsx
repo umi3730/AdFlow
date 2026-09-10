@@ -7,6 +7,7 @@ import {
   addProfileTags,
   profileTags,
   profileTagLabel,
+  profileTagInfo,
   toggleProfileTag,
 } from '@/lib/profile-options';
 
@@ -46,6 +47,7 @@ export function ProfileTagEditor({
               variant="secondary"
               disabled={disabled}
               aria-label={'移除' + profileTagLabel(tag)}
+              title={profileTagInfo(tag).description + '\n标签标识：' + tag}
               onClick={() => onChange(toggleProfileTag(value, tag))}
             >
               {profileTagLabel(tag)}

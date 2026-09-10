@@ -1,4 +1,7 @@
 'use client';
+
+import { profileDisplayName, isDemoProfile } from '@/lib/profile-presentation';
+import { ProfileTags } from '@/components/profile-tags';
 import { useAccess } from '@/components/auth-gate';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -16,7 +19,6 @@ import {
   testUserID,
 } from '@/lib/profile-defaults';
 import {
-  profileTagLabel,
   profileTagID,
   profileDeviceLabel,
   deviceOptions,
@@ -308,7 +310,7 @@ export function ProfileWorkspace({
               <Table className="min-w-0 sm:min-w-[650px]">
                 <TableHeader className="hidden sm:table-header-group">
                   <TableRow>
-                    <TableHead>用户 ID</TableHead>
+                    <TableHead>用户 / ID</TableHead>
                     <TableHead>标签</TableHead>
                     <TableHead>设备</TableHead>
                     <TableHead>分数</TableHead>
@@ -326,18 +328,19 @@ export function ProfileWorkspace({
                           : '')
                       }
                     >
-                      <TableCell className="block whitespace-normal break-all font-mono text-sm sm:table-cell sm:text-xs">
-                        {profile.userId}
+                      <TableCell className="block whitespace-normal break-all text-sm sm:table-cell">
+                        <span className="font-medium">
+                          {profileDisplayName(profile.userId)}
+                        </span>
+                        {isDemoProfile(profile.userId) && (
+                          <span className="mt-1 block font-mono text-xs text-muted-foreground">
+                            {profile.userId}
+                          </span>
+                        )}
                       </TableCell>
                       <TableCell className="block sm:table-cell">
                         <div className="flex max-w-64 flex-wrap gap-1">
-                          {profile.tags.length
-                            ? profile.tags.map((tag) => (
-                                <Badge key={tag} variant="secondary">
-                                  {profileTagLabel(tag)}
-                                </Badge>
-                              ))
-                            : '—'}
+                          <ProfileTags tags={profile.tags} />
                         </div>
                       </TableCell>
                       <TableCell className="inline-block sm:table-cell">

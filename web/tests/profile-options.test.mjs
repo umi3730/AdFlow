@@ -15,8 +15,8 @@ import {
 } from '../lib/profile-options.ts';
 
 test('Chinese tag labels and filters preserve canonical and custom identifiers', () => {
-  assert.equal(profileTagLabel('adflow_demo'), '演示用户');
-  assert.equal(profileTagLabel('demo_excluded'), '演示排除人群');
+  assert.equal(profileTagLabel('adflow_demo'), '基础演示人群');
+  assert.equal(profileTagLabel('demo_excluded'), '排除演示人群');
   assert.equal(profileTagLabel('gaming_interest'), '游戏兴趣');
   assert.equal(profileTagLabel('my_custom_tag'), 'my_custom_tag');
   assert.equal(profileTagID(' 数码兴趣 '), 'tech_interest');
@@ -31,7 +31,7 @@ test('Chinese tag labels and filters preserve canonical and custom identifiers',
   );
   assert.equal(profileDeviceLabel('android'), '安卓');
   assert.equal(profileDeviceLabel('custom-device'), 'custom-device');
-  assert.equal(describeCondition({ tag: 'adflow_demo' }), '演示用户');
+  assert.equal(describeCondition({ tag: 'adflow_demo' }), '基础演示人群');
 });
 import { describeCondition } from '../lib/rule-presentation.ts';
 import {
@@ -86,16 +86,16 @@ test('Saving profiles resets to new mode and ID edits are explicit copies, never
   assert.match(source, /另存为新用户/);
 });
 
-test('Decision user options show only user IDs, not tags or device metadata', () => {
+test('Decision user options display names while retaining original ID values', () => {
   const source = readFileSync(
-    new URL('../components/adflow-console.tsx', import.meta.url),
+    new URL('../components/console/decision-view.tsx', import.meta.url),
     'utf8',
   );
   const option = source.match(
     /<option key=\{item.userId\} value=\{item.userId\}>([\s\S]*?)<\/option>/,
   );
   assert.ok(option);
-  assert.equal(option[1].trim(), '{item.userId}');
+  assert.equal(option[1].trim(), '{profileDisplayName(item.userId)}');
 });
 
 test('Shared profile catalog has unique canonical IDs and usable field samples', () => {

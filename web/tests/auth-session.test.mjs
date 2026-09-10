@@ -187,7 +187,7 @@ test('Console is auth gated, secrets never persist, write-only tools are role ga
 
 test('Operations distinguishes disabled mode, unknown state and absent Kafka samples', () => {
   const source = readFileSync(
-    new URL('../components/adflow-console.tsx', import.meta.url),
+    new URL('../components/console/operations-view.tsx', import.meta.url),
     'utf8',
   );
   assert.match(source, /api.operationsMode\(\)/);

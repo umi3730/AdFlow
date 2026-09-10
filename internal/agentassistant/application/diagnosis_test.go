@@ -3,6 +3,10 @@ package application_test
 import (
 	"context"
 	"errors"
+	"strings"
+	"testing"
+	"time"
+
 	mock "github.com/umi3730/adflow/internal/agentassistant/adapter/mock"
 	app "github.com/umi3730/adflow/internal/agentassistant/application"
 	ad "github.com/umi3730/adflow/internal/agentassistant/domain"
@@ -11,8 +15,6 @@ import (
 	dd "github.com/umi3730/adflow/internal/decision/domain"
 	ops "github.com/umi3730/adflow/internal/operations/application"
 	rd "github.com/umi3730/adflow/internal/reporting/domain"
-	"testing"
-	"time"
 )
 
 type reportReader struct{}
@@ -28,6 +30,45 @@ type traceReader struct{}
 
 func (traceReader) Read(context.Context, string) (ops.RequestTrace, error) {
 	return ops.RequestTrace{Decision: &ops.TraceDecision{Reason: dd.ReasonFrequencyCapped}}, nil
+}
+
+type savedReasonReader struct{ reason dd.Reason }
+
+func (r savedReasonReader) Read(context.Context, string) (ops.RequestTrace, error) {
+	return ops.RequestTrace{Decision: &ops.TraceDecision{Reason: r.reason}}, nil
+}
+
+func TestDiagnosisExplainsSavedMissingCreativeWithoutCampaignFilter(t *testing.T) {
+	// A historical request alone must provide actionable evidence, even without
+	// a campaign lookup (whose current creative configuration may have changed).
+	service := app.NewDiagnosisService(reportReader{}, nil, nil, savedReasonReader{dd.ReasonNoCreative}, mock.NewProvider())
+	now := time.Now()
+	result, err := service.Diagnose(t.Context(), app.DiagnosisRequest{
+		Filter:    rd.Filter{From: now.Add(-time.Hour), To: now, Granularity: "hour"},
+		RequestID: "missing-creative",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, evidence := range result.Evidence {
+		if evidence.ID != "request" {
+			continue
+		}
+		if !strings.Contains(evidence.Title, "素材") || !strings.Contains(evidence.Suggestion, "启用") ||
+			!strings.Contains(evidence.Suggestion, "新的请求 ID") ||
+			!strings.Contains(evidence.Detail, string(dd.ReasonNoCreative)) {
+			t.Fatalf("missing actionable historical reason: %+v", evidence)
+		}
+		for _, recommendation := range result.Recommendations {
+			for _, id := range recommendation.EvidenceIDs {
+				if id == "request" && recommendation.Action == evidence.Suggestion {
+					return
+				}
+			}
+		}
+		t.Fatal("request evidence was not used in the diagnosis recommendations")
+	}
+	t.Fatal("missing request evidence")
 }
 
 func TestDiagnosisUsesReportConfigAndSavedReason(t *testing.T) {

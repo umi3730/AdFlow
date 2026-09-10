@@ -3,12 +3,14 @@ package application
 import (
 	"context"
 	"fmt"
-	ad "github.com/umi3730/adflow/internal/agentassistant/domain"
-	cd "github.com/umi3730/adflow/internal/campaign/domain"
-	ops "github.com/umi3730/adflow/internal/operations/application"
-	rd "github.com/umi3730/adflow/internal/reporting/domain"
 	"strings"
 	"time"
+
+	ad "github.com/umi3730/adflow/internal/agentassistant/domain"
+	cd "github.com/umi3730/adflow/internal/campaign/domain"
+	dd "github.com/umi3730/adflow/internal/decision/domain"
+	ops "github.com/umi3730/adflow/internal/operations/application"
+	rd "github.com/umi3730/adflow/internal/reporting/domain"
 )
 
 type ReportReader interface {
@@ -121,7 +123,7 @@ func (s *DiagnosisService) Diagnose(ctx context.Context, input DiagnosisRequest)
 		}
 		if trace.Decision != nil {
 			reason := string(trace.Decision.Reason)
-			title, action := reasonAdvice(reason)
+			title, action := reasonAdvice(trace.Decision.Reason)
 			add("request", title, "指定请求的已保存决策结果："+reason, action)
 		} else {
 			add("request_pending", "尚无完整决策结果", "指定请求存在处理记录，但未保存完整决策。", "查看请求追踪中的执行状态，等待处理完成或排查依赖异常。")
@@ -141,21 +143,23 @@ func (s *DiagnosisService) Diagnose(ctx context.Context, input DiagnosisRequest)
 	result.GeneratedAt = time.Now().UTC()
 	return result, nil
 }
-func reasonAdvice(reason string) (string, string) {
+func reasonAdvice(reason dd.Reason) (string, string) {
 	switch reason {
-	case "profile_not_found":
+	case dd.ReasonProfileNotFound:
 		return "请求未找到画像", "先保存该用户画像，或在投放测试中选择已有用户。"
-	case "no_candidate":
+	case dd.ReasonNoCandidate:
 		return "请求没有有效候选", "检查广告位是否一致、计划是否启用及投放时间是否有效。"
-	case "targeting_miss":
+	case dd.ReasonNoCreative:
+		return "请求因缺少素材未投放", "检查该请求对应计划的素材是否已添加并启用；补齐后使用新的请求 ID 再次测试，历史结果保持不变。"
+	case dd.ReasonTargetingMiss:
 		return "请求未匹配定向", "使用单次投放测试的规则检查，确认用户字段和标签；按业务目标调整定向条件。"
-	case "frequency_capped":
+	case dd.ReasonFrequencyCapped:
 		return "请求达到频控上限", "检查该用户的当日曝光次数，使用其他用户验证；根据投放目标评估频控设置。"
-	case "budget_exhausted":
+	case dd.ReasonBudgetExhausted:
 		return "请求预算不足", "检查日预算、已消耗和预占金额，确认预算后再调整计划。"
-	case "dependency_unavailable":
+	case dd.ReasonDependencyUnavailable:
 		return "请求依赖暂不可用", "检查 MySQL、Redis 的健康状态和处理日志，恢复后重新测试。"
-	case "matched":
+	case dd.ReasonMatched:
 		return "请求已成功投放", "检查曝光、点击和转化是否回传，结合结算状态确认效果统计。"
 	default:
 		return "请求处理结果", "查看请求追踪，结合计划和事件状态进一步排查。"

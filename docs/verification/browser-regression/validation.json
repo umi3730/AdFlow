@@ -1,0 +1,38 @@
+{
+  "date": "2026-09-09",
+  "playwright": "1.63.0",
+  "browser": "Chromium",
+  "projects": [
+    {
+      "name": "desktop",
+      "width": 1280,
+      "height": 800,
+      "passed": 4
+    },
+    {
+      "name": "mobile",
+      "width": 390,
+      "height": 844,
+      "passed": 4
+    }
+  ],
+  "browserTestsPassed": 8,
+  "browserTestsFailed": 0,
+  "frontendUnitTestsPassed": 133,
+  "goVetAndTests": "passed",
+  "format": "passed",
+  "npmAuditVulnerabilities": 0,
+  "testPortsReleased": [
+    18082,
+    4173
+  ],
+  "existingServicePortsStillListening": [
+    18080,
+    18081,
+    3001
+  ],
+  "managedRunDirectoryCleanup": "passed",
+  "earlyDebugDirectoryCleanup": "automatic approval rejected; six ignored directories retained",
+  "ci": "configured, not dispatched",
+  "scope": "real browser and Go memory/sync adapters; mock Agent; no persistent runtime data used"
+}
